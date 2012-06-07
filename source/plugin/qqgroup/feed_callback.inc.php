@@ -11,11 +11,14 @@ if(!defined('IN_DISCUZ')) {
 	exit('Access Denied');
 }
 
+// 只限管理组使用
 if (!$_G['adminid']) {
 	return false;
 }
+// 推送用户组
 $usergroupsfeedlist = unserialize($_G['setting']['qqgroup_usergroup_feed_list']);
 if (empty($usergroupsfeedlist) || !in_array($_G['groupid'], $usergroupsfeedlist)) {
+	// 创始人不受限制
 	$util = Cloud::loadClass('Service_Util');
 	if ($util->isfounder($_G['member']) == false) {
 		return false;

@@ -21,6 +21,7 @@ if (!$setting) {
 							'qqgroup_usergroup_feed_list' => serialize($usergroups),
 						);
 
+	// 将数据记入setting表，并更新缓存
 
 	C::t('common_setting')->update_batch($updateData);
 

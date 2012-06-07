@@ -27,17 +27,20 @@ class plugin_qqgroup {
 	public function viewthread_modoption() {
 		global $_G;
 
+		// 只限管理组使用
 		if (!$_G['adminid']) {
 			return false;
 		}
+		// 推送用户组
 		$usergroupsfeedlist = unserialize($_G['setting']['qqgroup_usergroup_feed_list']);
 
 		if (empty($usergroupsfeedlist) || !in_array($_G['groupid'], $usergroupsfeedlist)) {
+			// 创始人不受限制
 			if (self::$util->isfounder($_G['member']) == false) {
 				return false;
 			}
 		}
-
+		
 		$tid = $_G['tid'];
 		$title = urlencode(trim($_G['forum_thread']['subject']));
 		$post = C::t('forum_post')->fetch_all_by_tid_position($_G['fotum_thread']['posttableid'], $_G['tid'], 1);

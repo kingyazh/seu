@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+	<item id="Title"><![CDATA[Discuz! Addon MD5]]></item>
+	<item id="ID"><![CDATA[qqgroup.plugin]]></item>
+	<item id="SN"><![CDATA[2012060719ia39IMUAEE]]></item>
+	<item id="RevisionID"><![CDATA[1157]]></item>
+	<item id="RevisionDateline"><![CDATA[1333680254]]></item>
+	<item id="Data">
+		<item id="/discuz_plugin_qqgroup_SC_GBK.xml"><![CDATA[2f8ce97024d4f3863f7f93dae396941d]]></item>
+		<item id="/discuz_plugin_qqgroup_SC_UTF8.xml"><![CDATA[0e583260ea3ff052e03d0e1bddd0ac0a]]></item>
+		<item id="/discuz_plugin_qqgroup_TC_BIG5.xml"><![CDATA[29de20580a201eab35c28c0086f4f5d5]]></item>
+		<item id="/discuz_plugin_qqgroup_TC_UTF8.xml"><![CDATA[5a51ecc4639e5e56a0358e2ccf3c2255]]></item>
+		<item id="/feed_callback.inc.php"><![CDATA[cf456cffc7a2dd43daea2c47733fc13c]]></item>
+		<item id="/index.htm"><![CDATA[d41d8cd98f00b204e9800998ecf8427e]]></item>
+		<item id="/pushfeed.inc.php"><![CDATA[c2c829bdfffebea9f2fe3c79a814f474]]></item>
+		<item id="/qqgroup.class.php"><![CDATA[84ca472be477f949e1edb37466f007ec]]></item>
+		<item id="/template/push.htm"><![CDATA[efefde48a6373b6a15f39a8a034ee9e5]]></item>
+		<item id="/template/pushfeed.htm"><![CDATA[fc5c2110310eb232bd3d8e731675f055]]></item>
+		<item id="/template/resize.htm"><![CDATA[e2842eff6fe7719f8c99ae83abc5cad8]]></item>
+		<item id="/upgrade.php"><![CDATA[9a7734c5fbdfef057978b1852f6ddf8a]]></item>
+	</item>
+</root>
