@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: collection_edit.php 28448 2012-03-01 03:27:53Z chenmengshu $
+ *      $Id: collection_edit.php 28892 2012-03-19 02:11:56Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -216,6 +216,9 @@ if(empty($op) || $op == 'add') {
 					if(!getstatus($thread[$curtid]['status'], 9)) {
 						C::t('forum_thread')->update_status_by_tid($curtid, '256');
 					}
+
+					notification_add($thread[$curtid]['authorid'], "system", 'collection_becollected', array('from_id'=>$_G['collection']['ctid'], 'from_idtype'=>'collectionthread', 'ctid'=>$_G['collection']['ctid'], 'collectionname'=>$_G['collection']['name'], 'tid'=>$curtid, 'threadname'=>$thread[$curtid]['subject']), 1);
+
 					$addsum++;
 				}
 

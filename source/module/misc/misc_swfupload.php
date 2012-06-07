@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: misc_swfupload.php 28057 2012-02-21 22:19:33Z zhengqingpeng $
+ *      $Id: misc_swfupload.php 29000 2012-03-22 03:52:01Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -12,10 +12,12 @@ if(!defined('IN_DISCUZ')) {
 }
 
 $_G['uid'] = intval($_POST['uid']);
-if(empty($_G['uid']) || $_POST['hash'] != md5(substr(md5($_G['config']['security']['authkey']), 8).$_G['uid'])) {
+if((empty($_G['uid']) && $_GET['operation'] != 'upload') || $_POST['hash'] != md5(substr(md5($_G['config']['security']['authkey']), 8).$_G['uid'])) {
 	exit();
 } else {
-	$_G['member'] = getuserbyuid($_G['uid']);
+	if($_G['uid']) {
+		$_G['member'] = getuserbyuid($_G['uid']);
+	}
 	$_G['groupid'] = $_G['member']['groupid'];
 	loadcache('usergroup_'.$_G['member']['groupid']);
 	$_G['group'] = $_G['cache']['usergroup_'.$_G['member']['groupid']];

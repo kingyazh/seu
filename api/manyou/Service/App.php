@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: App.php 27244 2012-01-12 03:37:40Z songlixin $
+ *      $Id: App.php 29177 2012-03-28 05:56:17Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -120,6 +120,7 @@ class Cloud_Service_App {
 		if ($updateCache) {
 			require_once libfile('function/cache');
 			updatecache(array('plugin', 'setting', 'styles'));
+			cleartemplatecache();
 		}
 
 		return true;

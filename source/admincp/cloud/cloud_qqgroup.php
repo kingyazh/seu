@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: cloud_qqgroup.php 26353 2011-12-09 10:01:34Z yexinhao $
+ *      $Id: cloud_qqgroup.php 29283 2012-03-31 09:35:36Z liudongdong $
  */
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
 	exit('Access Denied');
@@ -13,9 +13,9 @@ if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
 $op = trim($_GET['op']);
 
 $utilService = Cloud::loadClass('Service_Util');
-$signUrl = $utilService->generateSiteSignUrl();
+$signUrl = $utilService->generateSiteSignUrl(array('v' => 2));
 
-$_GET['anchor'] = in_array($_GET['anchor'], array('block', 'list', 'info')) ? $_GET['anchor'] : 'block';
+$_GET['anchor'] = in_array($_GET['anchor'], array('block', 'list', 'info', 'setting')) ? $_GET['anchor'] : 'block';
 
 if ($_GET['first']) {
 	$_GET['anchor'] = 'list';
@@ -28,6 +28,7 @@ $qqgroupnav = array();
 $qqgroupnav[0] = array('qqgroup_menu_block', 'cloud&operation=qqgroup&anchor=block', $current['block']);
 $qqgroupnav[1] = array('qqgroup_menu_list', 'cloud&operation=qqgroup&anchor=list', $current['list']);
 $qqgroupnav[2] = array('qqgroup_menu_manager', 'cloud&operation=qqgroup&anchor=info', $current['info']);
+$qqgroupnav[3] = array('qqgroup_menu_setting', 'cloud&operation=qqgroup&anchor=setting', $current['setting']);
 
 if (!$_G['inajax']) {
 	cpheader();
@@ -39,6 +40,44 @@ if($_GET['anchor'] == 'list') {
 } elseif($_GET['anchor'] == 'info') {
 	$utilService->redirect($cloudDomain.'/qun/siteInfo/?' . $signUrl);
 
+} elseif($_GET['anchor'] == 'setting') {
+	if(submitcheck('settingsubmit')) {
+		$usergroups = $_POST['groupid'];
+
+		$updateData = array(
+							'qqgroup_usergroup_feed_list' => serialize($usergroups),
+						);
+
+		C::t('common_setting')->update_batch($updateData);
+		updatecache('setting');
+
+		cpmsg('setting_update_succeed', 'action=cloud&operation=qqgroup&anchor='.$_GET['anchor'], 'succeed');
+
+	} else {
+
+		$usergroupsfeedlist = unserialize($_G['setting']['qqgroup_usergroup_feed_list']);
+		$groupselect = array();
+
+		foreach (C::t('common_usergroup')->fetch_all_by_radminid(0) as $group) {
+			$group['type'] = $group['type'] == 'special' && $group['radminid'] ? 'specialadmin' : $group['type'];
+			$groupselect[$group['type']] .= "<option value=\"$group[groupid]\" ".(in_array($group['groupid'], $usergroupsfeedlist) ? 'selected' : '').">$group[grouptitle]</option>\n";
+		}
+
+		$groupselect = ($groupselect['special'] ? '<optgroup label="'.$lang['usergroups_special'].'">'.$groupselect['special'].'</optgroup>' : '').
+			($groupselect['specialadmin'] ? '<optgroup label="'.$lang['usergroups_specialadmin'].'">'.$groupselect['specialadmin'].'</optgroup>' : '').
+			'<optgroup label="'.$lang['usergroups_system'].'">'.$groupselect['system'].'</optgroup>';
+
+		shownav('navcloud', 'menu_cloud_qqgroup');
+		showsubmenu('menu_cloud_qqgroup', $qqgroupnav);
+		showtips('qqgroup_setting_tips');
+		showformheader('cloud&operation=qqgroup&anchor=setting');
+		showtableheader('qqgroup_feed_setting', '', '', 2);
+		showsetting('qqgroup_usergroup_feed_list', '', '', '<select name="groupid[]" multiple="multiple" size="10">'.$groupselect.'</select>');
+		showsubmit('settingsubmit');
+		showtablefooter();
+		showformfooter();
+
+	}
 } elseif($_GET['anchor'] == 'block') {
 
 	$perpage = 10;

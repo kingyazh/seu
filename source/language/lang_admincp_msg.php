@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: lang_admincp_msg.php 28305 2012-02-27 09:51:43Z chenmengshu $
+ *      $Id: lang_admincp_msg.php 30255 2012-05-17 09:14:49Z zhengqingpeng $
  *
  *      This file is automatically generate
  */
@@ -22,7 +22,7 @@ $lang = array (
   'blockstyle_delete_succeed' => '删除模块模板成功 ',
   'blogcategory_move_category_failed' => '无法移动日志到指定分类',
   'blogcategory_delete_succeed' => '删除日志分类成功 ',
-  'filecheck_nofound_md5file' => '不存在校验文件，无法进行此操作',
+  'filecheck_nofound_md5file' => '不存在校验文件，无法进行此操作 {upgradeurl}',
   'cloudaddons_download_error' => '数据下载错误({ErrorCode})',
   'cloudaddons_downloading' => '应用 {addonid} 下载中，请稍候 ......',
   'collection_admin_updated' => '专辑管理操作成功',
@@ -69,13 +69,13 @@ $lang = array (
   'nav_not_found' => '导航未找到或类型不符',
   'patch_successful' => '操作成功',
   'plugin_not_found' => '插件未找到',
-  'plugins_edit_identifier_invalid' => '您输入的唯一标识符不合法或与现有插件重复',
   'plugins_install_succeed' => '插件成功安装！<br />为了正常使用此插件，您可能还需要上传或修改相应的文件或模板，详情请查看本插件的安装说明<br /><br /><a href="http://addon.discuz.com?view=plugins">点击这里返回应用中心</a><br />',
   'plugin_file_error' => '插件文件缺失',
+  'plugins_edit_identifier_invalid' => '您输入的唯一标识符不合法或与现有插件重复',
   'plugins_upgrade_succeed' => '插件成功更新到 {toversion}<br /><br /><a href="http://addon.discuz.com?view=plugins">点击这里返回应用中心</a><br />',
   'plugins_edit_name_invalid' => '您没有输入插件名称',
   'plugins_edit_succeed' => '插件配置更新成功 ',
-  'plugins_delete_succeed' => '插件成功卸载！<br />为了正常使用此插件，您可能还需要删除或修改相应的文件或模板，详情请查看本插件的安装说明',
+  'plugins_delete_succeed' => '插件成功卸载！<br />为了正常卸载此插件，您可能还需要删除或修改相应的文件或模板，详情请查看本插件的安装说明',
   'portalcategory_move_category_failed' => '无法移动文章到所选分类',
   'portalcategory_delete_succeed' => '删除分类成功 ',
   'portalcategory_catgory_not_found' => '分类不存在或没有选择分类',
@@ -114,7 +114,7 @@ $lang = array (
   'members_verify_update_succeed' => '认证设置更新成功 ',
   'action_noaccess' => '抱歉，您无权使用此功能',
   'members_delete_confirm' => '本操作不可恢复，您确定要删除符合条件的 {membernum} 个用户吗？',
-  'cloudaddons_check_write_error' => '"data/download/" 目录无法创建或写入，这将会导致应用无法安装，请检查服务器环境',
+  'cloudaddons_check_write_error' => '"data/download/" 或 "data/addonmd5/" 目录无法创建或写入，这将会导致应用无法安装，请检查服务器环境',
   'cloudaddons_file_read_error' => '文件读取错误，请重试',
   'cloudaddons_file_write_error' => '文件写入错误，请重试',
 
@@ -223,6 +223,7 @@ $lang = array (
   'setting_district_edit_success' => '修改地区数据成功 ',
 
   'setting_domain_repeat_error' => '配置中存在重复的域名',
+  'setting_domain_need_default_error' => '请设置默认域名',
 
   'alipay_not_contract' => '请输入支付宝签约用户信息',
   'alipay_succeed' => '支付宝功能设定成功 ',
@@ -395,7 +396,7 @@ $lang = array (
   'plugins_import_version_invalid' => '本插件适用于 Discuz! {cur_version} 与当前版本({set_version})不一致',
   'plugins_import_succeed' => '插件数据导入成功！<br />为了正常使用此插件，您可能还需要上传或修改相应的文件或模板，详情请查看本插件的安装说明',
   'plugins_config_upgrade_confirm' => '您确定要把 {pluginname} {version} 插件更新到 {toversion} 吗？',
-  'plugins_config_upgrade_missed' => '此插件无需更新，请上传新版本后再执行本操作<br /><br /><a href="http://addon.discuz.com?view=plugins">点击这里返回应用中心</a><br />',
+  'plugins_config_upgrade_missed' => '此插件已更新到最新版本<br /><br /><a href="http://addon.discuz.com?view=plugins">点击这里返回应用中心</a><br />',
   'plugins_upgrade_var_invalid' => '插件的嵌入点名称不合法，无法更新',
   'plugins_setting_succeed' => '插件参数设置更新成功 ',
   'plugins_setting_module_nonexistence' => '指定的插件管理模块文件({modfile})不存在或存在语法错误，请检查是否已将插件完整上传',
@@ -408,10 +409,12 @@ $lang = array (
   'plugins_edit_modules_duplicated' => '您输入的程序模块名称与现有模块重复',
   'plugins_edit_var_invalid' => '您输入的配置变量名不合法或重复',
   'plugins_delete_error' => '您不能卸载系统插件。',
-  'plugins_delete_confirm' => '您确定要卸载 {pluginname} {toversion} 插件吗？',
+  'plugins_delete_confirm' => '您确定要卸载 {pluginname} {toversion} 插件吗？<br /><br />请选择您卸载该应用的原因，以便我们以后为您提供更好的应用：<br /><br /><label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="1" />功能不满足需求</label> <label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="2" />界面不美观</label> <label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="3" />效率问题运行速度慢</label> <label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="4" />发现了更好的应用</label><label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="5" />纯试用现在卸载</label>',
+  'styles_delete_confirm' => '您确定要卸载这些风格吗？<br /><br />请选择您卸载该应用的原因，以便我们以后为您提供更好的应用：<br /><br /><label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="1" />功能不满足需求</label> <label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="2" />界面不美观</label> <label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="3" />效率问题运行速度慢</label> <label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="4" />发现了更好的应用</label><label><input name="uninstallreason[]" class="checkbox" type="checkbox" value="5" />纯试用现在卸载</label>',
   'pluginvar_not_found' => '插件变量未找到',
   'plugins_edit_var_title_invalid' => '您没有输入配置名称',
   'plugins_edit_vars_succeed' => '插件变量配置更新成功 ',
+  'plugins_edit_vars_invalid' => '插件配置变量名不合法或者已被占用',
   'plugins_validator_noupdate' => '没有检测到新版本插件',
 
   'portalcategory_update_succeed' => '更新分类成功 ',
@@ -463,17 +466,17 @@ $lang = array (
   'smilies_import_succeed_renamed' => '表情导入成功。导入的表情分类名称与现有重复，已被自动重命名',
   'smilies_import_succeed' => '表情导入成功 ',
 
-  'specialuser_defaultuser_noreason_invalid' => '请输入原因',
   'specialuser_hotuser_noreason_invalid' => '请输入原因',
+  'specialuser_follow_del_succeed' => '删除推荐关注成功 ',
   'specialuser_defaultuser_del_succeed' => '删除推荐好友成功 ',
   'specialuser_hotuser_del_succeed' => '删除明星会员成功 ',
   'specialuser_hotuser_edit_succeed' => '编辑成功 ',
   'specialuser_hotuser_add_invaild' => '需要同时输入用户名和推荐原因',
   'specialuser_hotuser_added_invalid' => '该用户已推荐过',
   'specialuser_hotuser_nouser_invalid' => '该用户不存在或被冻结',
+  'specialuser_follow_add_succeed' => '添加推荐关注成功 ',
   'specialuser_defaultuser_add_succeed' => '添加推荐好友成功 ',
   'specialuser_hotuser_add_succeed' => '添加会员成功 ',
-  'specialuser_follow_add_succeed' => '添加推荐关注用户成功 ',
 
   'styles_export_invalid' => '指定的风格不存在，无法导出',
   'csscache_update' => 'CSS 缓存文件已更新',
@@ -546,20 +549,23 @@ $lang = array (
   'topic_choose_at_least_one_optype' => '请选择一个操作项',
 
   'upgrade_close_site' => '升级前，请先关闭站点，并对文件及数据备份',
-  'upgrade_none' => '没有该升级信息',
-  'upgrade_download_complete_to_compare' => '待更新文件下载完成，即将进行本地文件比较',
-  'upgrade_redownload' => '更新文件 {file} 下载出现问题，是否进行重试？',
-  'upgrade_downloading_file' => '正在从官方下载更新文件 {file}',
+  'upgrade_none' => '没有该升级信息 {upgradeurl}',
+  'upgrade_continue' => '您上次升级到 {step}，请继续完成升级',
+  'upgrade_download_upgradelist_error' => '获取待更新文件列表失败，是否重新获取？ {upgradeurl}',
+  'upgrade_download_complete_to_compare' => '待更新文件下载完成，即将进行本地文件比较 {upgradeurl}',
+  'upgrade_redownload' => '更新文件 {file} 下载出现问题，是否进行重试？ {upgradeurl}',
+  'upgrade_downloading_file' => '正在从官方下载更新文件 {file} {upgradeurl}',
   'upgrade_cannot_access_file' => '发现您的目录及文件无修改权限，请您填写 ftp 账号，或者修改文件权限为可读可写后重试',
-  'upgrade_backuping' => '正在备份原始文件...',
-  'upgrade_backup_error' => '备份原始文件出错',
-  'upgrade_backup_complete' => '备份完成，正在进行升级...',
-  'upgrade_ftp_upload_error' => 'ftp 上传文件出错，是否重新上传？',
-  'upgrade_copy_error' => '复制文件出错，是否重新复制？',
-  'upgrade_file_successful' => '文件升级成功，即将进入更新数据库',
-  'upgrade_successful' => '恭喜您，升级成功! <br />您当前的版本为：[Discuz! X{version} Release[{release}]',
+  'upgrade_backuping' => '正在备份原始文件... {upgradeurl}',
+  'upgrade_backup_error' => '备份原始文件出错 {upgradeurl}',
+  'upgrade_backup_complete' => '备份完成，正在进行升级... {upgradeurl}',
+  'upgrade_ftp_upload_error' => 'ftp上传文件 {file} 出错， 请修改文件权限后重新上传 或 重新设置ftp账号 {upgradeurl}',
+  'upgrade_copy_error' => '复制文件 {file} 出错，请检测原始文件是否存在，重新复制 或 通过ftp上传复制文件 {upgradeurl}',
+  'upgrade_file_successful' => '文件升级成功，即将进入更新数据库 {upgradeurl}',
+  'upgrade_successful' => '恭喜您，升级成功! <br />您当前的版本为：[Discuz! X{version} Release[{release}] <br /><br />为安全起见，升级文件已保存至{save_update_dir}目录，<br />备份文件已保存至{save_back_dir}目录 {upgradeurl}',
   'upgrade_checking' => '正在检测新的升级版本',
-  'upgrade_latest_version' => '您目前使用的是已经是最新版本，不需要升级',
+  'upgrade_latest_version' => '您目前使用的已经是最新版本，不需要升级',
+  'upgrade_param_error' => '请求的参数不正确',
 
   'usergroups_type_nonexistence' => '用户组类型错误',
   'usergroups_update_creditshigher_invalid' => '您没有填写积分下限',
@@ -615,7 +621,7 @@ $lang = array (
 
   'cloudaddons_ftp_path_error' => '站点 FTP 路径错误，请重新填写',
 
-  'cloudaddons_check_url_fopen_error' => '您的服务器无法访问应用中心，这将会导致应用无法安装，请检查服务器环境',
+  'cloudaddons_check_url_fopen_error' => '您的服务器无法访问应用中心，这将会导致应用无法安装。请联系您的服务商或者网站技术人员，确保您的服务器能够正常访问 addon.discuz.com 或 addon1.discuz.com',
   'cloudaddons_genuine_message' => '对不起，您安装的不是正版应用，安装程序无法继续执行<br /><br /><a href="admin.php?action=cloudaddons&id={addonid}">点击这里安装正版应用</a>',);
 
 ?>

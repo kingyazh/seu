@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: forum_ajax.php 28523 2012-03-02 03:38:54Z zhengqingpeng $
+ *      $Id: forum_ajax.php 30465 2012-05-30 04:10:03Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -494,11 +494,14 @@ EOF;
 	$tid = intval($_GET['tid']);
 	$fid = intval($_GET['fid']);
 	$list = C::t('forum_post')->fetch_all_by_tid('tid:'.$tid, $tid, true, 'DESC', 0, 10, null, 0);
+	loadcache('smilies');
 	foreach($list as $pid => $post) {
 		if($post['first']) {
 			unset($list[$pid]);
 		} else {
-			$list[$pid]['message'] = cutstr(preg_replace("/\[.+?\]/ies", '', $post['message']), 300) ;
+			$post['message'] = preg_replace($_G['cache']['smilies']['searcharray'], '', $post['message']);
+			$post['message'] = preg_replace("/\{\:soso_((e\d+)|(_\d+_\d))\:\}/e", '', $post['message']);
+			$list[$pid]['message'] = cutstr(preg_replace("/\[.+?\]/ies", '', dhtmlspecialchars($post['message'])), 300) ;
 		}
 	}
 	krsort($list);
@@ -557,6 +560,8 @@ EOF;
 			sendreasonpm(array('authorid' => $uid), 'reason_quickclear', array(
 				'cleartype' => implode(',', $cleartype),
 				'reason' => $reason,
+				'from_id' => 0,
+				'from_idtype' => 'quickclear'
 			));
 		}
 		showmessage('quickclear_success', $_POST['redirect'], array(), array('showdialog'=>1, 'closetime' => true, 'msgtype' => 2, 'locationtime' => 1));
@@ -636,7 +641,7 @@ EOF;
 			include libfile('function/cache');
 			updatecache('setting');
 		}
-		showmessage('do_success', dreferer(), array(), array('showdialog'=>1, 'closetime' => true, 'msgtype' => 2, 'locationtime' => 1));
+		showmessage('do_success', dreferer(), array(), array('header'=>true));
 	}
 	exit;
 }

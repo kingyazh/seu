@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: search_forum.php 27704 2012-02-13 02:13:24Z chenmengshu $
+ *      $Id: search_forum.php 29447 2012-04-12 08:15:15Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -56,7 +56,7 @@ $before = intval($_GET['before']);
 $srchfid = $_GET['srchfid'];
 $srhfid = intval($_GET['srhfid']);
 
-$keyword = isset($srchtxt) ? htmlspecialchars(trim($srchtxt)) : '';
+$keyword = isset($srchtxt) ? dhtmlspecialchars(trim($srchtxt)) : '';
 
 $forumselect = forumselect();
 if(!empty($srchfid) && !is_numeric($srchfid)) {
@@ -69,8 +69,9 @@ if($mySearchData['status'] && !$srchfrom && !$searchid) {
 		dheader('Location: index.php');
 	}
 	$appService = Cloud::loadClass('Service_App');
-	if($appService->getCloudAppStatus('search')) {
+	if($appService->getCloudAppStatus('search') && $searchparams) {
 		$source = 'discuz';
+		$cloudSource = array('collectionsearch', 'hotsearch');
 		if(!empty($_GET['srhlocality'])) {
 			$sourcetype = explode('::', $_GET['srhlocality']);
 			if($sourcetype[0] == 'forum') {
@@ -84,57 +85,12 @@ if($mySearchData['status'] && !$srchfrom && !$searchid) {
 			} elseif($sourcetype[0] == 'misc' && $sourcetype[1] == 'ranklist') {
 				$source = 'toplist';
 			}
-		} elseif($_GET['source'] == 'hotsearch') {
-			$source = 'hotsearch';
+		} elseif(in_array($_GET['source'], $cloudSource)) {
+			$source = $_GET['source'];
 		}
 
-		Cloud::loadFile('Service_SearchHelper');
-		$appService = Cloud::loadClass('Service_App');
-
-		if ($appService->getCloudAppStatus('connect')) {
-			$connectService = Cloud::loadClass('Service_Connect');
-			$connectService->connectMergeMember();
-		}
-
-		$my_forums = Cloud_Service_SearchHelper::getForums();
-
-		$my_extgroupids = array();
-		$_extgroupids = explode("\t", $_G['member']['extgroupids']);
-		foreach($_extgroupids as $v) {
-			if ($v) {
-				$my_extgroupids[] = $v;
-			}
-		}
-		$my_extgroupids_str = implode(',', $my_extgroupids);
-
-		$params = array(
-				'cuName' => $_G['username'],
-				'gId' => $_G['groupid'],
-				'agId' => $_G['adminid'],
-				'egIds' => $my_extgroupids_str,
-				'fmSign' => substr($my_forums['sign'], -4),
-		);
-
-		$groupIds = explode(',', $_G['groupid']);
-		if ($_G['adminid']) {
-			$groupIds[] = $_G['adminid'];
-		}
-		if ($my_extgroupids) {
-			$groupIds = array_merge($groupIds, $my_extgroupids);
-		}
-
-		$groupIds = array_unique($groupIds);
-		$userGroups = Cloud_Service_SearchHelper::getUserGroupPermissions($groupIds);
-		foreach($groupIds as $k => $v) {
-			$value =  substr($userGroups[$v]['sign'], -4);
-			if ($value) {
-				$params['ugSign' . $v] = $value;
-			}
-		}
-		$params['charset'] = $_G['charset'];
-		if ($_G['member']['conopenid']) {
-			$params['openid'] = $_G['member']['conopenid'];
-		}
+		$params = array();
+		$params['source'] = $source;
 
 		$params['q'] = $keyword;
 		$params['module'] = 'forum';
@@ -144,24 +100,19 @@ if($mySearchData['status'] && !$srchfrom && !$searchid) {
 		if($_GET['adv']) {
 			$params['isAdv'] = 1;
 		}
-		if(!empty($source)) {
-			$params['source']=$source;
-		}
 		if(!empty($_GET['author'])) {
 			$params['author']=$_GET['author'];
 		}
 		if(!empty($_GET['scope'])) {
 			$params['scope']=$_GET['scope'];
 		}
-
-		$mySearchData = $_G['setting']['my_search_data'];
-		if ($mySearchData['domain']) {
-			$domain = $mySearchData['domain'];
-		} else {
-			$domain = 'search.discuz.qq.com';
+		if(!empty($_GET['orderField'])) {
+			$params['orderField']=$_GET['orderField'];
 		}
+		$searchparams['params'] = array_merge($searchparams['params'], $params);
+
 		$utilService = Cloud::loadClass('Service_Util');
-		$url = 'http://' . $domain . '/f/discuz?' . $utilService->generateSiteSignUrl($params, true, true);
+		$url = $searchparams['url'] . '?' . $utilService->httpBuildQuery($searchparams['params'], '', '&');
 		$utilService->redirect($url);
 		die;
 	}
@@ -192,7 +143,7 @@ if(!submitcheck('searchsubmit', 1)) {
 			showmessage('search_id_invalid');
 		}
 
-		$keyword = htmlspecialchars($index['keywords']);
+		$keyword = dhtmlspecialchars($index['keywords']);
 		$keyword = $keyword != '' ? str_replace('+', ' ', $keyword) : '';
 
 		$index['keywords'] = rawurlencode($index['keywords']);

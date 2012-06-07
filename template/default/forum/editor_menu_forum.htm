@@ -140,18 +140,14 @@
 
 				<script type="text/javascript">
 					var imgUpload = new SWFUpload({
-						// Backend Settings
-						upload_url: "{$_G[siteroot]}misc.php?mod=swfupload&action=swfupload&operation=upload&fid=$_G[fid]",
+						upload_url: "{$_G[siteurl]}misc.php?mod=swfupload&action=swfupload&operation=upload&fid=$_G[fid]",
 						post_params: {"uid" : "$_G[uid]", "hash":"$swfconfig[hash]", "type":"image"},
 
-						// File Upload Settings
-						file_size_limit : "$swfconfig[max]",	// 100MB
+						file_size_limit : "$swfconfig[max]",
 						file_types : "$swfconfig[imageexts][ext]",
 						file_types_description : "$swfconfig[imageexts][depict]",
 						file_upload_limit : $swfconfig['limit'],
 						file_queue_limit : 0,
-
-						// Event Handler Settings (all my handlers are in the Handler.js file)
 						swfupload_preload_handler : preLoad,
 						swfupload_load_failed_handler : loadFailed,
 						file_dialog_start_handler : fileDialogStart,
@@ -164,21 +160,12 @@
 						upload_success_handler : uploadSuccess,
 						upload_complete_handler : uploadComplete,
 
-						// Button Settings
-						button_image_url : IMGDIR+"/uploadbutton.png",
+						button_image_url : "{IMGDIR}/uploadbutton.png",
 						button_placeholder_id : "imgSpanButtonPlaceholder",
 						button_width: 100,
 						button_height: 25,
 						button_cursor:SWFUpload.CURSOR.HAND,
-						button_text_left_padding: 0,
-						button_text_style: '.button { vertical-align: middle; overflow: hidden; }',
-						//button_text: '<span class="button">上传</span>',
-						button_text: '',
 						button_window_mode: "transparent",
-
-						// Flash Settings
-						flash_url : IMGDIR+"/swfupload.swf",
-						flash9_url : IMGDIR+"/swfupload_fp9.swf",
 
 						custom_settings : {
 							progressTarget : "imgUploadProgress",
@@ -196,8 +183,6 @@
 							<!--{/if}-->
 							singleUpload: $('{$editorid}_btn_local')
 						},
-
-						// Debug Settings
 						debug: false
 					});
 
@@ -372,18 +357,15 @@
 				<div class="fieldset flash" id="fsUploadProgress"></div>
 				<script type="text/javascript">
 					var upload = new SWFUpload({
-						// Backend Settings
-						upload_url: "{$_G[siteroot]}misc.php?mod=swfupload&action=swfupload&operation=upload&fid=$_G[fid]",
+						upload_url: "{$_G[siteurl]}misc.php?mod=swfupload&action=swfupload&operation=upload&fid=$_G[fid]",
 						post_params: {"uid":"$_G[uid]", "hash":"$swfconfig[hash]"},
 
-						// File Upload Settings
-						file_size_limit : "$swfconfig[max]",	// 100MB
+						file_size_limit : "$swfconfig[max]",
 						file_types : "$swfconfig[attachexts][ext]",
 						file_types_description : "$swfconfig[attachexts][depict]",
 						file_upload_limit : $swfconfig['limit'],
 						file_queue_limit : 0,
 
-						// Event Handler Settings (all my handlers are in the Handler.js file)
 						swfupload_preload_handler : preLoad,
 						swfupload_load_failed_handler : loadFailed,
 						file_dialog_start_handler : fileDialogStart,
@@ -396,21 +378,12 @@
 						upload_success_handler : uploadSuccess,
 						upload_complete_handler : uploadComplete,
 
-						// Button Settings
-						button_image_url : IMGDIR+"/uploadbutton.png",
+						button_image_url : "{IMGDIR}/uploadbutton.png",
 						button_placeholder_id : "spanButtonPlaceholder",
 						button_width: 100,
 						button_height: 25,
 						button_cursor:SWFUpload.CURSOR.HAND,
-						button_text_left_padding: 0,
-						button_text_style: '.button { vertical-align: middle; overflow: hidden; }',
-						//button_text: '<span class="button">上传</span>',
-						button_text: '',
 						button_window_mode: "transparent",
-
-						// Flash Settings
-						flash_url : IMGDIR+"/swfupload.swf",
-						flash9_url : IMGDIR+"/swfupload_fp9.swf",
 
 						custom_settings : {
 							progressTarget : "fsUploadProgress",
@@ -428,7 +401,6 @@
 							singleUpload: $('{$editorid}_btn_upload')
 						},
 
-						// Debug Settings
 						debug: false
 					});
 
@@ -452,7 +424,7 @@
 		<!--{hook/post_attach_tab_extra}-->
 		</div>
 		<div class="o">
-			<button onclick="hideAttachMenu('attach')" class="pn pnc">
+			<button onclick="hideAttachMenu('attach')" class="pn pnc" id="attach_confirms">
 				<strong>{lang confirms}</strong>
 			</button>
 		</div>
@@ -484,7 +456,7 @@
 		<!--{/if}-->
 	<!--{/if}-->
 	<!--{if $_G['group']['allowpostattach'] || $_G['group']['allowpostimage']}-->
-		
+
 		ATTACHNUM['attachused'] = <!--{echo @count($attachs['used'])}-->;
 		<!--{if !empty($attachs['used']) || !empty($attachs['unused'])}-->
 			$(editorid + '_attach').evt = false;
@@ -497,8 +469,10 @@
 		display('attachnotice_attach');
 		var msg = '';
 		<!--{loop $attachs['unused'] $attach}-->
-			msg += '<p><label><input id="unused$attach[aid]" name="unused[]" value="$attach[aid]" checked type="checkbox" class="pc" /><span title="$attach[filenametitle] $attach[dateline]">$attach[filename]</span></label></p>'
-			ATTACHUNUSEDAID[{$attach[aid]}] = '$attach[aid]';
+			<!--{if !empty($attach['aid'])}-->
+				msg += '<p><label><input id="unused$attach[aid]" name="unused[]" value="$attach[aid]" checked type="checkbox" class="pc" /><span title="$attach[filenametitle] $attach[dateline]">$attach[filename]</span></label></p>'
+				ATTACHUNUSEDAID[{$attach[aid]}] = '$attach[aid]';
+			<!--{/if}-->
 		<!--{/loop}-->
 		$('unusedlist_attach').innerHTML = '<div class="cl">' + msg + '</div>';
 		$('unusednum_attach').innerHTML = parseInt(<!--{echo @count($attachs['unused'])}-->);
@@ -507,8 +481,10 @@
 		display('attachnotice_img');
 		var msg = '';
 		<!--{loop $imgattachs['unused'] $attach}-->
-			msg += '<p style="float:left;width:220px;"><label><input id="unused$attach[aid]" name="unused[]" value="$attach[aid]" checked type="checkbox" class="pc" /><span title="$attach[filenametitle] $attach[dateline]">$attach[filename]</span></label></p>'
-			IMGUNUSEDAID[{$attach[aid]}] = '$attach[aid]';
+			<!--{if !empty($attach['aid'])}-->
+				msg += '<p style="float:left;width:220px;"><label><input id="unused$attach[aid]" name="unused[]" value="$attach[aid]" checked type="checkbox" class="pc" /><span title="$attach[filenametitle] $attach[dateline]">$attach[filename]</span></label></p>'
+				IMGUNUSEDAID[{$attach[aid]}] = '$attach[aid]';
+			<!--{/if}-->
 		<!--{/loop}-->
 		$('unusedlist_img').innerHTML = '<div class="cl">' + msg + '</div>';
 		$('unusednum_img').innerHTML = parseInt(<!--{echo @count($imgattachs['unused'])}-->);

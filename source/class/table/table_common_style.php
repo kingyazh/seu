@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_common_style.php 27449 2012-02-01 05:32:35Z zhangguosheng $
+ *      $Id: table_common_style.php 29200 2012-03-28 09:11:54Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -24,7 +24,7 @@ class table_common_style extends discuz_table
 	public function fetch_all_data($withtemplate = false, $available = false) {
 		if($withtemplate) {
 			$available = $available !== false ? 'WHERE s.available='.intval($available) : '';
-			return DB::fetch_all('SELECT s.*, t.name AS tplname, t.directory, t.copyright FROM %t s LEFT JOIN %t t ON t.templateid=s.templateid %i ORDER BY s.available DESC, s.styleid ASC', array($this->_table, 'common_template', $available));
+			return DB::fetch_all('SELECT s.*, t.name AS tplname, t.directory, t.copyright FROM %t s LEFT JOIN %t t ON t.templateid=s.templateid %i ORDER BY s.styleid ASC', array($this->_table, 'common_template', $available));
 		} else {
 			$available = $available !== false ? 'WHERE available='.intval($available) : '';
 			return DB::fetch_all('SELECT * FROM %t %i', array($this->_table, $available));

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_message.php 27222 2012-01-11 08:01:39Z monkey $
+ *      $Id: function_message.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -75,7 +75,7 @@ function dshowmessage($message, $url_forward = '', $values = array(), $extrapara
 	}
 	$_GET['handlekey'] = !empty($_GET['handlekey']) && preg_match('/^\w+$/', $_GET['handlekey']) ? $_GET['handlekey'] : '';
 	if(!empty($_G['inajax'])) {
-		$handlekey = $_GET['handlekey'] = !empty($_GET['handlekey']) ? htmlspecialchars($_GET['handlekey']) : '';
+		$handlekey = $_GET['handlekey'] = !empty($_GET['handlekey']) ? dhtmlspecialchars($_GET['handlekey']) : '';
 		$param['handle'] = true;
 	}
 	if(!empty($_G['inajax'])) {
@@ -135,7 +135,18 @@ function dshowmessage($message, $url_forward = '', $values = array(), $extrapara
 	}
 	if($_G['connectguest']) {
 		$param['login'] = false;
-		$show_message = str_replace(lang('forum/misc', 'connectguest_message_search'), lang('forum/misc', 'connectguest_message_replace'), $show_message);
+		$param['alert'] = 'info';
+		if (defined('IN_MOBILE')) {
+			if ($message == 'postperm_login_nopermission_mobile') {
+				$show_message = lang('plugin/qqconnect', 'connect_register_mobile_bind_error');
+			}
+			$show_message = str_replace(lang('forum/misc', 'connectguest_message_mobile_search'), lang('forum/misc', 'connectguest_message_mobile_replace'), $show_message);
+		} else {
+			$show_message = str_replace(lang('forum/misc', 'connectguest_message_search'), lang('forum/misc', 'connectguest_message_replace'), $show_message);
+		}
+		if ($message == 'group_nopermission') {
+			$show_message = lang('plugin/qqconnect', 'connectguest_message_complete_or_bind');
+		}
 	}
 	if($param['msgtype'] == 2 && $param['login']) {
 		dheader('location: member.php?mod=logging&action=login&handlekey='.$handlekey.'&infloat=yes&inajax=yes&guestmessage=yes');

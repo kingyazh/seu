@@ -2,7 +2,7 @@
 	[Discuz!] (C)2001-2099 Comsenz Inc.
 	This is NOT a freeware, use is subject to license terms
 
-	$Id: common_extra.js 27844 2012-02-15 08:35:28Z monkey $
+	$Id: common_extra.js 29415 2012-04-11 05:20:28Z zhangguosheng $
 */
 
 function _relatedlinks(rlinkmsgid) {
@@ -27,7 +27,11 @@ function _relatedlinks(rlinkmsgid) {
 	msg = msg.replace(/(^|>)([^<]+)(?=<|$)/ig, function($1, $2, $3) {
 		for(var j = 0; j < relatedlink.length; j++) {
 			if(relatedlink[j] && !relatedid[j]) {
-				var ra = '<a href="'+relatedlink[j]['surl']+'" target="_blank" class="relatedlink">'+relatedlink[j]['sname']+'</a>';
+				if(relatedlink[j]['surl'] != '') {
+					var ra = '<a href="'+relatedlink[j]['surl']+'" target="_blank" class="relatedlink">'+relatedlink[j]['sname']+'</a>';
+				} else {
+					var ra = '<strong><font color="#FF0000">'+relatedlink[j]['sname']+'</font></strong>';
+				}
 				var $rtmp = $3;
 				$3 = $3.replace(relatedlink[j]['sname'], ra);
 				if($3 != $rtmp) {
@@ -275,7 +279,7 @@ function _zoom(obj, zimg, nocover, pn, showexif) {
 	var cover = !nocover ? 1 : 0;
 	var pn = !pn ? 0 : 1;
 	var maxh = (document.documentElement.clientHeight ? document.documentElement.clientHeight : document.body.clientHeight) - 70;
-	var loadCheck = function (obj) {;
+	var loadCheck = function (obj) {
 		if(obj.complete) {
 			var imgw = loading.width;
 			var imgh = loading.height;
@@ -420,7 +424,7 @@ function _zoom(obj, zimg, nocover, pn, showexif) {
 					adjustTimerCount = 0;
 					doane(e);return;
 				}
-				step = 4-parseInt(imgw/ele.width);
+				step = 4-parseInt(imgw/ele.width) || 2;
 			}
 			if(BROWSER.ie && BROWSER.ie<7) { step *= 5;}
 			wheelDelta = e.wheelDelta;

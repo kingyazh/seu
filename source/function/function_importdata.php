@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_importdata.php 27396 2012-01-30 05:38:16Z monkey $
+ *      $Id: function_importdata.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -104,7 +104,7 @@ function import_styles($ignoreversion = 1, $dir = '', $restoreid = 0, $updatecac
 		}
 
 		foreach($stylearray['style'] as $variable => $substitute) {
-			$substitute = @htmlspecialchars($substitute);
+			$substitute = @dhtmlspecialchars($substitute);
 			C::t('common_stylevar')->insert(array('styleid' => $styleidnew, 'variable' => $variable, 'substitute' => $substitute));
 		}
 	}
@@ -156,8 +156,8 @@ function import_block($xmlurl, $clientid, $xmlkey = '', $signtype = '', $ignorev
 		cpmsg(cplang('blockxml_import_version_invalid'), '', 'error', array('cur_version' => $blockarrays['version'], 'set_version' => $_G['setting']['version']));
 	}
 	$data = array(
-		'name' => htmlspecialchars($blockarrays['name']),
-		'version' => htmlspecialchars($blockarrays['version']),
+		'name' => dhtmlspecialchars($blockarrays['name']),
+		'version' => dhtmlspecialchars($blockarrays['version']),
 		'url' => $xmlurl,
 		'clientid' => $clientid,
 		'key' => $xmlkey,

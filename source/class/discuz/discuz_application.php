@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: discuz_application.php 28411 2012-02-29 06:12:53Z monkey $
+ *      $Id: discuz_application.php 30190 2012-05-16 06:14:24Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -24,6 +24,7 @@ class discuz_application extends discuz_base{
 
 	var $cachelist = array();
 
+	var $init_db = true;
 	var $init_setting = true;
 	var $init_user = true;
 	var $init_session = true;
@@ -164,7 +165,8 @@ class discuz_application extends discuz_base{
 			'mobile' => '',
 
 		);
-		$_G['PHP_SELF'] = htmlspecialchars($this->_get_script_url());
+
+		$_G['PHP_SELF'] = dhtmlspecialchars($this->_get_script_url());
 		$_G['basescript'] = CURSCRIPT;
 		$_G['basefilename'] = basename($_G['PHP_SELF']);
 		$sitepath = substr($_G['PHP_SELF'], 0, strrpos($_G['PHP_SELF'], '/'));
@@ -173,7 +175,7 @@ class discuz_application extends discuz_base{
 		} elseif(defined('IN_ARCHIVER')) {
 			$sitepath = preg_replace("/\/archiver/i", '', $sitepath);
 		}
-		$_G['siteurl'] = htmlspecialchars('http://'.$_SERVER['HTTP_HOST'].$sitepath.'/');
+		$_G['siteurl'] = dhtmlspecialchars('http://'.$_SERVER['HTTP_HOST'].$sitepath.'/');
 
 		$url = parse_url($_G['siteurl']);
 		$_G['siteroot'] = isset($url['path']) ? $url['path'] : '';
@@ -201,6 +203,7 @@ class discuz_application extends discuz_base{
 				$this->var['PHP_SELF'] = substr($_SERVER['SCRIPT_NAME'],0,$pos).'/'.$scriptName;
 			} else if(isset($_SERVER['DOCUMENT_ROOT']) && strpos($_SERVER['SCRIPT_FILENAME'],$_SERVER['DOCUMENT_ROOT']) === 0) {
 				$this->var['PHP_SELF'] = str_replace('\\','/',str_replace($_SERVER['DOCUMENT_ROOT'],'',$_SERVER['SCRIPT_FILENAME']));
+				$this->var['PHP_SELF'][0] != '/' && $this->var['PHP_SELF'] = '/'.$this->var['PHP_SELF'];
 			} else {
 				system_error('request_tainting');
 			}
@@ -231,8 +234,12 @@ class discuz_application extends discuz_base{
 			$_GET = array_merge($_GET, $_POST);
 		}
 
-		if(isset($_GET['diy'])) {
-			$_GET['diy'] = empty($_GET['diy']) ? '' : $_GET['diy'];
+		if(isset($_GET['page'])) {
+			$_GET['page'] = rawurlencode($_GET['page']);
+		}
+
+		if(!(!empty($_GET['handlekey']) && preg_match('/^\w+$/', $_GET['handlekey']))) {
+			unset($_GET['handlekey']);
 		}
 
 		if(!empty($this->var['config']['input']['compatible'])) {
@@ -241,15 +248,10 @@ class discuz_application extends discuz_base{
 			}
 		}
 
-		if(isset($_GET['page'])) {
-			$_GET['page'] = rawurlencode($_GET['page']);
-		}
-
-		$this->var['mod'] = empty($_GET['mod']) ? '' : htmlspecialchars($_GET['mod']);
+		$this->var['mod'] = empty($_GET['mod']) ? '' : dhtmlspecialchars($_GET['mod']);
 		$this->var['inajax'] = empty($_GET['inajax']) ? 0 : (empty($this->var['config']['output']['ajaxvalidate']) ? 1 : ($_SERVER['REQUEST_METHOD'] == 'GET' && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest' || $_SERVER['REQUEST_METHOD'] == 'POST' ? 1 : 0));
 		$this->var['page'] = empty($_GET['page']) ? 1 : max(1, intval($_GET['page']));
-		$this->var['sid'] = $this->var['cookie']['sid'] = isset($this->var['cookie']['sid']) ? htmlspecialchars($this->var['cookie']['sid']) : '';
-		$this->var['handlekey'] = !empty($_GET['handlekey']) && preg_match('/^\w+$/', $_GET['handlekey']) ? $_GET['handlekey'] : '';
+		$this->var['sid'] = $this->var['cookie']['sid'] = isset($this->var['cookie']['sid']) ? dhtmlspecialchars($this->var['cookie']['sid']) : '';
 
 		if(empty($this->var['cookie']['saltkey'])) {
 			$this->var['cookie']['saltkey'] = random(8);
@@ -360,11 +362,13 @@ class discuz_application extends discuz_base{
 	}
 
 	private function _init_db() {
-		$driver = 'db_driver_mysql';
-		if(count(getglobal('config/db/slave'))) {
-			$driver = 'db_driver_mysql_slave';
+		if($this->init_db) {
+			$driver = 'db_driver_mysql';
+			if(count(getglobal('config/db/slave'))) {
+				$driver = 'db_driver_mysql_slave';
+			}
+			DB::init($driver, $this->config['db']);
 		}
-		DB::init($driver, $this->config['db']);
 	}
 
 	private function _init_session() {
@@ -457,7 +461,15 @@ class discuz_application extends discuz_base{
 
 	private function _init_guest() {
 		$username = '';
-		setglobal('member', array( 'uid' => 0, 'username' => $username, 'adminid' => 0, 'groupid' => 7, 'credits' => 0, 'timeoffset' => 9999));
+		$groupid = 7;
+		if(!empty($this->var['cookie']['con_auth_hash']) && ($openid = authcode($this->var['cookie']['con_auth_hash']))) {
+			$this->var['connectguest'] = 1;
+			$username = 'QQ_'.substr($openid, -6);
+			$this->var['setting']['cacheindexlife'] = 0;
+			$this->var['setting']['cachethreadlife'] = 0;
+			$groupid = $this->var['setting']['connect']['guest_groupid'] ? $this->var['setting']['connect']['guest_groupid'] : $this->var['setting']['newusergroupid'];
+		}
+		setglobal('member', array( 'uid' => 0, 'username' => $username, 'adminid' => 0, 'groupid' => $groupid, 'credits' => 0, 'timeoffset' => 9999));
 	}
 
 	private function _init_cron() {
@@ -553,7 +565,7 @@ class discuz_application extends discuz_base{
 			$this->var['setting']['newbiespan'] = $this->var['setting']['connect']['newbiespan'];
 		}
 
-		$lastact = TIMESTAMP."\t".htmlspecialchars(basename($this->var['PHP_SELF']))."\t".htmlspecialchars($this->var['mod']);
+		$lastact = TIMESTAMP."\t".dhtmlspecialchars(basename($this->var['PHP_SELF']))."\t".dhtmlspecialchars($this->var['mod']);
 		dsetcookie('lastact', $lastact, 86400);
 		setglobal('currenturl_encode', base64_encode('http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
 
@@ -614,38 +626,41 @@ class discuz_application extends discuz_base{
 	}
 
 	private function _init_mobile() {
+		if(!$this->init_mobile) {
+			return false;
+		}
 		if($this->var['inajax']) {
 			return false;
 		}
-		if(!$this->var['setting'] || !$this->init_mobile || !$this->var['setting']['mobile']['allowmobile'] || !is_array($this->var['setting']['mobile']) || IS_ROBOT) {
+
+		if(!$this->var['setting'] || !$this->var['setting']['mobile']['allowmobile'] || !is_array($this->var['setting']['mobile']) || IS_ROBOT) {
 			$nomobile = true;
 			$unallowmobile = true;
 		}
 
-		if($_GET['mobile'] === 'no') {
+		if(getgpc('mobile') === 'no') {
 			dsetcookie('mobile', 'no', 3600);
 			$nomobile = true;
-		} elseif($this->var['cookie']['mobile'] == 'no' && $_GET['mobile'] === 'yes') {
+		} elseif($this->var['cookie']['mobile'] == 'no' && getgpc('mobile') === 'yes') {
 			dsetcookie('mobile', '');
 		} elseif($this->var['cookie']['mobile'] == 'no') {
 			$nomobile = true;
-		}
-
-		if(!checkmobile()) {
+		} elseif(!checkmobile()) {
 			$nomobile = true;
 		}
 
 		if(!$this->var['mobile'] && !$unallowmobile) {
-			if($_GET['mobile'] === 'yes') {
+			if(getgpc('mobile') === 'yes') {
 				dheader("Location:misc.php?mod=mobile");
 			}
 		}
 
-		if($nomobile || (!$this->var['setting']['mobile']['mobileforward'] && $_GET['mobile'] !== 'yes')) {
+		if($nomobile || (!$this->var['setting']['mobile']['mobileforward'] && getgpc('mobile') !== 'yes')) {
 			if($_SERVER['HTTP_HOST'] == $this->var['setting']['domain']['app']['mobile'] && $this->var['setting']['domain']['app']['default']) {
 				dheader("Location:http://".$this->var['setting']['domain']['app']['default'].$_SERVER['REQUEST_URI']);
+				return false;
 			} else {
-				return;
+				return false;
 			}
 		}
 

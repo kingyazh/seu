@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: class_member.php 28004 2012-02-20 09:56:54Z monkey $
+ *      $Id: class_member.php 30465 2012-05-30 04:10:03Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -45,13 +45,13 @@ class logging_ctl {
 		if(!submitcheck('loginsubmit', 1, $seccodestatus)) {
 
 			$auth = '';
-			$username = !empty($_G['cookie']['loginuser']) ? htmlspecialchars($_G['cookie']['loginuser']) : '';
+			$username = !empty($_G['cookie']['loginuser']) ? dhtmlspecialchars($_G['cookie']['loginuser']) : '';
 
 			if(!empty($_GET['auth'])) {
 				list($username, $password, $questionexist) = explode("\t", authcode($_GET['auth'], 'DECODE'));
-				$username = htmlspecialchars($username);
+				$username = dhtmlspecialchars($username);
 				if($username && $password) {
-					$auth = htmlspecialchars($_GET['auth']);
+					$auth = dhtmlspecialchars($_GET['auth']);
 				} else {
 					$auth = '';
 				}
@@ -429,10 +429,14 @@ class register_ctl {
 				}
 				showmessage('register_email_send_succeed', dreferer(), array('bbname' => $this->setting['bbname']), array('showdialog' => true, 'msgtype' => 3, 'closetime' => 10));
 			}
-
-			if($_G['setting']['sendregisterurl'] && !$sendurl) {
+			$emailstatus = 0;
+			if($this->setting['sendregisterurl'] && !$sendurl) {
 				$_GET['email'] = strtolower($hash[0]);
 				$this->setting['regverify'] = $this->setting['regverify'] == 1 ? 0 : $this->setting['regverify'];
+				if(!$this->setting['regverify']) {
+					$groupinfo['groupid'] = $this->setting['newusergroupid'];
+				}
+				$emailstatus = 1;
 			}
 
 			if($this->setting['regstatus'] == 2 && empty($invite) && !$invitestatus) {
@@ -657,9 +661,12 @@ class register_ctl {
 				$groupinfo['groupid'] = $this->setting['inviteconfig']['invitegroupid'];
 			}
 
-			$init_arr = array('credits' => explode(',', $this->setting['initcredits']), 'profile'=>$profile);
+			$init_arr = array('credits' => explode(',', $this->setting['initcredits']), 'profile'=>$profile, 'emailstatus' => $emailstatus);
 
 			C::t('common_member')->insert($uid, $username, $password, $email, $_G['clientip'], $groupinfo['groupid'], $init_arr);
+			if($emailstatus) {
+				updatecreditbyaction('realemail', $uid);
+			}
 			if($verifyarr) {
 				$setverify = array(
 					'uid' => $uid,
@@ -742,17 +749,17 @@ class register_ctl {
 			}
 
 			if($welcomemsg && !empty($welcomemsgtxt)) {
-				$welcomemsgtitle = addslashes(replacesitevar($welcomemsgtitle));
-				$welcomemsgtxt = addslashes(replacesitevar($welcomemsgtxt));
+				$welcomemsgtitle = replacesitevar($welcomemsgtitle);
+				$welcomemsgtxt = replacesitevar($welcomemsgtxt);
 				if($welcomemsg == 1) {
 					$welcomemsgtxt = nl2br(str_replace(':', '&#58;', $welcomemsgtxt));
-					notification_add($uid, 'system', $welcomemsgtxt, array(), 1);
+					notification_add($uid, 'system', $welcomemsgtxt, array('from_id' => 0, 'from_idtype' => 'welcomemsg'), 1);
 				} elseif($welcomemsg == 2) {
 					sendmail_cron($email, $welcomemsgtitle, $welcomemsgtxt);
 				} elseif($welcomemsg == 3) {
 					sendmail_cron($email, $welcomemsgtitle, $welcomemsgtxt);
 					$welcomemsgtxt = nl2br(str_replace(':', '&#58;', $welcomemsgtxt));
-					notification_add($uid, 'system', $welcomemsgtxt, array(), 1);
+					notification_add($uid, 'system', $welcomemsgtxt, array('from_id' => 0, 'from_idtype' => 'welcomemsg'), 1);
 				}
 			}
 
@@ -871,7 +878,7 @@ class crime_action_ctl {
 
 	function search($action, $username, $operator, $startime, $endtime, $reason, $start, $limit) {
 		$action = intval($action);
-		$operator = trim($operator);
+		$operator = daddslashes(trim($operator));
 		$starttime = $starttime ? strtotime($starttime) : 0;
 		$endtime = $endtime ? (strtotime($endtime) + 3600 * 24) : 0;
 		$reason = daddslashes(trim($reason));

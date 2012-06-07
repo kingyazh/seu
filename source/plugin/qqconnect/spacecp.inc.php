@@ -4,7 +4,7 @@
  *	  [Discuz! X] (C)2001-2099 Comsenz Inc.
  *	  This is NOT a freeware, use is subject to license terms
  *
- *	  $Id: spacecp.inc.php 28020 2012-02-21 02:13:11Z zhouxiaobo $
+ *	  $Id: spacecp.inc.php 29265 2012-03-31 06:03:26Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -64,6 +64,9 @@ if ($pluginop == 'config') {
 	}
 
 } elseif ($pluginop == 'new') {
+	if (trim($_GET['formhash']) != formhash()) {
+		showmessage('submit_invalid');
+	}
 
 	$sh_type = intval(trim($_POST['sh_type']));
 	$tid = intval(trim($_POST['thread_id']));
@@ -102,19 +105,19 @@ if ($pluginop == 'config') {
 		if($errorCode) {
 			$code = $errorCode;
 			if($errorCode == 41001) {
-				$message = lang('connect', 'user_unauthorized', array('login_url' => $_G['connect']['login_url'].'&reauthorize=yes&formhash='.FORMHASH));
+				$message = lang('plugin/qqconnect', 'connect_user_unauthorized', array('login_url' => $_G['connect']['login_url'].'&reauthorize=yes&formhash='.FORMHASH));
 			} elseif($errorCode == 41003 || $errorCode == 40006) { // access token失效或非法
-				$message = lang('connect', 'share_token_outofdate', array('login_url' => $_G['connect']['login_url']));
+				$message = lang('plugin/qqconnect', 'connect_share_token_outofdate', array('login_url' => $_G['connect']['login_url']));
 			} elseif ($errorCode == 3021) {
-				$message = lang('connect', 'qzone_share_same_url');
+				$message = lang('plugin/qqconnect', 'connect_qzone_share_same_url');
 			} else {
 				$code = 100;
-				$message = lang('connect', 'server_busy');
-				$connectService->connectErrlog($code, lang('connect', 'connect_errlog_server_no_response'));
+				$message = lang('plugin/qqconnect', 'connect_server_busy');
+				$connectService->connectErrlog($code, lang('plugin/qqconnect', 'connect_errlog_server_no_response'));
 			}
 		} else {
 			$code = $response['ret'];
-			$message = lang('connect', 'share_success');
+			$message = lang('plugin/qqconnect', 'connect_share_success');
 		}
 	} elseif($sh_type == 2) {
 
@@ -145,21 +148,21 @@ if ($pluginop == 'config') {
 		if($errorCode) {
 			$code = $errorCode;
 			if($errorCode == 41001) {
-				$message = lang('connect', 'user_unauthorized', array('login_url' => $_G['connect']['login_url'].'&reauthorize=yes&formhash='.FORMHASH));
+				$message = lang('plugin/qqconnect', 'connect_user_unauthorized', array('login_url' => $_G['connect']['login_url'].'&reauthorize=yes&formhash='.FORMHASH));
 			} elseif($errorCode == 41003 || $errorCode == 40006) { // access token失效或非法
-				$message = lang('connect', 'share_token_outofdate', array('login_url' => $_G['connect']['login_url']));
+				$message = lang('plugin/qqconnect', 'connect_share_token_outofdate', array('login_url' => $_G['connect']['login_url']));
 			} elseif ($errorCode == 3013) {
-				$message = lang('connect', 'weibo_same_content');
+				$message = lang('plugin/qqconnect', 'connect_qzone_weibo_same_content');
 			} else if($errorCode == 3020) {
-				$message = lang('connect', 'weibo_account_not_signup');
+				$message = lang('plugin/qqconnect', 'connect_weibo_account_not_signup');
 			} else {
 				$code = 100;
-				$message = lang('connect', 'server_busy');
-				$connectService->connectErrlog($code, lang('connect', 'connect_errlog_server_no_response'));
+				$message = lang('plugin/qqconnect', 'connect_server_busy');
+				$connectService->connectErrlog($code, lang('plugin/qqconnect', 'connect_errlog_server_no_response'));
 			}
 		} else {
 			$thread = C::t('forum_thread')->fetch($tid);
-			if($response['data']['id'] && $_G['setting']['connect']['t']['reply'] && $thread['tid'] && !$thread['closed'] && !getstatus($thread['status'], 3)) {
+			if($response['data']['id'] && $_G['setting']['connect']['t']['reply'] && $thread['tid'] && !$thread['closed'] && !getstatus($thread['status'], 3) && empty($_G['forum']['replyperm'])) {
 
 				C::t('#qqconnect#connect_tthreadlog')->insert(array(
 					'twid' => $response['data']['id'],
@@ -176,10 +179,13 @@ if ($pluginop == 'config') {
 				C::t('forum_thread')->update($tid, array('status' => setstatus(8, 1, $thread['status'])));
 			}
 			$code = $response['ret'];
-			$message = lang('connect', 'broadcast_success');
+			$message = lang('plugin/qqconnect', 'connect_broadcast_success');
     	}
 	}
 } elseif($pluginop == 'sync_tthread') {
+	if (trim($_GET['formhash']) != formhash()) {
+		showmessage('submit_invalid');
+	}
 	if(!$_G['setting']['connect']['t']['reply']) {
 		exit;
 	}
@@ -189,7 +195,7 @@ if ($pluginop == 'config') {
 		exit;
 	}
 	$thread = C::t('forum_thread')->fetch($tid);
-	if(!$thread || $thread['closed'] == 1 || getstatus($thread['status'], 3) || $thread['displayorder'] < 0) {
+	if(!$thread || $thread['closed'] == 1 || getstatus($thread['status'], 3) || $thread['displayorder'] < 0 || !empty($_G['forum']['replyperm'])) {
 		discuz_process::unlock($processname);
 		exit;
 	}
@@ -219,7 +225,7 @@ if ($pluginop == 'config') {
 	try {
 		$response = $connectOAuthClient->connectGetRepostList($tthread['conopenid'], $connectmember['conuin'], $connectmember['conuinsecret'], $param);
 	} catch(Exception $e) {
-		showmessage($e->getMessage());
+		showmessage('qqconnect:server_busy');
 	}
 	if($response && $response['ret'] == 0 && $response['data']['info']) {
 
@@ -248,7 +254,7 @@ if ($pluginop == 'config') {
 					continue;
 				}
 			} else {
-				$message = lang('connect', 'connect_tthread_broadcast');
+				$message = lang('plugin/qqconnect', 'connect_tthread_broadcast');
 			}
 			if($_G['setting']['connect']['t']['reply_showauthor']) {
 				$message .= '[tthread='.$post['username'].', '.$post['nick'].']'.$post['head'].'[/tthread]';
@@ -319,4 +325,3 @@ if ($pluginop == 'config') {
 	discuz_process::unlock($processname);
 	exit;
 }
-?>

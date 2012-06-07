@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: space_profile.php 28403 2012-02-29 03:13:46Z svn_project_zhangjie $
+ *      $Id: space_profile.php 29279 2012-03-31 09:06:19Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -31,12 +31,13 @@ $space['admingroup']['icon'] = g_icon($space['adminid'], 1);
 
 $space['group'] = $_G['cache']['usergroups'][$space['groupid']];
 $space['group']['icon'] = g_icon($space['groupid'], 1);
+$encodeusername = rawurlencode($space['username']);
 
 if($space['extgroupids']) {
 	$newgroup = array();
 	$e_ids = explode(',', $space['extgroupids']);
 	foreach ($e_ids as $e_id) {
-		$newgroup[] = $_G['usergroups'][$e_id]['grouptitle'];
+		$newgroup[] = $_G['cache']['usergroups'][$e_id]['grouptitle'];
 	}
 	$space['extgroupids'] = implode(',', $newgroup);
 }

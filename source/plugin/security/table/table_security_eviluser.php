@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_security_eviluser.php 26608 2011-12-16 06:47:48Z monkey $
+ *      $Id: table_security_eviluser.php 29265 2012-03-31 06:03:26Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -20,9 +20,9 @@ class table_security_eviluser extends discuz_table {
 		parent::__construct();
 	}
 
-    public function fetch_all_report($limit = 20) {
-        return DB::fetch_all("SELECT * FROM %t WHERE isreported = 0 AND operateresult > 0 LIMIT %d", array($this->_table, $limit));
-    }
+	public function fetch_all_report($limit = 20) {
+		return DB::fetch_all("SELECT * FROM %t WHERE isreported = 0 AND operateresult > 0 LIMIT %d", array($this->_table, $limit));
+	}
 
 	public function range_by_operateresult($operateresult, $start, $limit) {
 

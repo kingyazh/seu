@@ -2,7 +2,7 @@
 -- DiscuzX INSTALL MAKE SQL DUMP V1.0
 -- DO NOT modify this file
 --
--- Create: 2012-02-07 10:30:18
+-- Create: 2012-03-27 10:51:53
 --
 DROP TABLE IF EXISTS pre_common_admincp_cmenu;
 CREATE TABLE pre_common_admincp_cmenu (
@@ -361,6 +361,15 @@ CREATE TABLE pre_common_card_type (
   id smallint(6) NOT NULL AUTO_INCREMENT,
   typename char(20) NOT NULL DEFAULT '',
   PRIMARY KEY (id)
+) TYPE=MyISAM;
+
+DROP TABLE IF EXISTS pre_common_connect_guest;
+CREATE TABLE pre_common_connect_guest (
+  conopenid char(32) NOT NULL DEFAULT '',
+  conuin char(40) NOT NULL DEFAULT '',
+  conuinsecret char(16) NOT NULL DEFAULT '',
+  conqqnick char(100) NOT NULL DEFAULT '',
+  PRIMARY KEY (conopenid)
 ) TYPE=MyISAM;
 
 DROP TABLE IF EXISTS pre_common_credit_log;
@@ -1421,7 +1430,7 @@ CREATE TABLE pre_common_usergroup_field (
   reasonpm tinyint(1) NOT NULL DEFAULT '0',
   maxprice smallint(6) unsigned NOT NULL DEFAULT '0',
   maxsigsize smallint(6) unsigned NOT NULL DEFAULT '0',
-  maxattachsize mediumint(8) unsigned NOT NULL DEFAULT '0',
+  maxattachsize int(10) unsigned NOT NULL DEFAULT '0',
   maxsizeperday int(10) unsigned NOT NULL DEFAULT '0',
   maxthreadsperhour tinyint(3) unsigned NOT NULL DEFAULT '0',
   maxpostsperhour tinyint(3) unsigned NOT NULL DEFAULT '0',
@@ -1514,6 +1523,23 @@ CREATE TABLE pre_common_word_type (
   PRIMARY KEY (id)
 ) TYPE=MyISAM;
 
+DROP TABLE IF EXISTS pre_connect_disktask;
+CREATE TABLE pre_connect_disktask (
+  taskid int(10) unsigned NOT NULL AUTO_INCREMENT,
+  aid int(10) unsigned NOT NULL DEFAULT '0',
+  uid int(10) unsigned NOT NULL DEFAULT '0',
+  openid char(32) NOT NULL DEFAULT '',
+  filename varchar(255) NOT NULL DEFAULT '',
+  verifycode char(32) NOT NULL DEFAULT '',
+  `status` smallint(6) unsigned NOT NULL DEFAULT '0',
+  dateline int(10) unsigned NOT NULL DEFAULT '0',
+  downloadtime int(10) unsigned NOT NULL DEFAULT '0',
+  extra text,
+  PRIMARY KEY (taskid),
+  KEY openid (openid),
+  KEY `status` (`status`)
+) TYPE=MyISAM;
+
 DROP TABLE IF EXISTS pre_connect_feedlog;
 CREATE TABLE pre_connect_feedlog (
   flid mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
@@ -1538,19 +1564,6 @@ CREATE TABLE pre_connect_memberbindlog (
   KEY uid (uid),
   KEY uin (uin),
   KEY dateline (dateline)
-) TYPE=MyISAM;
-
-DROP TABLE IF EXISTS pre_connect_tlog;
-CREATE TABLE pre_connect_tlog (
-  tlid mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
-  tid mediumint(8) unsigned NOT NULL DEFAULT '0',
-  uid mediumint(8) unsigned NOT NULL DEFAULT '0',
-  publishtimes mediumint(8) unsigned NOT NULL DEFAULT '0',
-  lastpublished int(10) unsigned NOT NULL DEFAULT '0',
-  dateline int(10) unsigned NOT NULL DEFAULT '0',
-  `status` tinyint(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (tlid),
-  UNIQUE KEY tid (tid)
 ) TYPE=MyISAM;
 
 DROP TABLE IF EXISTS pre_connect_tthreadlog;
@@ -2270,16 +2283,6 @@ CREATE TABLE pre_forum_grouplevel (
   specialswitch text NOT NULL,
   PRIMARY KEY (levelid),
   KEY creditsrange (creditshigher,creditslower)
-) TYPE=MyISAM;
-
-DROP TABLE IF EXISTS pre_forum_groupranking;
-CREATE TABLE pre_forum_groupranking (
-  fid mediumint(8) unsigned NOT NULL DEFAULT '0',
-  yesterday smallint(6) unsigned NOT NULL DEFAULT '0',
-  today smallint(6) unsigned NOT NULL DEFAULT '0',
-  trend tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (fid),
-  KEY today (today)
 ) TYPE=MyISAM;
 
 DROP TABLE IF EXISTS pre_forum_groupuser;
@@ -3306,7 +3309,7 @@ CREATE TABLE pre_home_follow_feed (
   uid mediumint(8) unsigned NOT NULL DEFAULT '0',
   username varchar(15) NOT NULL DEFAULT '',
   tid mediumint(8) unsigned NOT NULL DEFAULT '0',
-  note varchar(255) NOT NULL DEFAULT '',
+  note text NOT NULL,
   dateline int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (feedid),
   KEY uid (uid,dateline)
@@ -3318,7 +3321,7 @@ CREATE TABLE pre_home_follow_feed_archiver (
   uid mediumint(8) unsigned NOT NULL DEFAULT '0',
   username varchar(15) NOT NULL DEFAULT '',
   tid mediumint(8) unsigned NOT NULL DEFAULT '0',
-  note varchar(255) NOT NULL DEFAULT '',
+  note text NOT NULL,
   dateline int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (feedid),
   KEY uid (uid,dateline)

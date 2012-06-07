@@ -4,13 +4,12 @@
  *	  [Discuz!] (C)2001-2099 Comsenz Inc.
  *	  This is NOT a freeware, use is subject to license terms
  *
- *	  $Id: lang_admincp_cloud.php 28535 2012-03-02 05:25:30Z yangli $
+ *	  $Id: lang_admincp_cloud.php 29521 2012-04-17 09:24:42Z songlixin $
  */
 
 if(!defined('IN_DISCUZ')) {
 	exit('Access Denied');
 }
-
 $extend_lang = array
 (
 	'header_cloud' => '云平台',
@@ -30,12 +29,12 @@ $extend_lang = array
 	'menu_cloud_connect' => 'QQ互联',
 	'menu_cloud_search' => '纵横搜索',
 	'menu_cloud_stats' => '腾讯分析',
-	'menu_cloud_security' => '腾讯安全',
+	'menu_cloud_security' => '防水墙',
 	'menu_cloud_smilies' => 'SOSO表情',
 	'menu_cloud_qqgroup' => '社区QQ群',
 	'menu_cloud_union' => 'Discuz!联盟',
 	'menu_cloud_storage' => '旋风存储',
-    'menu_cloud_mobile' => '手机客户端',
+	'menu_cloud_mobile' => '手机客户端',
 
 	'close' => '关闭',
 	'continue' => '继续',
@@ -45,6 +44,7 @@ $extend_lang = array
 
 	'cloud_status_error' => '出了点小错，由于站点ID/通信KEY等关键信息丢失导致Discuz!云平台服务出现异常，使用<a href="admin.php?action=cloud&operation=doctor">诊断工具</a>检测站点ID和KEY，如有疑问请访问<a href="http://www.discuz.net/forum-3926-1.html" target="_blank">官方论坛</a>寻求帮助',
 
+	'cloud_timecheck' => '服务器时间检查',
 	'cloud_introduction' => '查看介绍',
 	'cloud_confirm_open' => '确认开通',
 	'cloud_confirm_upgrade' => '确认升级',
@@ -87,12 +87,12 @@ $extend_lang = array
 
 	'cloud_siteinfo_tips' => '<li>如果站点名称或者站点URL有变动，请点击“同步站点信息”按钮。</li><li>站点KEY是站点与云平台通信的验证密钥，若近期有危险操作泄漏站点KEY等信息，请点击“更换站点KEY”按钮。<span style="color:red;">请谨慎使用此功能。</span></li>',
 
-	'cloud_doctor_tips' => '<li>Discuz!云平台诊断工具是帮助您分析站点上的状况，是否能与云平台正常通信等功能。</li>
-		<li>站点ID是您的站点在云平台的唯一标识，请勿和其他站点共用一套站点ID和站点通信KEY</li>',
+	'cloud_doctor_normal' => '正常',
+	'cloud_doctor_tips' => '<li>Discuz!云平台诊断工具是帮助您分析站点上的状况，是否能与云平台正常通信等功能。</li><li>站点ID是您的站点在云平台的唯一标识，请勿和其他站点共用一套站点ID和站点通信KEY</li>',
 
 	'cloud_doctor_setidkey' => '修改Discuz!上的站点ID和KEY',
-	'cloud_doctor_setidkey_tips' => '<li style="color:red">修改Discuz!上的站点ID和KEY，可能会导致通信错误、签名错误以及其他的故障，请勿在没有官方人员指导的情况下修改。</li>
-		<li style="color:red">修改ID、KEY和状态前，请先备份论坛的common_setting表。</li>',
+	'cloud_doctor_connect_fix' => '<a href="./admin.php?action=cloud&operation=doctor&op=fixGuest">点击修复</a>',
+	'cloud_doctor_setidkey_tips' => '<li style="color:red">修改Discuz!上的站点ID和KEY，可能会导致通信错误、签名错误以及其他的故障，请勿在没有官方人员指导的情况下修改。</li><li style="color:red">修改ID、KEY和状态前，请先备份论坛的common_setting表。</li>',
 	'cloud_site_key' => '站点通信KEY',
 	'cloud_site_key_safetips' => '(出于安全考虑，部分隐藏)',
 	'cloud_site_key_comment' => '站点通信KEY请勿对外公布',
@@ -136,6 +136,7 @@ $extend_lang = array
 	'cloud_doctor_dns_qzone_test' => 'QQ互联主接口测试',
 	'cloud_doctor_other_qzone_test' => 'QQ互联其他接口测试',
 	'cloud_doctor_site_test' => '云平台到站点测试',
+	'cloud_doctor_time_check' => '<img src="{imgdir}/loading.gif" class="vm"> 请稍候...',
 	'cloud_doctor_site_test_result' => '<div id="cloud_doctor_site_test_result_div"><img src="{imgdir}/loading.gif" class="vm"> 请稍候...</div>',
 
 	'cloud_doctor_setting_ip' => '手动设置的IP：',
@@ -151,6 +152,7 @@ $extend_lang = array
 
 	'cloud_doctor_title_connect' => 'QQ互联检测',
 	'cloud_doctor_connect_app_id' => 'QQ互联appid',
+	'cloud_doctor_connect_guestgroup' => 'QQ互联游客用户组',
 	'cloud_doctor_connect_app_key' => 'QQ互联appkey',
 	'cloud_doctor_connect_reopen' => '当前站点appid/appkey丢失，请<a href="admin.php?action=cloud&operation=applist">重新开通</a>QQ互联',
 
@@ -170,17 +172,14 @@ $extend_lang = array
 	'cloud_stats_summary' => '网站概况',
 
 	'cloud_smilies' => 'SOSO表情',
-	'cloud_smilies_tips' => '<li>搜尽天下表情，为网站带来无穷的乐趣与体验。</li>
-		<li>省略繁琐的上传表情流程，无缝“偷渡”QQ表情到您的网站，论坛表情变得不再单调无味。</li>',
+	'cloud_smilies_tips' => '<li>搜尽天下表情，为网站带来无穷的乐趣与体验。</li><li>省略繁琐的上传表情流程，无缝“偷渡”QQ表情到您的网站，论坛表情变得不再单调无味。</li>',
 
 	'cloud_smilies_status' => '启用SOSO 表情',
 	'cloud_storage' => '旋风存储',
-	'cloud_storage_tips' => '<li>为网站节省空间带宽，让用户享受超大文件的高速存储，上传下载尽在云端。</li>
-		<li>体验高速上传下载，支持单个文件高达2GB的附件上传，附件永久有效，为论坛降低成本。</li>',
+	'cloud_storage_tips' => '<li>为网站节省空间带宽，让用户享受超大文件的高速存储，上传下载尽在云端。</li><li>体验高速上传下载，支持单个文件高达2GB的附件上传，附件永久有效，为论坛降低成本。</li>',
 
 	'setting_manyou' => '漫游应用设置',
-	'setting_manyou_tips' => '<li>开启漫游应用功能后，用户可以自由选择各种不同的应用(诸如德克萨斯扑克、弹弹堂、十年一剑......)在站内进行使用。</li>
-		<li>漫游应用功能由 <a target="_blank" href="http://www.manyou.com/www/">MYOP开放平台</a> 提供， Manyou Open Platform(Manyou开放平台/MYOP)服务是由 Comsenz 公司为应用开发者提供的开放平台，启用漫游服务前，<a href="http://wiki.developer.manyou.com/wiki/index.php?title=MYOP%E7%BD%91%E7%AB%99%E6%9C%8D%E5%8A%A1%E5%8D%8F%E8%AE%AE&printable=yes" target="_blank">请先阅读MYOP网站服务协议</a></li>',
+	'setting_manyou_tips' => '<li>开启漫游应用功能后，用户可以自由选择各种不同的应用(诸如德克萨斯扑克、弹弹堂、十年一剑......)在站内进行使用。</li><li>漫游应用功能由 <a target="_blank" href="http://www.manyou.com/www/">MYOP开放平台</a> 提供， Manyou Open Platform(Manyou开放平台/MYOP)服务是由 Comsenz 公司为应用开发者提供的开放平台，启用漫游服务前，<a href="http://wiki.developer.manyou.com/wiki/index.php?title=MYOP%E7%BD%91%E7%AB%99%E6%9C%8D%E5%8A%A1%E5%8D%8F%E8%AE%AE&printable=yes" target="_blank">请先阅读MYOP网站服务协议</a></li>',
 	'setting_manyou_base' => '基本设置',
 	'setting_manyou_base_status' => '启用漫游应用',
 	'setting_manyou_base_status_comment' => '选择是否开启漫游应用。如果关闭漫游应用，您的网站用户将不能使用任何基于漫游的应用',
@@ -244,9 +243,11 @@ $extend_lang = array
 	'connect_member_bindlog_type_2' => '解除绑定',
 	'connect_member_bindlog_uin' => 'QQ帐号绑定日志',
 	'connect_member_bindlog_uid' => '用户帐号绑定日志',
+	'connect_guest_group_name' => 'QQ游客',
 
 	'qqgroup_menu_list' => '绑定管理',
 	'qqgroup_menu_manager' => '设置名称',
+	'qqgroup_menu_setting' => '推送设置',
 	'qqgroup_menu_block' => '推送信息',
 	'qqgroup_menu_history' => '推送历史',
 
@@ -298,6 +299,11 @@ $extend_lang = array
 	'qqgroup_preview_button' => '推送信息',
 	'attach_img' => '图片附件',
 
+	'qqgroup_feed_setting' => '推送设置',
+	'qqgroup_usergroup_feed_list' => '允许推送的用户组',
+	'qqgroup_usergroup_feed_list_comment' => '所选用户组拥有推送权限，可以按住 CTRL 多选',
+	'qqgroup_setting_tips' => '<li>主题查看页的“推送到QQ群”功能，可将帖子即时推送到QQ群聊天框。</li><li><img src="static/image/admincp/cloud/feed.png" align="left"></li>',
+
 	'security_member_list' => '违规用户',
 	'security_thread_list' => '违规主题',
 	'security_post_list' => '违规回帖',
@@ -329,22 +335,25 @@ $extend_lang = array
 	'security_exfoldall' => '全部展开',
 	'security_userdeleted' => '该用户已被管理人员删除',
 	'security_postdeleted' => '该帖子已被管理人员删除',
-	'security_modreason' => '腾讯安全自动处理',
+	'security_modreason' => '防水墙自动处理',
 	'security_restore_user' => '恢复该用户',
 	'security_change_usergroup' => '更改用户组',
 
-	'recyclebin_search_security_thread' => '仅包含腾讯安全处理的主题',
-	'recyclebin_search_security_post' => '仅包含腾讯安全处理的回帖',
+	'recyclebin_search_security_thread' => '仅包含防水墙处理的主题',
+	'recyclebin_search_security_post' => '仅包含防水墙处理的回帖',
 
-	'security_setting' => '设置',
-	'security_setting_list' => '设置',
+	'security_index' => '首页',
+	'security_index_list' => '首页',
+	'security_setting' => '白名单设置',
+	'security_blanklist' => '白名单设置',
+	'security_setting_list' => '白名单设置',
 	'security_tips' => '小技巧',
-	'security_tips_1' => '<li><p>累计识别违规主题：<a href="admin.php?action=cloud&operation=security&anchor=thread" style="font-size:14px; text-decoration:none; color:#0000FF;">%d</a>，违规回帖：<a href="admin.php?action=cloud&operation=security&anchor=post" style="font-size:14px; text-decoration:none; color:#0000FF;">%d</a>，违规用户：<a href="admin.php?action=cloud&operation=security&anchor=member" style="font-size:14px; text-decoration:none; color:#0000FF;">%d</a></p></li><li><p>系统识别到违规主题和违规回帖后，自动将主题和回帖放入<a href="admin.php?action=recyclebin" style="text-decoration:none; color:#0000FF;">回收站</a></p></li><li><p>系统识别到违规用户后，自动将用户禁言</p></li>',
+	'security_tips_1' => '<li><p>系统识别到违规主题和违规回帖后，自动将主题和回帖放入<a href="admin.php?action=recyclebin" style="text-decoration:none; color:#0000FF;">回收站</a></p></li>',
 	'security_white_list_setting' => '白名单设置',
 	'security_usergroup_white_list' => '用户组白名单',
-	'security_usergroup_white_list_comment' => '所选用户组内用户的操作，腾讯安全不做处理，可以按住 CTRL 多选',
+	'security_usergroup_white_list_comment' => '所选用户组内用户的操作，防水墙不做处理，可以按住 CTRL 多选',
 	'security_forum_white_list' => '版块白名单',
-	'security_forum_white_list_comment' => '所选版块内的主题和回复，腾讯安全不做处理，可以按住 CTRL 多选',
+	'security_forum_white_list_comment' => '所选版块内的主题和回复，防水墙不做处理，可以按住 CTRL 多选',
 	'security_recyclebin_thread' => '到回收站处理主题',
 	'security_recyclebin_post' => '到回收站处理回帖',
 	'security_thread_status' => '主题状态',

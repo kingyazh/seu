@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: my.php 27384 2012-01-19 09:45:48Z zhengqingpeng $
+ *      $Id: my.php 29263 2012-03-31 05:45:08Z yexinhao $
  */
 
 define('IN_API', true);
@@ -34,5 +34,3 @@ $mySearchStatus = $_G['setting']['my_search_status'];
 
 $my = Cloud::loadClass('Service_Server_My', array($siteId, $siteKey, $timezone, $version, CHARSET, $language, $myAppStatus, $mySearchStatus));
 $my->run();
-
-?>

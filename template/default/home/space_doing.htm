@@ -115,7 +115,11 @@
 				<p class="mtm">{lang hide_doing}</p>
 			<!--{/if}-->
 			</div>
-			<!--{if $multi}--><div class="pgs cl mtm">$multi</div><!--{/if}-->
+			<!--{if $multi}-->
+			<div class="pgs cl mtm">$multi</div>
+			<!--{elseif $_GET[highlight]}-->
+			<div class="pgs cl mtm"><div class="pg"><a href="home.php?mod=space&do=doing&view=me">{lang viewmore}</a></div></div>
+			<!--{/if}-->
 		<!--{else}-->
 			<p class="emp">{lang doing_no_replay}<!--{if $space[self]}-->{lang doing_now}<!--{/if}--></p>
 		<!--{/if}-->

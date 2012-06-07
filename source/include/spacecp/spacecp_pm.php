@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: spacecp_pm.php 28251 2012-02-27 01:40:15Z zhengqingpeng $
+ *      $Id: spacecp_pm.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -85,18 +85,18 @@ if($_GET['op'] == 'checknewpm') {
 	if(!empty($_GET['tradeid'])) {
 		$trade = C::t('forum_trade')->fetch_goods(0, $_GET['tradeid']);
 		if($trade) {
-			$messageappend = htmlspecialchars('[url='.$_G['siteurl'].'forum.php?mod=viewthread&tid='.$trade['tid'].'&do=tradeinfo&pid='.$trade['pid'].'][b]'.$trade['subject'].'[/b][/url]');
+			$messageappend = dhtmlspecialchars('[url='.$_G['siteurl'].'forum.php?mod=viewthread&tid='.$trade['tid'].'&do=tradeinfo&pid='.$trade['pid'].'][b]'.$trade['subject'].'[/b][/url]');
 		}
 	} elseif(!empty($_GET['commentid'])) {
 		$comment = C::t('forum_postcomment')->fetch($_GET['commentid']);
 		if($comment) {
 			$comment['comment'] = str_replace(array('[b]', '[/b]', '[/color]'), array(''), preg_replace("/\[color=([#\w]+?)\]/i", '', strip_tags($comment['comment'])));
-			$messageappend = htmlspecialchars('[url='.$_G['siteurl'].'forum.php?mod=redirect&goto=findpost&pid='.$comment['pid'].'&ptid='.$comment['tid'].'][b]'.lang('spacecp', 'pm_comment').'[/b][/url][quote]'.$comment['comment'].'[/quote]');
+			$messageappend = dhtmlspecialchars('[url='.$_G['siteurl'].'forum.php?mod=redirect&goto=findpost&pid='.$comment['pid'].'&ptid='.$comment['tid'].'][b]'.lang('spacecp', 'pm_comment').'[/b][/url][quote]'.$comment['comment'].'[/quote]');
 		}
 	} elseif(!empty($_GET['tid']) && !empty($_GET['pid'])) {
 		$thread = C::t('forum_thread')->fetch($_GET['tid']);
 		if($thread) {
-			$messageappend = htmlspecialchars('[url='.$_G['siteurl'].'forum.php?mod=redirect&goto=findpost&pid='.intval($_GET['pid']).'&ptid='.$thread['tid'].'][b]'.lang('spacecp', 'pm_thread_about', array('subject' => $thread['subject'])).'[/b][/url]');
+			$messageappend = dhtmlspecialchars('[url='.$_G['siteurl'].'forum.php?mod=redirect&goto=findpost&pid='.intval($_GET['pid']).'&ptid='.$thread['tid'].'][b]'.lang('spacecp', 'pm_thread_about', array('subject' => $thread['subject'])).'[/b][/url]');
 		}
 	}
 

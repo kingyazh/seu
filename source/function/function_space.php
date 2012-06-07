@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_space.php 28493 2012-03-01 10:39:23Z zhengqingpeng $
+ *      $Id: function_space.php 30433 2012-05-29 02:45:59Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -110,9 +110,11 @@ function getblockhtml($blockname,$parameters = array()) {
 				$showmagicgift = true;
 				$magicinfo = !empty($space['magicgift']) ? dunserialize($space['magicgift']) : array();
 			}
-			$html .= '<li class="ul_broadcast"><a href="home.php?mod=space&uid='.$uid.'">'.lang('space', 'block_profile_follow').'</a></li>';
+			if(helper_access::check_module('follow')) {
+				$html .= '<li class="ul_broadcast"><a href="home.php?mod=space&uid='.$uid.'">'.lang('space', 'block_profile_follow').'</a></li>';
+			}
 			if ($space['self']) {
-				$html .= '<li class="ul_diy"><a href="home.php?mod=space&diy=yes">'.lang('space', 'block_profile_diy').'</a></li>';
+				$html .= '<li class="ul_diy"><a href="home.php?mod=space&do=index&diy=yes">'.lang('space', 'block_profile_diy').'</a></li>';
 				$html .= '<li class="ul_msg"><a href="home.php?mod=space&uid='.$uid.'&do=wall">'.lang('space', 'block_profile_wall').'</a></li>';
 				$html .= '<li class="ul_avt"><a href="home.php?mod=spacecp&ac=avatar">'.lang('space', 'block_profile_avatar').'</a></li>';
 				$html .= '<li class="ul_profile"><a href="home.php?mod=spacecp&ac=profile">'.lang('space', 'block_profile_update').'</a></li>';
@@ -497,7 +499,7 @@ function getblockhtml($blockname,$parameters = array()) {
 			$do = $blockname;
 			$walllist = array();
 			if(ckprivacy('wall', 'view')) {
-				$query = C::t('home_comment')->fetch_all_by_id_idtype($uid, 'uid', 0, $shownum);
+				$query = C::t('home_comment')->fetch_all_by_id_idtype($uid, 'uid', 0, $shownum, '', 'DESC');
 				foreach($query as $value) {
 					$value['message'] = strlen($value['message'])>500? getstr($value['message'], 500, 0, 0, 0, -1).' ...':$value['message'];
 					if($value['status'] == 0 || $value['authorid'] == $_G['uid']) {

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_member.php 28471 2012-03-01 07:44:19Z zhengqingpeng $
+ *      $Id: function_member.php 30409 2012-05-28 02:53:10Z liulanbo $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -106,20 +106,18 @@ function logincheck($username) {
 	if(function_exists('uc_user_logincheck')) {
 		$return = uc_user_logincheck(addslashes($username), $_G['clientip']);
 	} else {
-		$login = C::t('common_failedlogin')->fetch_username($_G['clientip'], $username);
+		$login = C::t('common_failedlogin')->fetch_ip($_G['clientip']);
 		$return = (!$login || (TIMESTAMP - $login['lastupdate'] > 900)) ? 5 : max(0, 5 - $login['count']);
 
 		if(!$login) {
 			C::t('common_failedlogin')->insert(array(
 				'ip' => $_G['clientip'],
-				'username' => $username,
 				'count' => 0,
 				'lastupdate' => TIMESTAMP
 			), false, true);
 		} elseif(TIMESTAMP - $login['lastupdate'] > 900) {
 			C::t('common_failedlogin')->insert(array(
 				'ip' => $_G['clientip'],
-				'username' => $username,
 				'count' => 0,
 				'lastupdate' => TIMESTAMP
 			), false, true);
@@ -136,7 +134,7 @@ function loginfailed($username) {
 	if(function_exists('uc_user_logincheck')) {
 		return;
 	}
-	C::t('common_failedlogin')->update_failed($_G['clientip'], $username);
+	C::t('common_failedlogin')->update_failed($_G['clientip']);
 }
 
 function getinvite() {

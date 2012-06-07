@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_common_member_verify_info.php 27874 2012-02-16 04:20:30Z zhengqingpeng $
+ *      $Id: table_common_member_verify_info.php 29916 2012-05-03 02:17:25Z liulanbo $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -29,7 +29,7 @@ class table_common_member_verify_info extends discuz_table
 		return DB::fetch_all("SELECT * FROM %t $condition[0] $ordersql ".DB::limit($start, $limit), $condition[1], $this->_pk);
 	}
 	public function group_by_verifytype_count() {
-		return DB::result_first('SELECT verifytype, COUNT(*) AS num FROM %t WHERE flag=0 GROUP BY verifytype', array($this->_table));
+		return DB::fetch_all('SELECT verifytype, COUNT(*) AS num FROM %t WHERE flag=0 GROUP BY verifytype', array($this->_table));
 	}
 
 	public function delete_by_uid($uid, $verifytype = null) {
@@ -56,7 +56,7 @@ class table_common_member_verify_info extends discuz_table
 			$parameter[] = $uid;
 			$wherearr[] = 'uid=%d';
 		}
-		if($vid > 0 && $vid < 8) {
+		if($vid >= 0 && $vid < 8) {
 			$parameter[] = $vid;
 			$wherearr[] = 'verifytype=%d';
 		}

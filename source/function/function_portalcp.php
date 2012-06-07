@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_portalcp.php 27926 2012-02-17 01:36:25Z svn_project_zhangjie $
+ *      $Id: function_portalcp.php 30318 2012-05-22 07:48:40Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -152,12 +152,21 @@ function save_diy_data($tpldirectory, $primaltplname, $targettplname, $data, $da
 	if(empty($tpldirectory)) {
 		$tpldirectory = getdiytpldir($primaltplname);
 	}
+	$isextphp = false;
 	$file = $tpldirectory.'/'.$primaltplname.'.htm';
 	if (!file_exists($file)) {
-		$file = './template/default/'.$primaltplname.'.htm';
+		$file = $tpldirectory.'/'.$primaltplname.'.php';
+		if (!file_exists($file)) {
+			$file = './template/default/'.$primaltplname.'.htm';
+		} else {
+			$isextphp = true;
+		}
 	}
 	if(!file_exists($file)) return false;
 	$content = file_get_contents(DISCUZ_ROOT.$file);
+	if($isextphp) {
+		$content = substr($content, strpos($content, "\n"));
+	}
 	$content = preg_replace("/\<\!\-\-\[name\].+?\[\/name\]\-\-\>\s+/is", '', $content);
 	$content = preg_replace("/\<script src\=\"misc\.php\?mod\=diyhelp\&action\=get.+?\>\<\/script\>/", '', $content);
 	foreach ($data['layoutdata'] as $key => $value) {
@@ -359,7 +368,7 @@ function gettitlehtml($title, $type) {
 		$v['color'] = trimdxtpllang($v['color']);
 		$v['src'] = trimdxtpllang($v['src']);
 		$v['href'] = trimdxtpllang($v['href']);
-		$v['text'] = htmlspecialchars(str_replace(array('{', '$'), array('{ ', '$ '), $v['text']));
+		$v['text'] = dhtmlspecialchars(str_replace(array('{', '$'), array('{ ', '$ '), $v['text']));
 		$one = "<span class=\"{$v['className']}\"";
 		$style = $color = "";
 		$style .= empty($v['font-size']) ? '' : "font-size:{$v['font-size']}px;";
@@ -869,7 +878,7 @@ function updatetopic($topic = ''){
 	}
 
 	$tpldirectory = '';
-	if($topic['primaltplname'] != $primaltplname) {
+	if($primaltplname && $topic['primaltplname'] != $primaltplname) {
 		$targettplname = 'portal/portal_topic_content_'.$topicid;
 		if(strpos($primaltplname, ':') !== false) {
 			list($tpldirectory, $primaltplname) = explode(':', $primaltplname);
@@ -984,23 +993,6 @@ function check_articleperm($catid, $aid = 0, $article = array(), $isverify = fal
 	}
 }
 
-function getportalarticletplname($catid, $primaltplname = ''){
-	global $_G;
-	loadcache('portalcategory');
-	$oldcatid = $catid;
-	$portalcategory = $_G['cache']['portalcategory'];
-	while(!empty($catid)) {
-		if(!empty($portalcategory[$catid]['articleprimaltplname'])) {
-			$primaltplname = $portalcategory[$catid]['articleprimaltplname'];
-			break;
-		} else {
-			$catid = $portalcategory[$catid]['upid'];
-		}
-	}
-	$catid = empty($catid) ? $oldcatid : $catid;
-	return array($catid, $primaltplname);
-}
-
 function addportalarticlecomment($id, $message, $idtype = 'aid') {
 	global $_G;
 
@@ -1033,7 +1025,7 @@ function addportalarticlecomment($id, $message, $idtype = 'aid') {
 		'username' => $_G['username'],
 		'id' => $id,
 		'idtype' => $idtype,
-		'postip' => $_G['onlineip'],
+		'postip' => $_G['clientip'],
 		'dateline' => $_G['timestamp'],
 		'status' => $comment_status,
 		'message' => $message

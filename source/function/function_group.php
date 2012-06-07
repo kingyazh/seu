@@ -4,14 +4,14 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_group.php 26594 2011-12-16 03:38:24Z liulanbo $
+ *      $Id: function_group.php 29394 2012-04-10 07:26:16Z liulanbo $
  */
 
 if(!defined('IN_DISCUZ')) {
 	exit('Access Denied');
 }
 
-function delgroupcache($fid = 0, $cachearray) {
+function delgroupcache($fid, $cachearray) {
 	C::t('forum_groupfield')->delete_by_type($cachearray, $fid);
 }
 
@@ -183,7 +183,7 @@ function get_viewedgroup() {
 	return $groupviewed_list;
 }
 
-function getgroupthread($fid, $type, $timestamp = 0, $num = 10, $privacy = 0) {
+function getgroupthread($fid, $type, $timestamp = 0, $num = 10) {
 	$typearray = array('replies', 'views', 'dateline', 'lastpost', 'digest');
 	$type = in_array($type, $typearray) ? $type : '';
 
@@ -241,7 +241,7 @@ function getgroupcache($fid, $typearray = array(), $timestamp = 0, $num = 10, $p
 				$num = $type == 'activityuser' ? 50 : 8;
 				$groupcache[$type]['data'] = C::t('forum_groupuser')->groupuserlist($fid, $userdataarray[$type], $num, '', "AND level>'0'");
 			} else {
-				$groupcache[$type]['data'] = getgroupthread($fid, $type, $timestamp, $num, $privacy);
+				$groupcache[$type]['data'] = getgroupthread($fid, $type, $timestamp, $num);
 			}
 			if(!$force && $fid) {
 				C::t('forum_groupfield')->insert(array('fid' => $fid, 'dateline' => TIMESTAMP, 'type' => $type, 'data' => serialize($groupcache[$type])), false, true);
@@ -252,12 +252,8 @@ function getgroupcache($fid, $typearray = array(), $timestamp = 0, $num = 10, $p
 	return $groupcache;
 }
 
-function getgroupranking($fid = '', $nowranking = '', $num = 100) {
+function getgroupranking($fid = '', $nowranking = '') {
 	$topgroup = $rankingdata = $topyesterday = array();
-	if($fid) {
-		updateactivity($fid);
-	}
-
 	$ranking = 1;
 	$query = C::t('forum_forum')->fetch_all_group_for_ranking();
 	foreach($query as $group) {
@@ -269,18 +265,6 @@ function getgroupranking($fid = '', $nowranking = '', $num = 100) {
 		$rankingdata['today'] = intval($topgroup[$fid]);
 		$rankingdata['trend'] = $rankingdata['yesterday'] ? grouptrend($rankingdata['yesterday'], $rankingdata['today']) : 0;
 		$topgroup = $rankingdata;
-	} else {
-		$query = C::t('forum_groupranking')->fetch_all_today_ranking($num);
-		foreach($query as $top) {
-			$topyesterday[$top['fid']] = $top;
-		}
-
-		foreach($topgroup as $forumid => $today) {
-			$yesterday = intval($topyesterday[$forumid]);
-			$trend = $yesterday ? grouptrend($yesterday, $today) : 0;
-				C::t('forum_groupranking')->insert(array('fid' => $forumid, 'yesterday' => $yesterday, 'today' => $today, 'trend' => $trend), false, true);
-		}
-		$topgroup = $topyesterday;
 	}
 
 	return $topgroup;
@@ -320,21 +304,7 @@ function write_groupviewed($fid) {
 	}
 }
 
-function updateactivity($fid, $activity = 1) {
-	$fid = $fid ? intval($fid) : intval($_G['fid']);
-	if($activity) {
-		$forumdata = C::t('forum_forum')->fetch_info_by_fid($fid);
-		if(!$forumdata['activity']) {
-			$perpost = intval(($forumdata['threads'] + $forumdata['posts']) / ((TIMESTAMP - $forumdata['dateline']) / 86400));
-			$activity = intval($forumdata['threads'] / 2 + $forumdata['posts'] / 5 + $forumdata['membernum'] / 10 + $perpost * 2);
-			C::t('forum_forumfield')->update($fid, array('activity' => $activity));
-		}
-	}
-	C::t('forum_forumfield')->update($fid, array('lastupdate' => TIMESTAMP));
-}
-
 function update_groupmoderators($fid) {
-	global $_G;
 	if(empty($fid)) return false;
 	$moderators = C::t('forum_groupuser')->groupuserlist($fid, 'level_join', 0, 0, array('level' => array('1', '2')), array('username', 'level'));
 	if(!empty($moderators)) {

@@ -27,12 +27,13 @@
 		imgLink = 'forum.php?mod=attachment&aid=' + aidEncode + 't=' + date.getTime();
 		imgCode = '<img width="0" height="0" src="' + imgLink + '" />';
 		$('ft').innerHTML = $('ft').innerHTML + imgCode;
-		setTimeout(function() {OnDownloadClick_Simple(obj, event, 21504);}, 100);
+		setTimeout(function() {OnDownloadClick_Simple(obj, window.event, 21504);}, 100);
 	}
 
 	function changeOrigin() {
 		$('e_btn_attachlist').getElementsByTagName('a')[0].innerText = '{lang xf_storage:attachlist}';
 		$('e_attachlist').getElementsByTagName('div')[0].parentNode.removeChild($('e_attachlist').getElementsByTagName('div')[0]);
+		$('attach_confirms').style.display='none';
 	}
 </script>
 <!--{/block}-->

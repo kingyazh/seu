@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_templates.php 25246 2011-11-02 03:34:53Z zhangguosheng $
+ *      $Id: admincp_templates.php 29301 2012-04-01 02:55:08Z monkey $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -25,10 +25,11 @@ if($operation == 'admin') {
 			$basedir = basename($tpl['directory']);
 			$templates .= showtablerow('', array('class="td25"', '', 'class="td29"'), array(
 				"<input class=\"checkbox\" type=\"checkbox\" name=\"delete[]\" ".($tpl['templateid'] == 1 ? 'disabled ' : '')."value=\"$tpl[templateid]\">",
-				"<input type=\"text\" class=\"txt\" size=\"8\" name=\"namenew[$tpl[templateid]]\" value=\"$tpl[name]\">",
+				"<input type=\"text\" class=\"txt\" size=\"8\" name=\"namenew[$tpl[templateid]]\" value=\"$tpl[name]\">".
+				($basedir != 'default' ? '<a href="'.ADMINSCRIPT.'?action=cloudaddons&id='.urlencode($basedir).'.template" target="_blank" title="'.$lang['cloudaddons_linkto'].'">'.$lang['view'].'</a>' : ''),
 				"<input type=\"text\" class=\"txt\" size=\"20\" name=\"directorynew[$tpl[templateid]]\" value=\"$tpl[directory]\">",
 				!empty($tpl['copyright']) ?
-					($basedir != 'default' ? '<a href="'.ADMINSCRIPT.'?action=cloudaddons&id='.urlencode($basedir).'.template" target="_blank">'.$tpl['copyright'].'</a>' : $tpl['copyright']) :
+					$tpl['copyright'] :
 					"<input type=\"text\" class=\"txt\" size=\"8\" name=\"copyrightnew[$tpl[templateid]]\" value=>"
 			), TRUE);
 		}
@@ -37,7 +38,7 @@ if($operation == 'admin') {
 		showsubmenu('templates_admin');
 		showformheader('templates');
 		showtableheader();
-		showsubtitle(array('', 'templates_admin_name', 'dir', 'copyright', ''));
+		showsubtitle(array('', 'templates_admin_name', 'dir', 'copyright'));
 		echo $templates;
 		echo '<tr><td>'.$lang['add_new'].'</td><td><input type="text" class="txt" size="8" name="newname"></td><td class="td29"><input type="text" class="txt" size="20" name="newdirectory"></td><td><input type="text" class="txt" size="25" name="newcopyright"></td><td>&nbsp;</td></tr>';
 		showsubmit('tplsubmit', 'submit', 'del');

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_portalpermission.php 24969 2011-10-19 10:04:01Z zhangguosheng $
+ *      $Id: admincp_portalpermission.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -36,7 +36,7 @@ if(($_GET['uid'] = $_GET['uid'] ? $_GET['uid'] : '')) {
 } elseif($_GET['username']) {
 	$uids = array_keys(C::t('common_member')->fetch_all_by_like_username($_GET['username']));
 	$uids = $uids ? $uids : array(0);
-	$mpurl .= '&username='.htmlspecialchars($_GET['username']);
+	$mpurl .= '&username='.dhtmlspecialchars($_GET['username']);
 }
 if($_GET['inherited']) {
 	$inherited = ' checked';

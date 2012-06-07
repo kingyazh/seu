@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: Manyou.php 25512 2011-11-14 02:31:42Z yexinhao $
+ *      $Id: Manyou.php 29263 2012-03-31 05:45:08Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {

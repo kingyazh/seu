@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: portal_view.php 28348 2012-02-28 06:16:29Z monkey $
+ *      $Id: portal_view.php 29055 2012-03-23 09:25:15Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -28,6 +28,7 @@ if($article_count) $article = array_merge($article_count, $article);
 
 if($article_count) {
 	C::t('portal_article_count')->increase($aid, array('viewnum'=>1));
+	unset($article_count);
 } else {
 	C::t('portal_article_count')->insert(array(
 		'aid'=>$aid,
@@ -136,7 +137,7 @@ if($article['allowcomment']) {
 
 			$article['commentnum'] = C::t('home_comment')->count_by_id_idtype($article['id'], 'blogid');
 			if($article['commentnum']) {
-				$query = C::t('home_comment')->fetch_all_by_id_idtype($article['id'], 'blogid', 0, 20);
+				$query = C::t('home_comment')->fetch_all_by_id_idtype($article['id'], 'blogid', 0, 20, '', 'DESC');
 				foreach($query as $value) {
 					if($value['status'] == 0 || $_G['adminid'] == 1 || $value['uid'] == $_G['uid']) {
 						$commentlist[] = $value;

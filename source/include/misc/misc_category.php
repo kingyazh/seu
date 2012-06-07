@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: misc_category.php 26720 2011-12-21 02:35:42Z monkey $
+ *      $Id: misc_category.php 28997 2012-03-22 03:32:51Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -56,11 +56,12 @@ foreach($query as $forum) {
 }
 if($catlist) {
 	foreach($catlist as $key => $var) {
-		if($var['forumscount'] && $var['forumcolumns']) {
-			$catlist[$key]['forumcolwidth'] = (floor(100 / $var['forumcolumns']) - 0.1).'%';
+		$catlist[$key]['forumcolumns'] = $var['catforumcolumns'];
+		if($var['forumscount'] && $var['catforumcolumns']) {
+			$catlist[$key]['forumcolwidth'] = (floor(100 / $var['catforumcolumns']) - 0.1).'%';
 			$catlist[$key]['endrows'] = '';
-			if($colspan = $var['forumscount'] % $var['forumcolumns']) {
-				while(($var['forumcolumns'] - $colspan) > 0) {
+			if($colspan = $var['forumscount'] % $var['catforumcolumns']) {
+				while(($var['catforumcolumns'] - $colspan) > 0) {
 					$catlist[$key]['endrows'] .= '<td>&nbsp;</td>';
 					$colspan ++;
 				}

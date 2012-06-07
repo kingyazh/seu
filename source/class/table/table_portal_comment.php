@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_portal_comment.php 28041 2012-02-21 07:33:55Z chenmengshu $
+ *      $Id: table_portal_comment.php 29122 2012-03-27 05:57:21Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -81,7 +81,7 @@ class table_portal_comment extends discuz_table
 			for($i = 0; $i < count($message); $i++) {
 				if(preg_match("/\{(\d+)\}/", $message[$i])) {
 					$message[$i] = preg_replace("/\\\{(\d+)\\\}/", ".{0,\\1}", preg_quote($message[$i], '/'));
-					$message .= " $or c.message REGEXP '".$message[$i]."'";
+					$sqlmessage .= " $or c.message REGEXP '".$message[$i]."'";
 				} else {
 					$sqlmessage .= " $or c.message LIKE '%".$message[$i]."%'";
 				}

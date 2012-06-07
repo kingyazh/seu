@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: portalcp_block.php 27632 2012-02-08 04:03:54Z zhangguosheng $
+ *      $Id: portalcp_block.php 30465 2012-05-30 04:10:03Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -201,7 +201,7 @@ if($op == 'block') {
 	$cachetimerange = range(0, 23);
 	$dateformats = block_getdateformats($block['dateformat']);
 
-	$block['summary'] = htmlspecialchars($block['summary']);
+	$block['summary'] = dhtmlspecialchars($block['summary']);
 	$blockclassname = '';
 	$blockclass = $block['blockclass'] ? $block['blockclass'] : $_GET['classname'];
 	$arr = explode('_', $blockclass);
@@ -324,7 +324,7 @@ if($op == 'block') {
 			.'<li><a href="$value[url]">$value[title]</a></li>\n'
 			.'<!--{/loop}-->\n'
 			.'</ul>';
-		$samplecode = htmlspecialchars($samplecode);
+		$samplecode = dhtmlspecialchars($samplecode);
 		$samplecode = str_replace('\n', '<br />', $samplecode);
 	}
 
@@ -344,11 +344,19 @@ if($op == 'block') {
 	if($start<0) $start = 0;
 
 	if(submitcheck('deletesubmit')) {
-		C::t('common_block_item_data')->delete_by_dataid_bid($dataids, $bid);
+		if(!empty($_POST['ids'])) {
+			C::t('common_block_item_data')->delete_by_dataid_bid($_POST['ids'], $bid);
+		}
 		showmessage('do_success', "portal.php?mod=portalcp&ac=block&op=itemdata&bid=$bid&page=$page");
 	}
 
-	$datalist = C::t('common_block_item_data')->fetch_all_by_bid($bid, 1, $start, $perpage);
+	$count = C::t('common_block_item_data')->count_by_bid($bid);
+	$multi = '';
+	$datalist = array();
+	if($count) {
+		$datalist = C::t('common_block_item_data')->fetch_all_by_bid($bid, 1, $start, $perpage);
+		$multi = multi($count, $perpage, $page, "portal.php?mod=portalcp&ac=block&bid=$bid&op=itemdata");
+	}
 
 } elseif($op == 'setting') {
 
@@ -422,7 +430,7 @@ if($op == 'block') {
 		}
 	} elseif($op == 'push') {
 
-		$item = get_push_item($thestyle, $_GET['id'], $_GET['idtype']);
+		$item = get_push_item($block, $thestyle, $_GET['id'], $_GET['idtype']);
 		if($itemid) {
 			$item['itemid'] = $itemid;
 		}
@@ -446,7 +454,7 @@ if($op == 'block') {
 			if(in_array($_GET['idtype'],array('tid', 'gtid', 'aid', 'picid', 'blogid'))) {
 				$_GET['idtype'] = $_GET['idtype'] == 'gtid' ? 'tids' : $_GET['idtype'].'s';
 			}
-			$item = get_push_item($thestyle, $_GET['id'], $_GET['idtype'], $block['blockclass'], $block['script']);
+			$item = get_push_item($block, $thestyle, $_GET['id'], $_GET['idtype'], $block['blockclass'], $block['script']);
 			if(empty($item)) showmessage('block_data_type_invalid', null, null, array('msgtype'=>3));
 		}
 	} elseif($op=='verifydata' || $op=='managedata') {
@@ -495,7 +503,7 @@ if($op == 'block') {
 					$itemfields[$key] = intval($value);
 					break;
 				case 'string':
-					$itemfields[$key] = htmlspecialchars($value);
+					$itemfields[$key] = dhtmlspecialchars($value);
 					break;
 				default:
 					$itemfields[$key] = $value;
@@ -519,7 +527,7 @@ if($op == 'block') {
 		$item['startdate'] = !empty($_POST['startdate']) ? strtotime($_POST['startdate']) : 0;
 		$item['enddate'] = !empty($_POST['enddate']) ? strtotime($_POST['enddate']) : 0;
 		$item['itemtype'] = !empty($_POST['locked']) ? '1' : '2';
-		$item['title'] = htmlspecialchars($_POST['title']);
+		$item['title'] = dhtmlspecialchars($_POST['title']);
 		$item['url'] = $_POST['url'];
 		$block['param']['summarylength'] = empty($block['param']['summarylength']) ? 80 : $block['param']['summarylength'];
 		$block['param']['titlelength'] = empty($block['param']['titlelength']) ? 40 : $block['param']['titlelength'];
@@ -533,7 +541,7 @@ if($op == 'block') {
 			$thumbdata = array('bid' => $block['bid'], 'itemid' => $item['itemid'], 'pic' => $item['pic'], 'picflag' => $result['remote'], 'type' => '1');
 			C::t('common_block_pic')->insert($thumbdata);
 		} elseif($_POST['pic']) {
-			$pic = htmlspecialchars($_POST['pic']);
+			$pic = dhtmlspecialchars($_POST['pic']);
 			$urls = parse_url($pic);
 			if(!empty($urls['scheme']) && !empty($urls['host'])) {
 				$item['picflag'] = '0';
@@ -653,6 +661,8 @@ if($op == 'block') {
 					sendreasonpm($sendreasonpmcontent, 'recommend_note_post', array(
 						'tid' => $item['id'],
 						'subject' => $sendreasonpmcontent['subject'],
+						'from_id' => 0,
+						'from_idtype' => 'recommend'
 					));
 				}
 			}
@@ -692,7 +702,7 @@ if($op == 'block') {
 	}
 	if(in_array($block['blockclass'], array('forum_thread', 'portal_article', 'group_thread', 'space_blog'), true)) {
 		$picdatas = array();
-		$prefix = ($pic['remote'] ? $_G['setting']['ftp']['attachurl'] : $_G['setting']['attachurl']);
+		$prefix = ($item['picflag'] == 2 ? $_G['setting']['ftp']['attachurl'] : $_G['setting']['attachurl']);
 		$itemfields['pics'] = array();
 		$first = true;
 
@@ -701,13 +711,16 @@ if($op == 'block') {
 			$_GET['id'] = $itemfields['id'];
 		}
 
-		if($_GET['idtype'] == 'tids') {
+		if(in_array($_GET['idtype'], array('tids', 'tid'))) {
 			$prefix .= 'forum/';
 			$firstpost = C::t('forum_post')->fetch_threadpost_by_tid_invisible($_GET['id']);
 			foreach(C::t('forum_attachment_n')->fetch_all_by_pid_width('pid:'.$firstpost['pid'], $firstpost['pid'], $block['picwidth']) as $pic) {
 				if($first) {
 					$first = false;
 					$itemfields['pics'][0] = '';
+					if(strpos($itemfields['oldpic'], 'nophoto.gif') !== false) {
+						$itemfields['oldpic'] = 'forum/'.$pic['attachment'];
+					}
 				}
 				$thumb = $prefix.($pic['thumb'] ? getimgthumbname($pic['attachment']) : $pic['attachment']);
 				if('forum/'.$pic['attachment'] == $itemfields['oldpic']) {
@@ -716,12 +729,18 @@ if($op == 'block') {
 					$itemfields['pics'][] = array('big' => $prefix.$pic['attachment'], 'thumb' => $thumb, 'attachment' => 'forum/'.$pic['attachment'], 'first' => 0);
 				}
 			}
+			if(empty($itemfields['pics'][0])) {
+				unset($itemfields['pics'][0]);
+			}
 		} elseif($_GET['idtype'] == 'aids') {
 			$prefix .= 'portal/';
 			foreach(C::t('portal_attachment')->fetch_all_by_aid($_GET['id']) as $pic) {
 				if($first) {
 					$first = false;
 					$itemfields['pics'][0] = '';
+					if(strpos($itemfields['oldpic'], 'nophoto.gif') !== false) {
+						$itemfields['oldpic'] = 'portal/'.$pic['attachment'];
+					}
 				}
 				$thumb = $prefix.($pic['thumb'] ? getimgthumbname($pic['attachment']) : $pic['attachment']);
 				if('portal/'.$pic['attachment'] == $itemfields['oldpic']) {
@@ -730,9 +749,13 @@ if($op == 'block') {
 					$itemfields['pics'][] = array('big' => $prefix.$pic['attachment'], 'thumb' => $thumb, 'attachment' => 'portal/'.$pic['attachment'], 'first' => 0);
 				}
 			}
+			if(empty($itemfields['pics'][0])) {
+				unset($itemfields['pics'][0]);
+			}
 		} elseif($_GET['idtype'] == 'blogids') {
 			$itemfields['pics'][] = array('big' => $itemfields['pic'], 'thumb' => 1, 'attachment' => $itemfields['oldpic']);
 		}
+
 	}
 
 } elseif ($op == 'getblock') {
@@ -761,7 +784,7 @@ if($op == 'block') {
 		$setarr = array('classname'=>getstr($_POST['classname'], 100, 0, 0, 0, -1));
 		C::t('common_block')->update($bid, $setarr);
 	}
-	block_memory_clear($bid);
+	C::t('common_block')->clear_cache($bid);
 
 	showmessage('do_success');
 } elseif ($op == 'saveblocktitle') {
@@ -782,7 +805,7 @@ if($op == 'block') {
 		C::t('common_block')->update($bid, $setarr);
 	}
 
-	block_memory_clear($bid);
+	C::t('common_block')->clear_cache($bid);
 
 	showmessage('do_success');
 } elseif ($op == 'convert') {
@@ -885,7 +908,7 @@ function block_ban_item($block, $item) {
 	C::t('common_block')->update($block['bid'], array('param'=>$parameters));
 }
 
-function get_push_item($blockstyle, $id, $idtype, $blockclass = '', $script = '') {
+function get_push_item($block, $blockstyle, $id, $idtype, $blockclass = '', $script = '') {
 	$item = array();
 	$obj = null;
 	if(empty($blockclass) || empty($script)) {
@@ -906,6 +929,9 @@ function get_push_item($blockstyle, $id, $idtype, $blockclass = '', $script = ''
 	}
 	if($obj && is_object($obj)) {
 		$paramter = array($idtype => intval($id));
+		if(isset($block['param']['picrequired'])) {
+			$paramter['picrequired'] = $block['param']['picrequired'];
+		}
 		$return = $obj->getData($blockstyle, $paramter);
 		if($return['data']) {
 			$item = array_shift($return['data']);
@@ -957,6 +983,7 @@ function block_convert($bid, $toblockclass) {
 				$block['script'] = $convertrule['script'];
 				$block['blockclass'] = $toblockclass;
 				$block['blockstyle'] = serialize($blockstyle);
+				$block['param'] = serialize($block['param']);
 				C::t('common_block')->update($bid, $block);
 			}
 		}

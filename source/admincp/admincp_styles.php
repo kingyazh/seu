@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_styles.php 28113 2012-02-22 09:25:55Z svn_project_zhangjie $
+ *      $Id: admincp_styles.php 30450 2012-05-29 08:17:06Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -23,7 +23,6 @@ require_once libfile('function/cloudaddons');
 $scrolltop = $_GET['scrolltop'];
 $anchor = $_GET['anchor'];
 $namenew = $_GET['namenew'];
-$availablenew = $_GET['availablenew'];
 $defaultnew = $_GET['defaultnew'];
 $newname = $_GET['newname'];
 $id = $_GET['id'];
@@ -166,8 +165,8 @@ if($operation == 'admin') {
 				}
 			}
 			$stylelist .= ($i == 0 ? '<tr>' : '').
-				'<td width="33%" '.($available ? 'style="background: #F2F9FD"' : '').'><table cellspacing="0" cellpadding="0" style="margin-left: 10px; width: 200px;"><tr><td style="width: 120px; text-align: center; border-top: none;">'.
-				($id > 0 ? "<p style=\"margin-bottom: 2px;\">&nbsp;</p><img ".($previewlarge ? 'style="cursor:pointer" title="'.$lang['preview_large'].'" onclick="zoom(this, \''.$previewlarge.'\', 1)" ' : '')."src=\"$preview\" alt=\"$lang[preview]\"/></a>
+				'<td width="33%"><table cellspacing="0" cellpadding="0" style="margin-left: 10px; width: 200px;"><tr><td style="width: 120px; text-align: center; border-top: none;">'.
+				($id > 0 ? "<p style=\"margin-bottom: 2px;\">&nbsp;<img ".($previewlarge ? 'style="cursor:pointer" title="'.$lang['preview_large'].'" onclick="zoom(this, \''.$previewlarge.'\', 1)" ' : '')."src=\"$preview\" alt=\"$lang[preview]\"/></p>
 				<p style=\"margin: 2px 0\"><input type=\"text\" class=\"txt\" name=\"namenew[$id]\" value=\"$style[name]\" size=\"30\" style=\"margin-right:0; width: 80px;\"></p>
 				<p class=\"lightfont\">$style[tplname]</p>".$updatestring[$addonids[$style['styleid']]]."</td><td style=\"padding-top: 17px; width: 80px; border-top: none; vertical-align: top;\">
 				<p style=\"margin: 2px 0\"><label>$lang[default] <input type=\"radio\" class=\"radio\" name=\"defaultnew\" value=\"$id\" $isdefault /></label></p>
@@ -211,7 +210,7 @@ if($operation == 'admin') {
 		showtablefooter();
 		showformfooter();
 
-		if(empty($_G['cookie']['addoncheck_template'])||1) {
+		if(empty($_G['cookie']['addoncheck_template'])) {
 			$checkresult = dunserialize(cloudaddons_upgradecheck($addonids));
 			savecache('addoncheck_template', $checkresult);
 			dsetcookie('addoncheck_template', 1, 3600);
@@ -251,18 +250,22 @@ if($operation == 'admin') {
 				C::t('common_setting')->update('styleid', $defaultid);
 			}
 
-			$availablenew[$defaultid] = 1;
-
-			foreach($sarray as $id => $old) {
-				$namenew[$id] = trim($_GET['namenew'][$id]);
-				$availablenew[$id] = $_GET['availablenew'][$id] ? 1 : 0;
-				if($namenew[$id] != $old['name'] || $availablenew[$id] != $old['available']) {
-					C::t('common_style')->update($id, array('name' => $namenew[$id], 'available' => $availablenew[$id]));
+			if(isset($_GET['namenew'])) {
+				foreach($sarray as $id => $old) {
+					$namenew[$id] = trim($_GET['namenew'][$id]);
+					if($namenew[$id] != $old['name']) {
+						C::t('common_style')->update($id, array('name' => $namenew[$id]));
+					}
 				}
 			}
 
 			$delete = $_GET['delete'];
 			if(!empty($delete) && is_array($delete)) {
+				if(!$_GET['confirmed']) {
+					$deletestr = '&delete[]='.implode('&delete[]=', $delete);
+					cpmsg('styles_delete_confirm', 'action=styles'.$deletestr.'&confirmed=yes&stylesubmit=true', 'form');
+				}
+				dsetcookie('uninstallreason', $_GET['uninstallreason'] ? '|'.implode('|', $_GET['uninstallreason']).'|' : '');
 				$did = array();
 				foreach($delete as $id) {
 					$id = intval($id);
@@ -562,7 +565,7 @@ function imgpre_switch(id) {
 					$substitute .= ' '.$stylevarbgextra[$varid];
 				}
 			}
-			$substitute = @htmlspecialchars($substitute);
+			$substitute = @dhtmlspecialchars($substitute);
 			$stylevarids = array($varid);
 			C::t('common_stylevar')->update_substitute_by_styleid($substitute, $id, $stylevarids);
 		}

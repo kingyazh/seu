@@ -3,7 +3,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_upload.php 28434 2012-02-29 11:03:43Z monkey $
+ *      $Id: function_upload.php 29000 2012-03-22 03:52:01Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -16,9 +16,6 @@ function getuploadconfig($uid=0, $fid=0, $limit=true) {
 	$notallow = $config = array();
 	$config['limit'] = 0;
 	$uid = !empty($uid) ? intval($uid) : $_G['uid'];
-	if(!$uid) {
-		return $config;
-	}
 	$authkey = $_G['config']['security']['authkey'];
 	$config['hash'] = md5(substr(md5($authkey), 8).$uid);
 

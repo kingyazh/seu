@@ -12,8 +12,8 @@ ob_start();
 <title><?php if(!empty($navtitle)): echo $navtitle.' - '; endif; if(empty($nobbname)): echo $_G['setting']['bbname'].' - '; endif;?> Powered by Discuz! Archiver</title>
 <?php echo $_G['setting']['seohead']; ?>
 
-<meta name="keywords" content="<?php if(!empty($metakeywords)): echo htmlspecialchars($metakeywords); endif;?>" />
-<meta name="description" content="<?php if(!empty($metadescription)): echo htmlspecialchars($metadescription).' ';endif; echo ','.$_G['setting']['bbname'];?>" />
+<meta name="keywords" content="<?php if(!empty($metakeywords)): echo dhtmlspecialchars($metakeywords); endif;?>" />
+<meta name="description" content="<?php if(!empty($metadescription)): echo dhtmlspecialchars($metadescription).' ';endif; echo ','.$_G['setting']['bbname'];?>" />
 <meta name="generator" content="Discuz! <?php echo $_G['setting']['version']; ?>" />
 <meta name="author" content="Discuz! Team and Comsenz UI Team" />
 <meta name="copyright" content="2001-2012 Comsenz Inc." />

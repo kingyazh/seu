@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_cloudaddons.php 28363 2012-02-28 07:28:58Z monkey $
+ *      $Id: function_cloudaddons.php 30036 2012-05-08 02:31:38Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -14,11 +14,11 @@ if(!defined('IN_DISCUZ')) {
 define('CLOUDADDONS_WEBSITE_URL', 'http://addon.discuz.com');
 define('CLOUDADDONS_DOWNLOAD_URL', 'http://addon.discuz.com/index.php');
 define('CLOUDADDONS_DOWNLOAD_IP', '');
-define('CLOUDADDONS_CHECK_URL', 'http://addon1.discuz.com/md5');
+define('CLOUDADDONS_CHECK_URL', 'http://addon1.discuz.com');
 define('CLOUDADDONS_CHECK_IP', '');
 
 function cloudaddons_md5($file) {
-	return dfsockopen(CLOUDADDONS_CHECK_URL.'/'.$file, 0, '', '', false, CLOUDADDONS_CHECK_IP);
+	return dfsockopen(CLOUDADDONS_CHECK_URL.'/md5/'.$file, 0, '', '', false, CLOUDADDONS_CHECK_IP, 999);
 }
 
 function cloudaddons_url($extra) {
@@ -34,24 +34,29 @@ function cloudaddons_url($extra) {
 }
 
 function cloudaddons_check() {
-	if(dfsockopen(CLOUDADDONS_WEBSITE_URL.'/image/logo.png', 4) !== chr(0x89).'PNG') {
+	if(dfsockopen(CLOUDADDONS_WEBSITE_URL.'/image/logo.png', 4, '', '', false, CLOUDADDONS_DOWNLOAD_IP, 999) !== chr(0x89).'PNG') {
 		cpmsg('cloudaddons_check_url_fopen_error', '', 'error');
 	}
-	$tmpdir = DISCUZ_ROOT.'./data/download/'.random(5);
-	$tmpfile = $tmpdir.'/index.html';
-	dmkdir($tmpdir, 0777);
-	if(!is_dir($tmpdir) || !file_exists($tmpfile)) {
-		cpmsg('cloudaddons_check_write_error', '', 'error');
+	if(dfsockopen(CLOUDADDONS_CHECK_URL.'/logo.png', 4, '', '', false, CLOUDADDONS_DOWNLOAD_IP, 999) !== chr(0x89).'PNG') {
+		cpmsg('cloudaddons_check_url_fopen_error', '', 'error');
 	}
-	@unlink($tmpfile);
-	@rmdir($tmpdir);
-	if(is_dir($tmpdir) || file_exists($tmpfile)) {
-		cpmsg('cloudaddons_check_write_error', '', 'error');
+	foreach(array('download', 'addonmd5') as $path) {
+		$tmpdir = DISCUZ_ROOT.'./data/'.$path.'/'.random(5);
+		$tmpfile = $tmpdir.'/index.html';
+		dmkdir($tmpdir, 0777);
+		if(!is_dir($tmpdir) || !file_exists($tmpfile)) {
+			cpmsg('cloudaddons_check_write_error', '', 'error');
+		}
+		@unlink($tmpfile);
+		@rmdir($tmpdir);
+		if(is_dir($tmpdir) || file_exists($tmpfile)) {
+			cpmsg('cloudaddons_check_write_error', '', 'error');
+		}
 	}
 }
 
 function cloudaddons_open($extra, $post = '') {
-	return dfsockopen(cloudaddons_url('&from=s').$extra, 0, $post, '', false, CLOUDADDONS_DOWNLOAD_IP);
+	return dfsockopen(cloudaddons_url('&from=s').$extra, 0, $post, '', false, CLOUDADDONS_DOWNLOAD_IP, 999);
 }
 
 function cloudaddons_pluginlogo_url($id) {
@@ -79,7 +84,10 @@ function cloudaddons_faillog($rid, $type) {
 }
 
 function cloudaddons_removelog($rid) {
-	cloudaddons_open('&mod=app&ac=removelog&rid='.$rid);
+	global $_G;
+	$reason = $_G['cookie']['uninstallreason'];
+	dsetcookie('uninstallreason', '', -1);
+	cloudaddons_open('&mod=app&ac=removelog&rid='.$rid.'&reason='.$reason);
 }
 
 function cloudaddons_validator($addonid) {
@@ -317,6 +325,22 @@ function cloudaddons_getsubdirs($dir, $root, &$return) {
 			}
 		}
 	}
+}
+
+function cloudaddons_http_build_query($formdata, $numeric_prefix = null, $key = null) {
+	$res = array();
+	foreach((array) $formdata as $k => $v) {
+		$tmp_key = urlencode(is_int($k) ? $numeric_prefix . $k : $k);
+		if ($key) {
+			$tmp_key = $key.'['.$tmp_key.']';
+		}
+		if (is_array($v) || is_object($v)) {
+			$res[] = cloudaddons_http_build_query($v, null, $tmp_key);
+		} else {
+			$res[] = $tmp_key.'='.urlencode($v);
+		}
+	}
+	return implode('&', $res);
 }
 
 ?>

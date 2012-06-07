@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: block_portalcategory.php 25525 2011-11-14 04:39:11Z zhangguosheng $
+ *      $Id: block_portalcategory.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -127,7 +127,7 @@ class block_portalcategory extends discuz_block {
 			$list[] = array(
 				'id' => $data['catid'],
 				'idtype' => 'catid',
-				'title' => htmlspecialchars($data['catname']),
+				'title' => dhtmlspecialchars($data['catname']),
 				'url' => $_G['cache']['portalcategory'][$data['catid']]['caturl'],
 				'pic' => '',
 				'picflag' => '0',

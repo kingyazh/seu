@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: helper_page.php 27449 2012-02-01 05:32:35Z zhangguosheng $
+ *      $Id: helper_page.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -16,7 +16,7 @@ class helper_page {
 
 	public static function multi($num, $perpage, $curpage, $mpurl, $maxpages = 0, $page = 10, $autogoto = FALSE, $simple = FALSE, $jsfunc = FALSE) {
 		global $_G;
-		$ajaxtarget = !empty($_GET['ajaxtarget']) ? " ajaxtarget=\"".htmlspecialchars($_GET['ajaxtarget'])."\" " : '';
+		$ajaxtarget = !empty($_GET['ajaxtarget']) ? " ajaxtarget=\"".dhtmlspecialchars($_GET['ajaxtarget'])."\" " : '';
 
 		$a_name = '';
 		if(strpos($mpurl, '#') !== FALSE) {

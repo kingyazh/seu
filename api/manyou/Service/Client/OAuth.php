@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: OAuth.php 27709 2012-02-13 03:13:04Z zhouxiaobo $
+ *      $Id: OAuth.php 29306 2012-04-01 03:42:53Z houdelei $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -77,23 +77,8 @@ class Cloud_Service_Client_OAuth {
 	}
 
 	public function customHmac($str, $key) {
-		$signature = '';
-		if(function_exists('hash_hmac')) {
-			$signature = base64_encode(hash_hmac("sha1", $str, $key, true));
-		} else {
-			$blocksize = 64;
-			$hashfunc = 'sha1';
-			if(strlen($key) > $blocksize) {
-				$key = pack('H*', $hashfunc($key));
-			}
-			$key = str_pad($key,$blocksize,chr(0x00));
-			$ipad = str_repeat(chr(0x36),$blocksize);
-			$opad = str_repeat(chr(0x5c),$blocksize);
-			$hmac = pack('H*',$hashfunc(($key^$opad).pack('H*',$hashfunc(($key^$ipad).$str))));
-			$signature = base64_encode($hmac);
-		}
-
-		return $signature;
+		$utilService = Cloud::loadClass('Service_Util');
+		return base64_encode($utilService->hashHmac('sha1', $str, $key, true));
 	}
 
 	private function _getOAuthSignatureParams($extra = array()) {
@@ -214,6 +199,3 @@ class Cloud_Service_Client_OAuth {
 	}
 
 }
-
-
-?>

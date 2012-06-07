@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_post.php 28428 2012-02-29 09:10:50Z zhengqingpeng $
+ *      $Id: function_post.php 30487 2012-05-30 09:11:07Z svn_project_zhangjie $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -120,18 +120,19 @@ function ftpupload($aids, $uid = 0) {
 	}
 	$attachtables = $pics = array();
 	foreach(C::t('forum_attachment')->fetch_all($aids) as $attach) {
-		if($uid != $attach['uid']) {
+		if($uid != $attach['uid'] && !$_G['forum']['ismoderator']) {
 			continue;
 		}
 		$attachtables[$attach['tableid']][] = $attach['aid'];
 	}
 	foreach($attachtables as $attachtable => $aids) {
+		$remoteaids = array();
 		foreach(C::t('forum_attachment_n')->fetch_all($attachtable, $aids, 0) as $attach) {
 			$attach['ext'] = fileext($attach['filename']);
-			if(((!$_G['setting']['ftp']['allowedexts'] && !$_G['setting']['ftp']['disallowedexts']) || ($_G['setting']['ftp']['allowedexts'] && in_array($attach['ext'], $_G['setting']['ftp']['allowedexts'])) || ($_G['setting']['ftp']['disallowedexts'] && !in_array($attach['ext'], $_G['setting']['ftp']['disallowedexts']))) && (!$_G['setting']['ftp']['minsize'] || $attach['filesize'] >= $_G['setting']['ftp']['minsize'] * 1024)) {
+			if(((!$_G['setting']['ftp']['allowedexts'] && !$_G['setting']['ftp']['disallowedexts']) || ($_G['setting']['ftp']['allowedexts'] && in_array($attach['ext'], $_G['setting']['ftp']['allowedexts'])) || ($_G['setting']['ftp']['disallowedexts'] && !in_array($attach['ext'], $_G['setting']['ftp']['disallowedexts']) && (!$_G['setting']['ftp']['allowedexts'] || $_G['setting']['ftp']['allowedexts'] && in_array($attach['ext'], $_G['setting']['ftp']['allowedexts'])) )) && (!$_G['setting']['ftp']['minsize'] || $attach['filesize'] >= $_G['setting']['ftp']['minsize'] * 1024)) {
 				if(ftpcmd('upload', 'forum/'.$attach['attachment']) && (!$attach['thumb'] || ftpcmd('upload', 'forum/'.getimgthumbname($attach['attachment'])))) {
 					dunlink($attach);
-					$aids[] = $attach['aid'];
+					$remoteaids[$attach['aid']] = $attach['aid'];
 					if($attach['picid']) {
 						$pics[] = $attach['picid'];
 					}
@@ -139,8 +140,8 @@ function ftpupload($aids, $uid = 0) {
 			}
 		}
 
-		if($aids) {
-			C::t('forum_attachment_n')->update($attachtable, $aids, array('remote' => 1));
+		if($remoteaids) {
+			C::t('forum_attachment_n')->update($attachtable, $remoteaids, array('remote' => 1));
 		}
 	}
 	if($pics) {
@@ -185,7 +186,7 @@ function updateattach($modnewthreads, $tid, $pid, $attachnew, $attachupdate = ar
 			$update['tid'] = $tid;
 			$update['pid'] = $pid;
 			$update['uid'] = $uid;
-			$update['description'] = cutstr(dhtmlspecialchars($attach['description']), 100);
+			$update['description'] = censor(cutstr(dhtmlspecialchars($attach['description']), 100));
 			C::t('forum_attachment_n')->update('tid:'.$tid, $aid, $update);
 			if(!$newattach[$aid]) {
 				continue;
@@ -217,8 +218,8 @@ function updateattach($modnewthreads, $tid, $pid, $attachnew, $attachupdate = ar
 					'username' => $_G['username'],
 					'dateline' => $albumattach[$aid]['dateline'],
 					'postip' => $_G['clientip'],
-					'filename' => $albumattach[$aid]['filename'],
-					'title' => cutstr(dhtmlspecialchars($attach['description']), 100),
+					'filename' => censor($albumattach[$aid]['filename']),
+					'title' => censor(cutstr(dhtmlspecialchars($attach['description']), 100)),
 					'type' => fileext($albumattach[$aid]['attachment']),
 					'size' => $albumattach[$aid]['filesize'],
 					'filepath' => $albumattach[$aid]['attachment'],
@@ -311,13 +312,12 @@ function updateattach($modnewthreads, $tid, $pid, $attachnew, $attachupdate = ar
 function checkflood() {
 	global $_G;
 	if(!$_G['group']['disablepostctrl'] && $_G['uid']) {
-		$isflood = $_G['setting']['floodctrl'] && (TIMESTAMP - $_G['setting']['floodctrl'] <= getuserprofile('lastpost'));
-
-		if(empty($isflood)) {
-			return FALSE;
-		} else {
-			return TRUE;
+		if($_G['setting']['floodctrl'] && discuz_process::islocked("post_lock_".$_G['uid'], $_G['setting']['floodctrl'])) {
+			return true;
 		}
+		return false;
+
+
 	}
 	return FALSE;
 }

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp.inc.php 26426 2011-12-13 03:17:04Z monkey $
+ *      $Id: admincp.inc.php 29364 2012-04-09 02:51:41Z monkey $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {

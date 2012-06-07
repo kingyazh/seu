@@ -3,7 +3,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: home_follow.php 28505 2012-03-01 11:55:47Z zhengqingpeng $
+ *      $Id: home_follow.php 30281 2012-05-18 03:43:42Z liulanbo $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -24,12 +24,16 @@ $multi = '';
 $theurl = 'home.php?mod='.($do == 'view' ? 'space' : 'follow').(!in_array($do, array('feed', 'view')) ? '&do='.$do : '');
 $uid = $_GET['uid'] ? $_GET['uid'] : $_G['uid'];
 $viewself = $uid == $_G['uid'] ? true : false;
-$space = $viewself ? $_G['member'] : getuserbyuid($uid);
+$space = $viewself ? $_G['member'] : getuserbyuid($uid, 1);
 if(empty($space)) {
 	showmessage('follow_visituser_not_exist');
+} elseif(in_array($space['groupid'], array(4, 5, 6)) && ($_G['adminid'] != 1 && $space['uid'] != $_G['uid'])) {
+	dheader("Location:home.php?mod=space&uid=$uid&do=profile");
 }
 space_merge($space, 'count');
 space_merge($space, 'profile');
+space_merge($space, 'field_home');
+
 if($viewself) {
 	$showguide = false;
 } else {
@@ -161,6 +165,8 @@ if($do == 'feed') {
 	if(helper_access::check_module('follow')) {
 		$followerlist = C::t('home_follow')->fetch_all_following_by_uid($uid, 0, 9);
 	}
+	$seccodecheck = ($_G['setting']['seccodestatus'] & 4) && (!$_G['setting']['seccodedata']['minposts'] || getuserprofile('posts') < $_G['setting']['seccodedata']['minposts']);
+	$secqaacheck = $_G['setting']['secqaa']['status'] & 2 && (!$_G['setting']['secqaa']['minposts'] || getuserprofile('posts') < $_G['setting']['secqaa']['minposts']);
 } elseif($do == 'follower') {
 	$count = C::t('home_follow')->count_follow_user($uid, 1);
 	if($count) {
@@ -239,6 +245,6 @@ if($do == 'feed') {
 $metakeywords = $navtitle;
 $metadescription = $navtitle;
 $navtitle = helper_seo::get_title_page($navtitle, $_G['page']);
-include template('home/follow_feed');
+include template('diy:home/follow_feed');
 
 ?>

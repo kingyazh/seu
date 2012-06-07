@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_mail.php 26220 2011-12-06 10:58:42Z svn_project_zhangjie $
+ *      $Id: function_mail.php 28969 2012-03-21 04:07:45Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -150,9 +150,13 @@ EOT;
 			return false;
 		}
 
-		$headers .= 'Message-ID: <'.gmdate('YmdHs').'.'.substr(md5($email_message.microtime()), 0, 6).rand(100000, 999999).'@'.$_SERVER['HTTP_HOST'].">{$maildelimiter}";
+		$timeoffset = $_G['setting']['timeoffset'];
+		if(function_exists('date_default_timezone_set')) {
+			@date_default_timezone_set('Etc/GMT'.($timeoffset > 0 ? '-' : '+').(abs($timeoffset)));
+		}
 
-		fputs($fp, "Date: ".gmdate('r')."\r\n");
+		$headers .= 'Message-ID: <'.date('YmdHs').'.'.substr(md5($email_message.microtime()), 0, 6).rand(100000, 999999).'@'.$_SERVER['HTTP_HOST'].">{$maildelimiter}";
+		fputs($fp, "Date: ".date('r')."\r\n");
 		fputs($fp, "To: ".$email_to."\r\n");
 		fputs($fp, "Subject: ".$email_subject."\r\n");
 		fputs($fp, $headers."\r\n");

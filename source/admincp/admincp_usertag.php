@@ -3,7 +3,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_usertag.php 28113 2012-02-22 09:25:55Z svn_project_zhangjie $
+ *      $Id: admincp_usertag.php 29214 2012-03-29 07:22:01Z monkey $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -48,7 +48,7 @@ if($operation == '') {
 					'<input type="checkbox" class="checkbox" name="tagids[]" value="'.$row['tagid'].'" />',
 					$row['tagname'],
 					'<span id="tag_'.$row['tagid'].'"><a href="javascript:;" onclick="ajaxget(\'misc.php?mod=tag&type=countitem&id='.$row['tagid'].'\', \'tag_'.$row['tagid'].'\');return false;">'.$lang['view'].'</a></span>',
-					'<a href="admin.php?action=members&operation=search&submit=1&tagid='.$row['tagid'].'" target="_blank">'.cplang('view').$lang['usertag_user'].'</a>&nbsp;|&nbsp;<a href="admin.php?action=members&operation=newsletter&tagid='.$row['tagid'].'&submit=1" target="_blank">'.$lang['usertag_send_notice'].'</a>'
+					'<a href="'.ADMINSCRIPT.'?action=members&operation=search&submit=1&tagid='.$row['tagid'].'" target="_blank">'.cplang('view').$lang['usertag_user'].'</a>&nbsp;|&nbsp;<a href="'.ADMINSCRIPT.'?action=members&operation=newsletter&tagid='.$row['tagid'].'&submit=1" target="_blank">'.$lang['usertag_send_notice'].'</a>'
 				));
 		}
 		$multipage = multi($tagcount, $lpp, $page, ADMINSCRIPT."?action=usertag$addurl&lpp=$lpp", 0, 3);

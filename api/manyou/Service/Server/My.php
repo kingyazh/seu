@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: My.php 28361 2012-02-28 07:12:03Z monkey $
+ *      $Id: My.php 29713 2012-04-26 01:51:38Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -115,6 +115,7 @@ class Cloud_Service_Server_My extends Cloud_Service_Server_Restful {
 	}
 
 	protected function _callLocalMethod($module, $method, $params) {
+
 		if ($module == 'Batch' && $method == 'run') {
 			$response = array();
 			foreach($params as $param) {
@@ -125,19 +126,23 @@ class Cloud_Service_Server_My extends Cloud_Service_Server_Restful {
 				}
 			}
 			return new Cloud_Service_Server_Response($response, 'Batch');
-		}
-
-		$methodName = $this->_getMethodName($module, $method);
-		$className = sprintf('Cloud_Service_Server_%s', ucfirst($module));
-		$class = Cloud::loadClass($className);
-		if (method_exists($class, $methodName)) {
-			$result = call_user_func_array(array(&$class, $methodName), $params);
-			if ($result instanceof Cloud_Service_Server_ErrorResponse) {
-				return $result;
-			}
-			return new Cloud_Service_Server_Response($result);
 		} else {
-			throw new Cloud_Service_Server_RestfulException('Method not implemented: ' . $methodName, 2);
+			$methodName = $this->_getMethodName($module, $method);
+			$className = sprintf('Cloud_Service_Server_%s', ucfirst($module));
+			try {
+				$class = Cloud::loadClass($className);
+			} catch (Exception $e) {
+				throw new Cloud_Service_Server_RestfulException('Class not implemented: ' . $className, 2);
+			}
+			if (method_exists($class, $methodName)) {
+				$result = call_user_func_array(array(&$class, $methodName), $params);
+				if ($result instanceof Cloud_Service_Server_ErrorResponse) {
+					return $result;
+				}
+				return new Cloud_Service_Server_Response($result);
+			} else {
+				throw new Cloud_Service_Server_RestfulException('Method not implemented: ' . $methodName, 2);
+			}
 		}
 	}
 

@@ -208,7 +208,6 @@
 	</div>
 </div>
 
-<script type="text/javascript" src="{$this->setting['jspath']}md5.js?{VERHASH}" reload="1"></script>
 <script type="text/javascript" reload="1">
 <!--{if !isset($_GET['viewlostpw'])}-->
 	var pwdclear = 0;
@@ -226,20 +225,6 @@
 	initinput_login();
 	<!--{if $this->setting['sitemessage']['login']}-->
 	showPrompt('custominfo_login_$loginhash', 'mouseover', '<!--{echo trim($this->setting['sitemessage'][login][array_rand($this->setting['sitemessage'][login])])}-->', $this->setting['sitemessage'][time]);
-	<!--{/if}-->
-	<!--{if $this->setting['pwdsafety']}-->
-	var pwmd5log = new Array();
-	function pwmd5() {
-		if(!$(pwmd5.arguments[i])) {
-			return;
-		}
-		numargs = pwmd5.arguments.length;
-		for(var i = 0; i < numargs; i++) {
-			if(!pwmd5log[pwmd5.arguments[i]] || $(pwmd5.arguments[i]).value.length != 32) {
-				pwmd5log[pwmd5.arguments[i]] = $(pwmd5.arguments[i]).value = hex_md5($(pwmd5.arguments[i]).value);
-			}
-		}
-	}
 	<!--{/if}-->
 
 	function clearpwd() {

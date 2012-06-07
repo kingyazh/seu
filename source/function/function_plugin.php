@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_plugin.php 27880 2012-02-16 05:31:56Z monkey $
+ *      $Id: function_plugin.php 29270 2012-03-31 07:03:43Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -58,7 +58,7 @@ function plugininstall($pluginarray, $installtype = '', $available = 0) {
 	}
 
 	if(!empty($dir) && !empty($pluginarray['importfile'])) {
-		require_once adminfile('function/importdata');
+		require_once libfile('function/importdata');
 		foreach($pluginarray['importfile'] as $importtype => $file) {
 			if(in_array($importtype, array('smilies', 'styles'))) {
 				$files = explode(',', $file);
@@ -139,6 +139,8 @@ function pluginupgrade($pluginarray, $installtype) {
 	$pluginarray['plugin']['modules'] = serialize($pluginarray['plugin']['modules']);
 
 	C::t('common_plugin')->update($plugin['pluginid'], array('version' => $pluginarray['plugin']['version'], 'modules' => $pluginarray['plugin']['modules']));
+
+	cloudaddons_installlog($pluginarray['plugin']['identifier'].'.plugin');
 
 	updatecache(array('plugin', 'setting', 'styles'));
 	cleartemplatecache();

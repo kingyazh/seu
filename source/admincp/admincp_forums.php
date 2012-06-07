@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_forums.php 28372 2012-02-28 08:15:06Z monkey $
+ *      $Id: admincp_forums.php 29997 2012-05-07 04:00:02Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -400,10 +400,20 @@ var rowtypedata = [
 
 		$fidarray[] = $fid;
 		foreach($fidarray as $fid) {
-			$moderators = '';
+			$moderators = $tab = '';
+			$modorder = array();
 			$modmemberarray = C::t('forum_moderator')->fetch_all_no_inherited_by_fid($fid);
-			$members = C::t('common_member')->fetch_all_username_by_uid(array_keys($modmemberarray));
-			$moderators = implode("\t", $members);
+			foreach($modmemberarray as $moduid => $modmember) {
+				$modorder[] = $moduid;
+			}
+			$members = C::t('common_member')->fetch_all_username_by_uid($modorder);
+			foreach($modorder as $mod) {
+				if(!$members[$mod]) {
+					continue;
+				}
+				$moderators .= $tab.addslashes($members[$mod]);
+				$tab = "\t";
+			}
 
 			C::t('forum_forumfield')->update($fid, array('moderators' => $moderators));
 		}
@@ -454,6 +464,7 @@ var rowtypedata = [
 		C::t('forum_forumfield')->update($target, array('threadtypes' => serialize($targethreadtypes)));
 		C::t('forum_threadclass')->update_by_fid($source, array('fid' => $target));
 		C::t('forum_forum')->delete_by_fid($source);
+		C::t('home_favorite')->delete_by_id_idtype($source, 'fid');
 		C::t('forum_moderator')->delete_by_fid($source);
 
 		$log_handler = Cloud::loadClass('Cloud_Service_SearchHelper');
@@ -619,9 +630,9 @@ var rowtypedata = [
 			showtablefooter();
 			showtips('setting_seo_forum_tips', 'seo_tips', true, 'setseotips');
 			showtableheader();
-			showsetting('forums_edit_basic_seotitle', 'seotitlenew', htmlspecialchars($mforum[0]['seotitle']), 'text');
-			showsetting('forums_edit_basic_keyword', 'keywordsnew', htmlspecialchars($mforum[0]['keywords']), 'text');
-			showsetting('forums_edit_basic_seodescription', 'seodescriptionnew', htmlspecialchars($mforum[0]['seodescription']), 'textarea');
+			showsetting('forums_edit_basic_seotitle', 'seotitlenew', dhtmlspecialchars($mforum[0]['seotitle']), 'text');
+			showsetting('forums_edit_basic_keyword', 'keywordsnew', dhtmlspecialchars($mforum[0]['keywords']), 'text');
+			showsetting('forums_edit_basic_seodescription', 'seodescriptionnew', dhtmlspecialchars($mforum[0]['seodescription']), 'textarea');
 			showsubmit('detailsubmit');
 			showtablefooter();
 
@@ -790,9 +801,9 @@ var rowtypedata = [
 					showtips('setting_seo_forum_tips', 'seo_tips', true, 'setseotips');
 				}
 				showtableheader();
-				showsetting('forums_edit_basic_seotitle', 'seotitlenew', htmlspecialchars($forum['seotitle']), 'text');
-				showsetting('forums_edit_basic_keyword', 'keywordsnew', htmlspecialchars($forum['keywords']), 'text');
-				showsetting('forums_edit_basic_seodescription', 'seodescriptionnew', htmlspecialchars($forum['seodescription']), 'textarea');
+				showsetting('forums_edit_basic_seotitle', 'seotitlenew', dhtmlspecialchars($forum['seotitle']), 'text');
+				showsetting('forums_edit_basic_keyword', 'keywordsnew', dhtmlspecialchars($forum['keywords']), 'text');
+				showsetting('forums_edit_basic_seodescription', 'seodescriptionnew', dhtmlspecialchars($forum['seodescription']), 'textarea');
 				showtablefooter();
 				showtagfooter('div');
 
@@ -1671,6 +1682,16 @@ EOT;
 			$forum['extra']['namecolor'] = $extranew['namecolor'];
 
 			if(!$multiset) {
+				if(($_GET['deletebanner'] || $_FILES['bannernew']) && $forum['banner']) {
+					$valueparse = parse_url($forum['banner']);
+					if(!isset($valueparse['host'])) {
+						@unlink($_G['setting']['attachurl'].'common/'.$forum['banner']);
+					}
+					$forumfielddata['banner'] = '';
+					if($_GET['bannernew'] == $forum['banner']) {
+						$_GET['bannernew'] = '';
+					}
+				}
 				if($_FILES['bannernew']) {
 					$bannernew = upload_icon_banner($forum, $_FILES['bannernew'], 'banner');
 				} else {
@@ -1679,14 +1700,18 @@ EOT;
 				if($bannernew) {
 					$forumfielddata['banner'] = $bannernew;
 				}
-				if($_GET['deletebanner'] && $forum['banner']) {
-					$valueparse = parse_url($forum['banner']);
-					if(!isset($valueparse['host'])) {
-						@unlink($_G['setting']['attachurl'].'common/'.$forum['banner']);
-					}
-					$forumfielddata['banner'] = '';
-				}
 
+				if($_GET['deleteicon'] || $_FILES['iconnew']) {
+					$valueparse = parse_url($forum['icon']);
+					if(!isset($valueparse['host'])) {
+						@unlink($_G['setting']['attachurl'].'common/'.$forum['icon']);
+					}
+					$forumfielddata['icon'] = '';
+					$forum['extra']['iconwidth'] = '';
+					if($_GET['iconnew'] == $forum['icon']) {
+						$_GET['iconnew'] = '';
+					}
+				}
 				if($_FILES['iconnew']) {
 					$iconnew = upload_icon_banner($forum, $_FILES['iconnew'], 'icon');
 				} else {
@@ -1705,14 +1730,6 @@ EOT;
 					}
 					$forum['extra']['iconwidth'] = $extranew['iconwidth'];
 				} else {
-					$forum['extra']['iconwidth'] = '';
-				}
-				if($_GET['deleteicon']) {
-					$valueparse = parse_url($forum['icon']);
-					if(!isset($valueparse['host'])) {
-						@unlink($_G['setting']['attachurl'].'common/'.$forum['icon']);
-					}
-					$forumfielddata['icon'] = '';
 					$forum['extra']['iconwidth'] = '';
 				}
 			}
@@ -1809,6 +1826,7 @@ EOT;
 			$log_handler = Cloud::loadClass('Cloud_Service_SearchHelper');
 			$log_handler->myThreadLog('delforum', array('fid' => $fid));
 			C::t('forum_forum')->delete_by_fid($fid);
+			C::t('home_favorite')->delete_by_id_idtype($fid, 'fid');
 			C::t('forum_moderator')->delete_by_fid($fid);
 			C::t('forum_access')->delete_by_fid($fid);
 			echo 'TRUE';
@@ -1921,12 +1939,11 @@ EOT;
 
 	} else {
 
-		$fids = $comma = '';
+		$fids = array();
 		if(is_array($_GET['target']) && count($_GET['target'])) {
 			foreach($_GET['target'] as $fid) {
 				if(($fid = intval($fid)) && $fid != $source ) {
-					$fids .= $comma.$fid;
-					$comma = ',';
+					$fids[] = $fid;
 				}
 			}
 		}
@@ -1999,10 +2016,10 @@ function showforum(&$forum, $type = '', $last = '', $toggle = false) {
 			$boardattr .= '</div>';
 		}
 
-		$return .= '<input type="text" name="name['.$forum['fid'].']" value="'.htmlspecialchars($forum['name']).'" class="txt" />'.
+		$return .= '<input type="text" name="name['.$forum['fid'].']" value="'.dhtmlspecialchars($forum['name']).'" class="txt" />'.
 			($type == '' ? '<a href="###" onclick="addrowdirect = 1;addrow(this, 2, '.$forum['fid'].')" class="addchildboard">'.cplang('forums_admin_add_sub').'</a>' : '').
 			'</div>'.$boardattr.
-			'</td><td class="td25 lightfont">('.($type == 'group' ? 'gid:' : 'fid:').$forum['fid'].')</td>'.
+			'</td><td align="right" class="td23 lightfont">('.($type == 'group' ? 'gid:' : 'fid:').$forum['fid'].')</td>'.
 			'</td><td class="td23">'.showforum_moderators($forum).'</td>
 			<td width="160"><input class="checkbox" value="'.$forum['fid'].'" type="checkbox"'.($type != 'group' ? ' chkvalue="g'.$_G['fg'].'" onclick="multiupdate(this, '.$forum['fid'].')"' : ' name="gc'.$_G['fg'].'" onclick="checkAll(\'value\', this.form, \'g'.$_G['fg'].'\', \'gc'.$_G['fg'].'\', 1)"').' />'.'
 			<a href="'.ADMINSCRIPT.'?action=forums&operation=edit&fid='.$forum['fid'].'" title="'.cplang('forums_edit_comment').'" class="act">'.cplang('edit').'</a>'.

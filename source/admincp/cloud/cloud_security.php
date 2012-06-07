@@ -4,7 +4,7 @@
  *		[Discuz!] (C)2001-2099 Comsenz Inc.
  *		This is NOT a freeware, use is subject to license terms
  *
- *		$Id: cloud_security.php 26420 2011-12-13 02:39:01Z songlixin $
+ *		$Id: cloud_security.php 29273 2012-03-31 07:58:50Z yexinhao $
  */
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
 	exit('Access Denied');
@@ -12,7 +12,7 @@ if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
 
 $op = trim($_GET['op']);
 
-$_GET['anchor'] = in_array($_GET['anchor'], array('setting', 'thread', 'post', 'member', 'reportOperation')) ? $_GET['anchor'] : 'setting';
+$_GET['anchor'] = in_array($_GET['anchor'], array('index', 'setting', 'thread', 'post', 'reportOperation')) ? $_GET['anchor'] : 'index';
 $pt = in_array($_GET['anchor'], array('thread', 'post')) ? $_GET['anchor'] : 'thread';
 
 $current = array($_GET['anchor'] => 1);
@@ -25,10 +25,10 @@ $operateresultmap = array(
 
 $securitynav = array();
 
-$securitynav[0] = array('security_setting', 'cloud&operation=security&anchor=setting', $current['setting']);
-$securitynav[1] = array('security_thread_list', 'cloud&operation=security&anchor=thread', $current['thread']);
-$securitynav[2] = array('security_post_list', 'cloud&operation=security&anchor=post', $current['post']);
-$securitynav[3] = array('security_member_list', 'cloud&operation=security&anchor=member', $current['member']);
+$securitynav[0] = array('security_index', 'cloud&operation=security&anchor=index', $current['index']);
+$securitynav[1] = array('security_blanklist', 'cloud&operation=security&anchor=setting', $current['setting']);
+$securitynav[2] = array('security_thread_list', 'cloud&operation=security&anchor=thread', $current['thread']);
+$securitynav[3] = array('security_post_list', 'cloud&operation=security&anchor=post', $current['post']);
 
 if (!$_G['inajax']) {
 	cpheader();
@@ -42,7 +42,11 @@ require_once libfile('function/discuzcode');
 require_once libfile('function/core');
 $datas = $data = $eviluids = $evilPids = $evilTids = $members = $thread = $post = '';
 
-if ($_GET['anchor'] == 'setting') {
+if ($_GET['anchor'] == 'index') {
+	$utilService = Cloud::loadClass('Service_Util');
+	$signUrl = $utilService->generateSiteSignUrl();
+	$utilService->redirect($cloudDomain.'/security/stats/list/?' . $signUrl);
+} elseif ($_GET['anchor'] == 'setting') {
 
 	if (!submitcheck('settingsubmit')) {
 		loadcache('setting');
@@ -50,10 +54,6 @@ if ($_GET['anchor'] == 'setting') {
 		$evilthreads = C::t('common_setting')->fetch('cloud_security_stats_thread');
 		$evilposts = C::t('common_setting')->fetch('cloud_security_stats_post');
 		$evilmembers = C::t('common_setting')->fetch('cloud_security_stats_member');
-
-		showtableheader('security_tips', '', '', 0);
-		showtablerow('', 'class="tipsblock"', '<ul>'.sprintf(cplang('security_tips_1'), $evilthreads, $evilposts, $evilmembers).'</ul>');
-		showtablefooter();
 
 		$usergroupswhitelist = unserialize($_G['setting']['security_usergroups_white_list']);
 		$groupselect = array();
@@ -74,7 +74,7 @@ if ($_GET['anchor'] == 'setting') {
 		$forumselect = str_replace('%', '%%', forumselect(FALSE, 0, $forumswhitelist, TRUE));
 
 		showformheader('cloud&operation=security&anchor=setting');
-		showtableheader('security_white_list_setting', '', '', 0);
+		showtableheader('security_white_list_setting', '', '', 2);
 		showsetting('security_usergroup_white_list', '', '', '<select name="groupid[]" multiple="multiple" size="10">'.$groupselect.'</select>');
 		showsetting('security_forum_white_list', '', '', '<select name="fid[]" multiple="multiple" size="10">'.$forumselect.'</select>');
 		showsubmit('settingsubmit');
@@ -369,7 +369,7 @@ function convertSubjectandIP($value, $viewlink = '') {
 		$result = '<h3><a title="'.$lang['security_clicktotoggle'].'" href="javascript:;" onclick="return toggle_mod(\'mod_'.$value['tid'].'_row_'.$value['pid'].'\');" target="_blank">'.$value['subject'].'</a></h3>';
 	}
 
-	$result .= '<p>'.$value['useip'].' '.convertip($value['useip']).'</p>';
+	$result .= '<p>'.$value['useip'].' '.convertip($value['useip']).' ( pid : '.$value['pid'].' ) </p>';
 	if (!$value['message']) {
 		return $lang['security_postdeleted']."(tid:{$value['tid']} pid:{$value['pid']})";
 	}
@@ -420,5 +420,3 @@ function getDataToReport($operateType, $datatosync, $datas) {
 	}
 	return $datatoreport;
 }
-
-?>

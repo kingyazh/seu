@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: Restful.php 28361 2012-02-28 07:12:03Z monkey $
+ *      $Id: Restful.php 29777 2012-04-27 04:50:50Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -28,6 +28,8 @@ abstract class Cloud_Service_Client_Restful {
 	protected $_ts = 0;
 
 	protected $_debug = false;
+
+	protected $_batchParams = array();
 
 	public $errorCode = 0;
 
@@ -103,12 +105,27 @@ abstract class Cloud_Service_Client_Restful {
 
 	}
 
-	protected function _callMethod($method, $args) {
-
+	protected function _callMethod($method, $args, $isBatch = false) {
 		$this->errorCode = 0;
 		$this->errorMessage = '';
 		$url = $this->_url;
-
+		$avgDomain = explode('.', $method);
+		switch ($avgDomain[0]) {
+			case 'site':
+				$url = 'http://api.discuz.qq.com/site_cloud.php';
+				break;
+			case 'qqgroup':
+				$url = 'http://api.discuz.qq.com/site_qqgroup.php';
+				break;
+			case 'connect':
+				$url = 'http://api.discuz.qq.com/site_connect.php';
+				break;
+			case 'security':
+				$url = 'http://api.discuz.qq.com/site_security.php';
+				break;
+			default:
+				$url = $this->_url;
+		}
 		$params = array();
 		$params['sId'] = $this->_sId;
 		$params['method'] = $method;
@@ -117,28 +134,69 @@ abstract class Cloud_Service_Client_Restful {
 		$params['sig'] = $this->_generateSig($params, $method, $args);
 		$params['ts'] = $this->_ts;
 
-		$data = $this->_createPostString($params, $args, true);
-		$result = $this->_postRequest($url, $data);
-		if ($this->_debug) {
-			$this->_message('receive data ' . htmlspecialchars($result) . "\n\n");
-		}
+		$postData = $this->_createPostData($params, $args);
 
-		if ($result) {
-			$result = @dunserialize($result);
-			if(is_array($result) && array_key_exists('result', $result)) {
-				if ($result['errCode']) {
-					$this->errorCode = $result['errCode'];
-					$this->errorMessage = $result['errMessage'];
-					throw new Cloud_Service_Client_RestfulException($result['errMessage'], $result['errCode']);
-				} else {
-					return $result['result'];
-				}
-			} else {
-				$this->_unknowErrorMessage();
-			}
+		if ($isBatch) {
+			$this->_batchParams[] = $postData;
+
+			return true;
 		} else {
+
+			$utilService = Cloud::loadClass('Service_Util');
+			$postString = $utilService->httpBuildQuery($postData, '', '&');
+
+			$result = $this->_postRequest($url, $postString);
+			if ($this->_debug) {
+				$this->_message('receive data ' . dhtmlspecialchars($result) . "\n\n");
+			}
+
+			return $this->_parseResponse($result);
+		}
+	}
+
+	protected function _parseResponse($response, $isBatch = false) {
+
+		if (!$response) {
 			$this->_unknowErrorMessage();
 		}
+
+		$response = @dunserialize($response);
+		if (!is_array($response)) {
+			$this->_unknowErrorMessage();
+		}
+		if ($response['errCode']) {
+			$this->errorCode = $response['errCode'];
+			$this->errorMessage = $response['errMessage'];
+			throw new Cloud_Service_Client_RestfulException($response['errMessage'], $response['errCode']);
+		}
+		if (!isset($response['result']) && !isset($response['batchResult'])) {
+			$this->_unknowErrorMessage();
+		}
+
+		if ($isBatch) {
+			return $response['batchResult'];
+		} else {
+			return $response['result'];
+		}
+
+	}
+
+	public function runBatchMethod() {
+
+		if (!$this->_batchParams) {
+			return false;
+		}
+
+		$postData = array('batchParams' => $this->_batchParams);
+		$utilService = Cloud::loadClass('Service_Util');
+		$postString = $utilService->httpBuildQuery($postData, '', '&');
+
+		$result = $this->_postRequest($this->_url, $postString);
+		if ($this->_debug) {
+			$this->_message('receive data ' . dhtmlspecialchars($result) . "\n\n");
+		}
+
+		return $this->_parseResponse($result, true);
 	}
 
 	protected function _unknowErrorMessage() {
@@ -150,25 +208,26 @@ abstract class Cloud_Service_Client_Restful {
 
 	protected function _generateSig($params, $method, $args) {
 
-		$str = $this->_createPostString($params, $args, true);
+		$postData = $this->_createPostData($params, $args);
+
+		$utilService = Cloud::loadClass('Service_Util');
+		$postString = $utilService->httpBuildQuery($postData, '', '&');
+
 		if ($this->_debug) {
-			$this->_message('sig string: ' . $str . '|' . $this->_sKey . '|' . $this->_ts . "\n\n");
+			$this->_message('sig string: ' . $postString . '|' . $this->_sKey . '|' . $this->_ts . "\n\n");
 		}
 
-		return md5(sprintf('%s|%s|%s', $str, $this->_sKey, $this->_ts));
+		return md5(sprintf('%s|%s|%s', $postString, $this->_sKey, $this->_ts));
 	}
 
-	protected function _createPostString($params, $args) {
+	protected function _createPostData($params, $args) {
 
 		ksort($params);
 		ksort($args);
 
 		$params['args'] = $args;
 
-		$utilService = Cloud::loadClass('Service_Util');
-		$str = $utilService->httpBuildQuery($params, '', '&');
-
-		return $str;
+		return $params;
 	}
 
 	protected function _postRequest($url, $data, $ip = '') {
@@ -182,7 +241,7 @@ abstract class Cloud_Service_Client_Restful {
 		return $result;
 	}
 
-	function _fsockopen($url, $limit = 0, $post = '', $cookie = '', $bysocket = FALSE, $ip = '', $timeout = 15, $block = TRUE) {
+	function _fsockopen($url, $limit = 0, $post = '', $cookie = '', $bysocket = false, $ip = '', $timeout = 15, $block = true) {
 		return dfsockopen($url, $limit, $post, $cookie, $bysocket, $ip, $timeout, $block);
 	}
 
@@ -204,6 +263,17 @@ abstract class Cloud_Service_Client_Restful {
 			$openId = $connectInfo['conopenid'];
 		}
 		return $openId;
+	}
+	protected function getUserDeviceToken($uids) {
+		$uids = (array)$uids;
+		$deviceToken = array();
+		try {
+			$query = DB::query('SELECT * FROM '.DB::table('common_devicetoken').' WHERE uid IN('.dimplode($uids).')', array(), true);
+			while($value = DB::fetch($query)) {
+				$deviceToken[$value['uid']][] = $value['token'];
+			}
+		} catch (Exception $e) {}
+		return $deviceToken;
 	}
 
 }

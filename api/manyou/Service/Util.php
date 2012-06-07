@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: Util.php 28361 2012-02-28 07:12:03Z monkey $
+ *      $Id: Util.php 29766 2012-04-27 02:43:58Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -131,12 +131,12 @@ class Cloud_Service_Util {
 
 	public function getApiVersion() {
 
-		return '0.5';
+		return '0.6';
 	}
 
-	public function _hash_hmac($algo, $data, $key, $raw_output = false) {
-		if(function_exists('hash_hmac')) {
-			return	hash_hmac($algo, $data, $key, $raw_output);
+	public function hashHmac($algo, $data, $key, $raw_output = false) {
+		if (function_exists('hash_hmac')) {
+			return hash_hmac($algo, $data, $key, $raw_output);
 		} else {
 			$algo = strtolower($algo);
 			$pack = 'H'.strlen(call_user_func($algo, 'test'));
@@ -159,33 +159,50 @@ class Cloud_Service_Util {
 
 			return ($raw_output) ? pack($pack, $output) : $output;
 		}
-    }
+	}
 
-    public function isMobile($status) {
-        if (getstatus($status, 11) || getstatus($status, 12) || getstatus($status, 13)) {
-            return true;
-        }
-        return false;
-    }
+	public function isMobile($status) {
+		if (getstatus($status, 11) || getstatus($status, 12) || getstatus($status, 13)) {
+			return true;
+		}
+		return false;
+	}
 
-    public function mobileHasSound() {
-        if (getstatus($status, 13)) {
-            return true;
-        }
-        return false;
-    }
+	public function mobileHasSound() {
+		if (getstatus($status, 13)) {
+			return true;
+		}
+		return false;
+	}
 
-    public function mobileHasPhoto() {
-        if (getstatus($status, 12) && getstatus($status, 11)) {
-            return true;
-        }
-        return false;
-    }
+	public function mobileHasPhoto() {
+		if (getstatus($status, 12) && getstatus($status, 11)) {
+			return true;
+		}
+		return false;
+	}
 
-    public function mobileHasGPS() {
-        if (getstatus($status, 12)) {
-            return true;
-        }
-        return false;
-    }
+	public function mobileHasGPS() {
+		if (getstatus($status, 12)) {
+			return true;
+		}
+		return false;
+	}
+
+	public function isfounder($user) {
+		global $_G;
+		$founders = str_replace(' ', '', $_G['config']['admincp']['founder']);
+		if(!$user['uid'] || $user['groupid'] != 1 || $user['adminid'] != 1) {
+			return false;
+		} elseif(empty($founders)) {
+			return false;
+		} elseif(strexists(",$founders,", ",$user[uid],")) {
+			return true;
+		} elseif(!is_numeric($user['username']) && strexists(",$founders,", ",$user[username],")) {
+			return true;
+		} else {
+			return FALSE;
+		}
+	}
+
 }

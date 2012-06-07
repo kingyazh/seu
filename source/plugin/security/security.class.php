@@ -4,7 +4,7 @@
  *		[Discuz! X] (C)2001-2099 Comsenz Inc.
  *		This is NOT a freeware, use is subject to license terms
  *
- *		$Id: security.class.php 28519 2012-03-02 03:23:38Z songlixin $
+ *		$Id: security.class.php 30417 2012-05-28 05:22:31Z songlixin $
  */
 
 
@@ -40,7 +40,6 @@ class plugin_security {
 		if ($_G['uid']) {
 			$lastCookieReportTime = $this->_decodeReportTime($_G['cookie']['security_cookiereport']);
 			if ($lastCookieReportTime < strtotime('today')) {
-
 				$this->_reportLoginUser(array('uid' => $_G['uid']));
 			}
 		}
@@ -89,6 +88,10 @@ EOF;
 		return $ajaxReportScript . $ajaxRetryScript;
 	}
 
+	function global_footerlink() {
+		return '&nbsp;<a href="http://discuz.qq.com/service/security" target="_blank" title="'.lang('plugin/security', 'title').'"><img src="static/image/common/security.png"></a>&nbsp;';
+	}
+
 	public function deletepost($param) {
 		global $_G, $_POST;
 		if (self::$securityStatus != TRUE) {
@@ -101,8 +104,11 @@ EOF;
 		$idType = $param[1];
 		$recycle = $param[4];
 
-		if ($_POST['formhash'] && $step == 'check' && $idType == 'pid') {
+		if ($step == 'check' && $idType == 'pid') {
 			self::$securityService->updatePostOperate($ids, 'delete');
+			if ($_POST['module'] == 'security' && $_POST['method'] == 'setEvilPost') {
+				return true;
+			}
 			self::$securityService->logDeletePost($ids, $_POST['reason']);
 		}
 
@@ -119,8 +125,11 @@ EOF;
 		$param = $param['param'];
 		$ids = $param[0];
 
-		if ($_POST['formhash'] && $step == 'check') {
+		if ($step == 'check') {
 			self::$securityService->updateThreadOperate($ids, 'delete');
+			if ($_POST['module'] == 'security' && $_POST['method'] == 'setEvilPost') {
+				return true;
+			}
 			self::$securityService->logDeleteThread($ids, $_POST['reason']);
 		}
 
@@ -147,7 +156,7 @@ EOF;
 	public function undeletethreads($param) {
 		$tids = $param['param'][0];
 		if ($tids && is_array($tids)) {
-			self::$securityService->updateThreadOperate($tids, 'recover');exit;
+			self::$securityService->updateThreadOperate($tids, 'recover');
 		}
 	}
 
@@ -204,7 +213,7 @@ EOF;
 		$this->secLog('USERLOG-UID', $param['uid']);
 		self::$securityService->reportLogin($param['uid']);
 		$this->_retryReport();
-		$cookieTime = strtotime('tomorrow') - TIMESTAMP;
+		$cookieTime = 43200;
 		dsetcookie('security_cookiereport', $this->_encodeReportTime($_G['timestamp']), $cookieTime, 1);
 		return true;
 	}

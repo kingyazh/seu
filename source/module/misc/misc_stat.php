@@ -4,7 +4,7 @@
 	[Discuz!] (C)2001-2009 Comsenz Inc.
 	This is NOT a freeware, use is subject to license terms
 
-	$Id: misc_stat.php 28373 2012-02-28 08:52:25Z chenmengshu $
+	$Id: misc_stat.php 30045 2012-05-08 03:35:12Z zhengqingpeng $
 */
 
 if(!defined('IN_DISCUZ')) {
@@ -285,7 +285,7 @@ function getstatvars_team() {
 			@$team['members'][$uid]['totalol'] = $member['totalol'] < $team['avgtotalol'] / 2 ? '<b><i>'.$member['totalol'].'</i></b>' : $member['totalol'];
 			@$team['members'][$uid]['modposts'] = $member['modposts'] < $team['avgmodposts'] / 2 ? '<b><i>'.intval($member['modposts']).'</i></b>' : intval($member['modposts']);
 			@$team['members'][$uid]['modactions'] = $member['modactions'] < $team['avgmodactions'] / 2 ? '<b><i>'.intval($member['modactions']).'</i></b>' : intval($member['modactions']);
-			@$team['members'][$uid]['grouptitle'] = $_G['cache']['usergroups'][$member[adminid]]['grouptitle'];
+			@$team['members'][$uid]['grouptitle'] = $_G['cache']['usergroups'][$member['adminid']]['grouptitle'];
 		}
 	}
 
@@ -451,7 +451,7 @@ function getstatvars_forumstat($fid) {
 	global $_G;
 	$xml = "<chart>\n";
 	$statvars = array();
-	$monthdays = array('31', '28', '31', '30', '31', '30', '31', '31', '30', '31', '30', '31');
+	$monthdays = array('31', '29', '31', '30', '31', '30', '31', '31', '30', '31', '30', '31');
 	if(!$fid) {
 		$query = C::t('forum_forum')->fetch_all_fids();
 		$forums = array();

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admin.php 25910 2011-11-25 04:10:56Z zhangguosheng $
+ *      $Id: admin.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 define('IN_ADMINCP', TRUE);
@@ -38,10 +38,10 @@ $admincp_actions_normal = array('index', 'setting', 'members', 'admingroup', 'us
 	'doing', 'group', 'blog', 'feed', 'album', 'pic', 'comment', 'share', 'click', 'specialuser', 'postsplit', 'threadsplit', 'report',
 	'district', 'diytemplate', 'verify', 'nav', 'domain', 'postcomment', 'tag', 'connect', 'card', 'portalpermission', 'collection', 'membersplit');
 
-$action = htmlspecialchars(getgpc('action'));
-$operation = htmlspecialchars(getgpc('operation'));
-$do = htmlspecialchars(getgpc('do'));
-$frames = htmlspecialchars(getgpc('frames'));
+$action = dhtmlspecialchars(getgpc('action'));
+$operation = dhtmlspecialchars(getgpc('operation'));
+$do = dhtmlspecialchars(getgpc('do'));
+$frames = dhtmlspecialchars(getgpc('frames'));
 lang('admincp');
 $lang = & $_G['lang']['admincp'];
 $page = max(1, intval(getgpc('page')));
@@ -63,5 +63,4 @@ if(empty($action) || $frames != null) {
 	cpheader();
 	cpmsg('action_noaccess', '', 'error');
 }
-
 ?>

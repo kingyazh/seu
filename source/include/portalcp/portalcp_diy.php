@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: portalcp_diy.php 27332 2012-01-16 09:24:24Z zhangguosheng $
+ *      $Id: portalcp_diy.php 28956 2012-03-20 10:15:37Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -104,12 +104,7 @@ if (submitcheck('uploadsubmit')) {
 		$template = getportalcategorytplname($clonefile);
 		$iscategory = true;
 	} elseif ($template == 'portal/view') {
-		$arr = getportalarticletplname($clonefile, $template);
-		if($clonefile != $arr[0]) {
-			$clonefile = $arr[0];
-			$targettplname = $template.'_'.$clonefile;
-		}
-		$template = $arr[1];
+		$template = getportalarticletplname($clonefile, $template);
 		$isarticle = true;
 	}
 
@@ -290,7 +285,11 @@ if($op == 'blockclass') {
 				}
 				echo $str;
 				exit();
+			} else {
+				showmessage('diy_export_no_data','/');
 			}
+		} else {
+			showmessage('diy_export_tpl_invalid','/');
 		}
 	}
 	showmessage('diy_operation_invalid','/');
@@ -427,6 +426,19 @@ function getportalcategorytplname($catid) {
 	$catid = max(0,intval($catid));
 	$category = $_G['cache']['portalcategory'][$catid];
 	return !empty($category) && !empty($category['primaltplname']) ? $category['primaltplname'] : getglobal('cache/style_default/tpldir').':portal/list';
+}
+
+function getportalarticletplname($catid, $primaltplname = ''){
+	if(($catid = intval($catid))) {
+		if(($category = C::t('portal_category')->fetch($catid))) {
+			$primaltplname = $category['articleprimaltplname'];
+		}
+		if(empty($primaltplname)) {
+			$primaltplname = getglobal('cache/style_default/tpldir').':portal/view';
+			C::t('portal_category')-update($catid, array('articleprimaltplname' => $primaltplname));
+		}
+	}
+	return $primaltplname;
 }
 
 function getdiyxmlname($filename, $path) {

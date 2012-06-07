@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_filesock.php 27904 2012-02-16 08:11:44Z monkey $
+ *      $Id: function_filesock.php 29511 2012-04-17 07:26:56Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -19,7 +19,7 @@ function _dfsockopen($url, $limit = 0, $post = '', $cookie = '', $bysocket = FAL
 	$path = $matches['path'] ? $matches['path'].($matches['query'] ? '?'.$matches['query'] : '') : '/';
 	$port = !empty($matches['port']) ? $matches['port'] : 80;
 
-	if(function_exists('curl_init') && $allowcurl) {
+	if(function_exists('curl_init') && function_exists('curl_exec') && $allowcurl) {
 		$ch = curl_init();
 		$ip && curl_setopt($ch, CURLOPT_HTTPHEADER, array("Host: ".$host));
 		curl_setopt($ch, CURLOPT_URL, $scheme.'://'.($ip ? $ip : $host).':'.$port.$path);
@@ -37,6 +37,7 @@ function _dfsockopen($url, $limit = 0, $post = '', $cookie = '', $bysocket = FAL
 			curl_setopt($ch, CURLOPT_COOKIE, $cookie);
 		}
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 		$data = curl_exec($ch);
 		$status = curl_getinfo($ch);
 		$errno = curl_errno($ch);
@@ -100,15 +101,10 @@ function _dfsockopen($url, $limit = 0, $post = '', $cookie = '', $bysocket = FAL
 					break;
 				}
 			}
-
-			$stop = false;
-			while(!feof($fp) && !$stop) {
-				$data = fread($fp, ($limit == 0 || $limit > 8192 ? 8192 : $limit));
-				$return .= $data;
-				if($limit) {
-					$limit -= strlen($data);
-					$stop = $limit <= 0;
-				}
+			if($limit) {
+				$return = stream_get_contents($fp, $limit);
+			} else {
+				$return = stream_get_contents($fp);
 			}
 		}
 		@fclose($fp);

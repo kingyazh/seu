@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: magic_anonymouspost.php 26918 2011-12-27 09:30:06Z chenmengshu $
+ *      $Id: magic_anonymouspost.php 29373 2012-04-09 07:55:30Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -53,7 +53,7 @@ class magic_anonymouspost {
 		if(empty($id)) {
 			showmessage(lang('magic/anonymouspost', 'anonymouspost_info_nonexistence'));
 		}
-		$idtype = !empty($_GET['idtype']) ? htmlspecialchars($_GET['idtype']) : '';
+		$idtype = !empty($_GET['idtype']) ? dhtmlspecialchars($_GET['idtype']) : '';
 		if(!in_array($idtype, array('pid', 'cid'))) {
 			showmessage(lang('magic/anonymouspost', 'anonymouspost_use_error'));
 		}
@@ -100,8 +100,8 @@ class magic_anonymouspost {
 
 	function show() {
 		global $_G;
-		$id = !empty($_GET['id']) ? htmlspecialchars($_GET['id']) : '';
-		$idtype = !empty($_GET['idtype']) ? htmlspecialchars($_GET['idtype']) : '';
+		$id = !empty($_GET['id']) ? dhtmlspecialchars($_GET['id']) : '';
+		$idtype = !empty($_GET['idtype']) ? dhtmlspecialchars($_GET['idtype']) : '';
 		if($idtype == 'pid') {
 			list($id, $_G['tid']) = explode(':', $id);
 			if($id && $_G['tid']) {
@@ -122,8 +122,8 @@ class magic_anonymouspost {
 
 	function buy() {
 		global $_G;
-		$id = !empty($_GET['id']) ? htmlspecialchars($_GET['id']) : '';
-		$idtype = !empty($_GET['idtype']) ? htmlspecialchars($_GET['idtype']) : '';
+		$id = !empty($_GET['id']) ? dhtmlspecialchars($_GET['id']) : '';
+		$idtype = !empty($_GET['idtype']) ? dhtmlspecialchars($_GET['idtype']) : '';
 		if(!empty($id) && $idtype == 'pid') {
 			list($id, $_G['tid']) = explode(':', $id);
 			$post = getpostinfo(intval($id), 'pid', array('p.fid', 'p.authorid'));

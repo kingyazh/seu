@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: cache_usergroups.php 26363 2011-12-12 02:46:11Z chenmengshu $
+ *      $Id: cache_usergroups.php 29056 2012-03-23 09:27:47Z svn_project_zhangjie $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -15,7 +15,7 @@ function build_cache_usergroups() {
 	global $_G;
 
 
-	$data_uf = C::t('common_usergroup_field')->fetch_all_fields(null, array('groupid', 'readaccess', 'allowgetattach', 'allowgetimage', 'allowmediacode'));
+	$data_uf = C::t('common_usergroup_field')->fetch_all_fields(null, array('groupid', 'readaccess', 'allowgetattach', 'allowgetimage', 'allowmediacode', 'maxsigsize'));
 
 	foreach(C::t('common_usergroup')->range_orderby_creditshigher() as $key=>$value) {
 		$group = array_merge(array('groupid' => $value['groupid'], 'type' => $value['type'], 'grouptitle' => $value['grouptitle'], 'creditshigher' => $value['creditshigher'], 'creditslower' => $value['creditslower'], 'stars' => $value['stars'], 'color' => $value['color'], 'icon' => $value['icon'], 'system' => $value['system']), $data_uf[$key]);

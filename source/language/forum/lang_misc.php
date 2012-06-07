@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: lang_misc.php 28378 2012-02-28 09:25:19Z monkey $
+ *      $Id: lang_misc.php 29624 2012-04-23 06:56:28Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -296,7 +296,9 @@ $lang = array
 	'crime_reason' => '{reason}',
 
 	'connectguest_message_search' => array('尚未登录', '先登录'),
-	'connectguest_message_replace' => array('尚未<a href="member.php?mod=connect" target="_blank">完善资料</a>或<a href="member.php?mod=connect&ac=bind" target="_blank">绑定帐号</a>', '先<a href="member.php?mod=connect" target="_blank">完善资料</a>或<a href="member.php?mod=connect&ac=bind" target="_blank">绑定帐号</a>'),
+	'connectguest_message_replace' => array('尚未 <a href="member.php?mod=connect" class="xi2">完善帐号信息</a> 或 <a href="member.php?mod=connect&ac=bind" class="xi2">绑定已有帐号</a> ', '先 <a href="member.php?mod=connect" class="xi2">完善帐号信息</a> 或 <a href="member.php?mod=connect&ac=bind" class="xi2">绑定已有帐号</a> '),
+	'connectguest_message_mobile_search' => array('尚未登录', '先登录'),
+	'connectguest_message_mobile_replace' => '在电脑版完善资料或绑定已有帐号，',
 
 	'avatar' => '头像',
 	'signature' => '签名',
@@ -316,6 +318,10 @@ $lang = array
 	'patch_dateline' => '发布日期',
 	'patch_status' => '当前状态',
 	'patch_close' => '关闭',
+
+	'plugin_title' => '应用更新提醒',
+	'plugin_memo' => '您有 <span class="xi1">{number}</span> 款应用有可用更新',
+	'plugin_link' => '现在更新',
 
 );
 

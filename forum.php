@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: forum.php 26657 2011-12-19 04:13:43Z zhengqingpeng $
+ *      $Id: forum.php 29133 2012-03-27 08:04:24Z liulanbo $
  */
 
 define('APPTYPEID', 2);

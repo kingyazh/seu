@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_members.php 28247 2012-02-26 10:42:38Z zhengqingpeng $
+ *      $Id: admincp_members.php 30465 2012-05-30 04:10:03Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -29,7 +29,8 @@ foreach($search_condition as $k => $v) {
 	}
 }
 $search_condition = searchcondition($search_condition);
-
+$tmpsearch_condition = $search_condition;
+unset($tmpsearch_condition['tablename']);
 $member = array();
 $tableext = '';
 if(in_array($operation, array('ban', 'edit', 'group', 'credit', 'medal', 'access'), true)) {
@@ -140,7 +141,8 @@ EOF;
 		if($membernum) {
 			showsubtitle(array('', 'username', 'credits', 'posts', 'admingroup', 'usergroup', ''));
 			echo $members;
-			showsubmit('submit', cplang('delete'), ($condition_str ? '<input type="checkbox" name="chkall" onclick="checkAll(\'prefix\', this.form, \'uidarray\');if(this.checked){$(\'deleteallinput\').style.display=\'\';}else{$(\'deleteall\').checked = false;$(\'deleteallinput\').style.display=\'none\';}" class="checkbox">'.cplang('select_all') : ''), ' &nbsp;&nbsp;&nbsp;<span id="deleteallinput" style="display:none"><input id="deleteall" type="checkbox" name="deleteall" class="checkbox">'.cplang('members_search_deleteall', array('membernum' => $membernum)).'</span>', $multipage);
+			$condition_str = str_replace('&tablename=master', '', $condition_str);
+			showsubmit('deletesubmit', cplang('delete'), ($tmpsearch_condition ? '<input type="checkbox" name="chkall" onclick="checkAll(\'prefix\', this.form, \'uidarray\');if(this.checked){$(\'deleteallinput\').style.display=\'\';}else{$(\'deleteall\').checked = false;$(\'deleteallinput\').style.display=\'none\';}" class="checkbox">'.cplang('select_all') : ''), ' &nbsp;&nbsp;&nbsp;<span id="deleteallinput" style="display:none"><input id="deleteall" type="checkbox" name="deleteall" class="checkbox">'.cplang('members_search_deleteall', array('membernum' => $membernum)).'</span>', $multipage);
 		}
 		showtablefooter();
 		showformfooter();
@@ -246,7 +248,7 @@ EOF;
 			}
 			$ips = !empty($ips) ? array_unique($ips) : array('unknown');
 		}
-		$searchmember['username'] .= ' (IP '.htmlspecialchars($ids).')';
+		$searchmember['username'] .= ' (IP '.dhtmlspecialchars($ids).')';
 		$membernum = !empty($ips) ? C::t('common_member_status')->count_by_ip($ips) : C::t('common_member_status')->count();
 
 		$members = '';
@@ -297,7 +299,7 @@ EOF;
 		$searchadd = '';
 		if(is_array($ips)) {
 			foreach($ips as $ip) {
-				$searchadd .= '<a href="'.ADMINSCRIPT.'?action=members&operation=repeat&inputip='.rawurlencode($ip).'" class="act lightlink normal">'.cplang('search').'IP '.htmlspecialchars($ip).'</a>';
+				$searchadd .= '<a href="'.ADMINSCRIPT.'?action=members&operation=repeat&inputip='.rawurlencode($ip).'" class="act lightlink normal">'.cplang('search').'IP '.dhtmlspecialchars($ip).'</a>';
 			}
 		}
 		showtableheader(cplang('members_search_result', array('membernum' => $membernum)).'<a href="'.ADMINSCRIPT.'?action=members&operation=repeat" class="act lightlink normal">'.cplang('research').'</a>'.$searchadd);
@@ -312,7 +314,7 @@ EOF;
 
 } elseif($operation == 'clean') {
 
-	if(!submitcheck('submit', 1)) {
+	if(!submitcheck('submit', 1) && !submitcheck('deletesubmit', 1)) {
 
 		shownav('user', 'nav_members');
 		showsubmenu('nav_members', array(
@@ -325,7 +327,7 @@ EOF;
 
 	} else {
 
-		if(!$search_condition && empty($_GET['uidarray'])) {
+		if((!$tmpsearch_condition && empty($_GET['uidarray'])) || (submitcheck('deletesubmit', 1) && empty($_GET['uidarray']))) {
 			cpmsg('members_no_find_deluser', '', 'error');
 		}
 		if(!empty($_GET['deleteall'])) {
@@ -351,7 +353,7 @@ EOF;
 					$membernum ++;
 				}
 			}
-		} else {
+		} elseif($tmpsearch_condition) {
 			$membernum = countmembers($search_condition, $urladd);
 			$uids = searchmembers($search_condition, $delmemberlimit, 0);
 		}
@@ -547,21 +549,32 @@ EOF;
 				exit;
 			}
 		}
-
-		shownav('user', 'nav_members_newsletter');
-		showsubmenusteps('nav_members_newsletter', array(
-			array('nav_members_select', !$_GET['submit']),
-			array('nav_members_notify', $_GET['submit']),
-		), array(), array(array('members_grouppmlist', 'members&operation=grouppmlist', 0)));
-
+		if($_GET['do'] == 'mobile') {
+			shownav('user', 'nav_members_newsletter_mobile');
+			showsubmenusteps('nav_members_newsletter_mobile', array(
+				array('nav_members_select', !$_GET['submit']),
+				array('nav_members_notify', $_GET['submit']),
+			));
+			showtips('members_newsletter_mobile_tips');
+		} else {
+			shownav('user', 'nav_members_newsletter');
+			showsubmenusteps('nav_members_newsletter', array(
+				array('nav_members_select', !$_GET['submit']),
+				array('nav_members_notify', $_GET['submit']),
+			), array(), array(array('members_grouppmlist', 'members&operation=grouppmlist', 0)));
+		}
 		showsearchform('newsletter');
 
 		if(submitcheck('submit', 1)) {
-
+			$dostr = '';
+			if($_GET['do'] == 'mobile') {
+				$search_condition['token_noempty'] = 'token';
+				$dostr = '&do=mobile';
+			}
 			$membernum = countmembers($search_condition, $urladd);
 
 			showtagheader('div', 'newsletter', TRUE);
-			showformheader('members&operation=newsletter'.$urladd);
+			showformheader('members&operation=newsletter'.$urladd.$dostr);
 			showhiddenfields(array('notifymember' => 1));
 			echo '<table class="tb tb1">';
 
@@ -914,7 +927,7 @@ EOF;
 
 		$newusername = trim($_GET['newusername']);
 		$newpassword = trim($_GET['newpassword']);
-		$newemail = trim($_GET['newemail']);
+		$newemail = strtolower(trim($_GET['newemail']));
 
 		if(!$newusername || !isset($_GET['confirmed']) && !$newpassword || !isset($_GET['confirmed']) && !$newemail) {
 			cpmsg('members_add_invalid', '', 'error');
@@ -1437,6 +1450,7 @@ EOF;
 		showsubmit('bansubmit');
 		showtablefooter();
 		showformfooter();
+		$basescript = ADMINSCRIPT;
 		print <<<EOF
 			<script type="text/javascript">
 				var oldbanusername = '$member[username]';
@@ -1452,7 +1466,7 @@ EOF;
 				}
 				function getcrimerecord() {
 					if($('banusername').value) {
-						window.location.href = 'admin.php?action=members&operation=ban&username=' + $('banusername').value;
+						window.location.href = '$basescript?action=members&operation=ban&username=' + $('banusername').value;
 					}
 				}
 			</script>
@@ -1538,12 +1552,15 @@ EOF;
 		if($_GET['bannew'] == 'post') {
 			$crimeaction = 'crime_banspeak';
 			$noticekey = 'member_ban_speak';
+			$from_idtype = 'banspeak';
 		} elseif($_GET['bannew'] == 'visit') {
 			$crimeaction = 'crime_banvisit';
 			$noticekey = 'member_ban_visit';
+			$from_idtype = 'banvisit';
 		} elseif($_GET['bannew'] == 'status') {
 			$crimeaction = 'crime_banstatus';
 			$noticekey = 'member_ban_status';
+			$from_idtype = 'banstatus';
 		}
 		if($crimeaction) {
 			crime('recordaction', $member['uid'], $crimeaction, lang('forum/misc', 'crime_reason', array('reason' => $reason)));
@@ -1552,7 +1569,9 @@ EOF;
 			$notearr = array(
 				'user' => "<a href=\"home.php?mod=space&uid=$_G[uid]\">$_G[username]</a>",
 				'day' => intval($_POST['banexpirynew']),
-				'reason' => $reason
+				'reason' => $reason,
+				'from_id' => 0,
+				'from_idtype' => $from_idtype
 			);
 			notification_add($member['uid'], 'system', $noticekey, $notearr, 1);
 		}
@@ -1568,7 +1587,7 @@ EOF;
 					loadcache('posttableids');
 					$posttables = empty($_G['cache']['posttableids']) ? array(0) : $_G['cache']['posttableids'];
 					foreach($posttables as $posttableid) {
-						$pidsdelete = array();
+						$pidsthread = $pidsdelete = array();
 						$postlist = C::t('forum_post')->fetch_all_by_authorid($posttableid, $member['uid'], false);
 						if($postlist) {
 							foreach($postlist as $post) {
@@ -1578,6 +1597,16 @@ EOF;
 									$tidsdelete[] = $post['tid'];
 								}
 								$pidsdelete[] = $post['pid'];
+								$pidsthread[$post['pid']] = $post['tid'];
+							}
+							foreach($pidsdelete as $key=>$pid) {
+								if(in_array($pidsthread[$pid], $tidsdelete)) {
+									unset($pidsdelete[$key]);
+									unset($prune['thread'][$pidsthread[$pid]]);
+									updatemodlog($pidsthread[$pid], 'DEL');
+								} else {
+									updatemodlog($pidsthread[$pid], 'DLP');
+								}
 							}
 						}
 						deletepost($pidsdelete, 'pid', false, $posttableid, true);
@@ -1941,7 +1970,7 @@ EOF;
 		require_once libfile('function/discuzcode');
 
 		$questionid = $_GET['clearquestion'] ? 0 : '';
-		$ucresult = uc_user_edit(addslashes($member['username']), $_GET['passwordnew'], $_GET['passwordnew'], addslashes($_GET['emailnew']), 1, $questionid);
+		$ucresult = uc_user_edit(addslashes($member['username']), $_GET['passwordnew'], $_GET['passwordnew'], addslashes(strtolower(trim($_GET['emailnew']))), 1, $questionid);
 		if($ucresult < 0) {
 			if($ucresult == -4) {
 				cpmsg('members_email_illegal', '', 'error');
@@ -2012,7 +2041,7 @@ EOF;
 
 		$memberupdate = array();
 		if($ucresult >= 0) {
-			$memberupdate['email'] = $_GET['emailnew'];
+			$memberupdate['email'] = strtolower(trim($_GET['emailnew']));
 		}
 		if($ucresult >= 0 && !empty($_GET['passwordnew'])) {
 			$memberupdate['password'] = md5(random(10));
@@ -2629,7 +2658,8 @@ function showsearchform($operation = '') {
 	showtagheader('div', 'searchmembers', !$_GET['submit']);
 	echo '<script src="static/js/calendar.js" type="text/javascript"></script>';
 	echo '<style type="text/css">#residedistrictbox select, #birthdistrictbox select{width: auto;}</style>';
-	showformheader("members&operation=$operation", "onSubmit=\"if($('updatecredittype1') && $('updatecredittype1').checked && !window.confirm('$lang[members_reward_clean_alarm]')){return false;} else {return true;}\"");
+	$formurl = "members&operation=$operation".($_GET['do'] == 'mobile' ? '&do=mobile' : '');
+	showformheader($formurl, "onSubmit=\"if($('updatecredittype1') && $('updatecredittype1').checked && !window.confirm('$lang[members_reward_clean_alarm]')){return false;} else {return true;}\"");
 	showtableheader();
 	if(isset($_G['setting']['membersplit'])) {
 		showsetting('members_search_table', '', '', '<select name="tablename" ><option value="master">'.$lang['members_search_table_master'].'</option><option value="archive">'.$lang['members_search_table_archive'].'</option></select>');
@@ -2818,20 +2848,25 @@ function shownewsletter() {
 	showtableheader();
 	showsetting('members_newsletter_subject', 'subject', '', 'text');
 	showsetting('members_newsletter_message', 'message', '', 'textarea');
-	showsetting('members_newsletter_method', array('notifymembers', array(
-	    array('email', $lang['email'], array('pmextra' => 'none', 'posttype' => '')),
-	    array('notice', $lang['notice'], array('pmextra' => 'none', 'posttype' => 'none')),
-	    array('pm', $lang['grouppm'], array('pmextra' => '', 'posttype' => 'none')),
-	)), 'pm', 'mradio');
-	showtagheader('tbody', 'posttype', '', 'sub');
-	showsetting('members_newsletter_posttype', array('posttype', array(
-			array(0, cplang('members_newsletter_posttype_text')),
-			array(1, cplang('members_newsletter_posttype_html')),
-		), TRUE), '0', 'mradio');
-	showtagfooter('tbody');
-	showtagheader('tbody', 'pmextra', true, 'sub');
-	showsetting('members_newsletter_system', 'system', 0, 'radio');
-	showtagfooter('tbody');
+	if($_GET['do'] == 'mobile') {
+		showsetting('members_newsletter_system', 'system', 0, 'radio');
+		showhiddenfields(array('notifymembers' => 'mobile'));
+	} else {
+		showsetting('members_newsletter_method', array('notifymembers', array(
+			    array('email', $lang['email'], array('pmextra' => 'none', 'posttype' => '')),
+			    array('notice', $lang['notice'], array('pmextra' => 'none', 'posttype' => '')),
+			    array('pm', $lang['grouppm'], array('pmextra' => '', 'posttype' => 'none'))
+			)), 'pm', 'mradio');
+		showtagheader('tbody', 'posttype', '', 'sub');
+		showsetting('members_newsletter_posttype', array('posttype', array(
+				array(0, cplang('members_newsletter_posttype_text')),
+				array(1, cplang('members_newsletter_posttype_html')),
+			), TRUE), '0', 'mradio');
+		showtagfooter('tbody');
+		showtagheader('tbody', 'pmextra', true, 'sub');
+		showsetting('members_newsletter_system', 'system', 0, 'radio');
+		showtagfooter('tbody');
+	}
 	showsetting('members_newsletter_num', 'pertask', 100, 'text');
 	showtablefooter();
 
@@ -3037,12 +3072,11 @@ function notifymembers($operation, $variable) {
 	if(!function_exists('sendmail')) {
 		include libfile('function/mail');
 	}
-
-	if($_GET['notifymember'] && in_array($_GET['notifymembers'], array('pm', 'notice', 'email'))) {
+	if($_GET['notifymember'] && in_array($_GET['notifymembers'], array('pm', 'notice', 'email', 'mobile'))) {
 		$uids = searchmembers($search_condition, $pertask, $current);
 
 		require_once libfile('function/discuzcode');
-		$message = $_GET['notifymembers'] == 'email' && $_GET['posttype'] ? discuzcode($message, 1, 0, 1, '', '' ,'' ,1) : discuzcode($message, 1, 0);
+		$message = in_array($_GET['notifymembers'], array('email','notice')) && $_GET['posttype'] ? discuzcode($message, 1, 0, 1, '', '' ,'' ,1) : discuzcode($message, 1, 0);
 		$pmuids = array();
 		if($_GET['notifymembers'] == 'pm') {
 			$membernum = countmembers($search_condition, $urladd);
@@ -3060,50 +3094,64 @@ function notifymembers($operation, $variable) {
 			$urladd .= '&gpmid='.$gpmid;
 		}
 		$members = C::t('common_member')->fetch_all($uids);
-		foreach($members as $member) {
-			if($_GET['notifymembers'] == 'pm') {
-				C::t('common_member_grouppm')->insert(array(
-					'uid' => $member['uid'],
-					'gpmid' => $gpmid,
-					'status' => 0
-				), false, true);
-				$newpm = setstatus(2, 1, $member['newpm']);
-				C::t('common_member')->update($member['uid'], array('newpm'=>$newpm));
-			} elseif($_GET['notifymembers'] == 'notice') {
-				notification_add($member['uid'], 'system', 'system_notice', array('subject' => $subject, 'message' => $message.$addmsg), 1);
-			} elseif($_GET['notifymembers'] == 'email') {
-				if(!sendmail("$member[username] <$member[email]>", $subject, $message.$addmsg)) {
-					runlog('sendmail', "$member[email] sendmail failed.");
+		if($_GET['notifymembers'] == 'mobile') {
+			$toUids = array_keys($members);
+			if($_G['setting']['cloud_status'] && !empty($toUids)) {
+				try {
+					$noticeService = Cloud::loadClass('Service_Client_Notification');
+					$fromType = $_GET['system'] ? 1 : 2;
+					$noticeService->addSiteMasterUserNotify($toUids, $subject, $message, $_G['uid'], $_G['username'], $fromType, TIMESTAMP);
+				} catch (Cloud_Service_Client_RestfulException $e) {
+					cpmsg('['.$e->getCode().']'.$e->getMessage(), '', 'error');
 				}
-			}
 
-			$log = array();
-			if($_GET['updatecredittype'] == 0) {
-				foreach($setarr as $key => $val) {
-					if(empty($val)) continue;
-					$val = intval($val);
-					$id = intval($key);
-					$id = !$id && substr($key, 0, -1) == 'extcredits' ? intval(substr($key, -1, 1)) : $id;
-					if(0 < $id && $id < 9) {
-							$log['extcredits'.$id] = $val;
+			}
+		} else {
+			foreach($members as $member) {
+				if($_GET['notifymembers'] == 'pm') {
+					C::t('common_member_grouppm')->insert(array(
+						'uid' => $member['uid'],
+						'gpmid' => $gpmid,
+						'status' => 0
+					), false, true);
+					$newpm = setstatus(2, 1, $member['newpm']);
+					C::t('common_member')->update($member['uid'], array('newpm'=>$newpm));
+				} elseif($_GET['notifymembers'] == 'notice') {
+					notification_add($member['uid'], 'system', 'system_notice', array('subject' => $subject, 'message' => $message.$addmsg, 'from_id' => 0, 'from_idtype' => 'sendnotice'), 1);
+				} elseif($_GET['notifymembers'] == 'email') {
+					if(!sendmail("$member[username] <$member[email]>", $subject, $message.$addmsg)) {
+						runlog('sendmail', "$member[email] sendmail failed.");
 					}
 				}
-				$logtype = 'RPR';
-			} else {
-				foreach($setarr as $val) {
-					if(empty($val)) continue;
-					$id = intval($val);
-					$id = !$id && substr($val, 0, -1) == 'extcredits' ? intval(substr($val, -1, 1)) : $id;
-					if(0 < $id && $id < 9) {
-						$log['extcredits'.$id] = '-1';
-					}
-				}
-				$logtype = 'RPZ';
-			}
-			include_once libfile('function/credit');
-			credit_log($member['uid'], $logtype, $member['uid'], $log);
 
-			$continue = TRUE;
+				$log = array();
+				if($_GET['updatecredittype'] == 0) {
+					foreach($setarr as $key => $val) {
+						if(empty($val)) continue;
+						$val = intval($val);
+						$id = intval($key);
+						$id = !$id && substr($key, 0, -1) == 'extcredits' ? intval(substr($key, -1, 1)) : $id;
+						if(0 < $id && $id < 9) {
+								$log['extcredits'.$id] = $val;
+						}
+					}
+					$logtype = 'RPR';
+				} else {
+					foreach($setarr as $val) {
+						if(empty($val)) continue;
+						$id = intval($val);
+						$id = !$id && substr($val, 0, -1) == 'extcredits' ? intval(substr($val, -1, 1)) : $id;
+						if(0 < $id && $id < 9) {
+							$log['extcredits'.$id] = '-1';
+						}
+					}
+					$logtype = 'RPZ';
+				}
+				include_once libfile('function/credit');
+				credit_log($member['uid'], $logtype, $member['uid'], $log);
+
+				$continue = TRUE;
+			}
 		}
 	}
 

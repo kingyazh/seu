@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_core.php 28407 2012-02-29 05:18:47Z monkey $
+ *      $Id: function_core.php 30076 2012-05-09 04:22:32Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -195,15 +195,28 @@ function dfsockopen($url, $limit = 0, $post = '', $cookie = '', $bysocket = FALS
 	return _dfsockopen($url, $limit, $post, $cookie, $bysocket, $ip, $timeout, $block, $encodetype, $allowcurl);
 }
 
-function dhtmlspecialchars($string) {
+function dhtmlspecialchars($string, $flags = null) {
 	if(is_array($string)) {
 		foreach($string as $key => $val) {
-			$string[$key] = dhtmlspecialchars($val);
+			$string[$key] = dhtmlspecialchars($val, $flags);
 		}
 	} else {
-		$string = str_replace(array('&', '"', '<', '>'), array('&amp;', '&quot;', '&lt;', '&gt;'), $string);
-		if(strpos($string, '&amp;#') !== false) {
-			$string = preg_replace('/&amp;((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $string);
+		if($flags === null) {
+			$string = str_replace(array('&', '"', '<', '>'), array('&amp;', '&quot;', '&lt;', '&gt;'), $string);
+			if(strpos($string, '&amp;#') !== false) {
+				$string = preg_replace('/&amp;((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $string);
+			}
+		} else {
+			if(PHP_VERSION < '5.4.0') {
+				$string = htmlspecialchars($string, $flags);
+			} else {
+				if(strtolower(CHARSET) == 'utf-8') {
+					$charset = 'UTF-8';
+				} else {
+					$charset = 'ISO-8859-1';
+				}
+				$string = htmlspecialchars($string, $flags, $charset);
+			}
 		}
 	}
 	return $string;
@@ -496,6 +509,9 @@ function template($file, $templateid = 0, $tpldir = '', $gettplfile = 0, $primal
 			if(isset($_G['cache']['diytemplatename'.$basescript])) {
 				$diytemplatename = &$_G['cache']['diytemplatename'.$basescript];
 			} else {
+				if(!isset($_G['cache']['diytemplatename'])) {
+					loadcache('diytemplatename');
+				}
 				$diytemplatename = &$_G['cache']['diytemplatename'];
 			}
 			$tplsavemod = 0;
@@ -503,7 +519,7 @@ function template($file, $templateid = 0, $tpldir = '', $gettplfile = 0, $primal
 				$tpldir = 'data/diy/'.$_G['style']['tpldirectory'].'/';
 				!$gettplfile && $_G['style']['tplsavemod'] = $tplsavemod;
 				$curtplname = $file;
-				if($_GET['diy'] == 'yes' || $_GET['preview'] == 'yes') { //DIY模式或预览模式下做以下判断
+				if(isset($_GET['diy']) && $_GET['diy'] == 'yes' || isset($_GET['diy']) && $_GET['preview'] == 'yes') { //DIY模式或预览模式下做以下判断
 					$flag = file_exists($diypath.$file.$preend.'.htm');
 					if($_GET['preview'] == 'yes') {
 						$file .= $flag ? $preend : '';
@@ -543,7 +559,10 @@ function template($file, $templateid = 0, $tpldir = '', $gettplfile = 0, $primal
 		$file = 'mobile/'.$oldfile;
 	}
 
-	$tplfile = ($tpldir ? $tpldir.'/' : './template/').$file.'.htm';
+	if(!$tpldir) {
+		$tpldir = './template/default';
+	}
+	$tplfile = $tpldir.'/'.$file.'.htm';
 
 	$file == 'common/header' && defined('CURMODULE') && CURMODULE && $file = 'common/header_'.$_G['basescript'].'_'.CURMODULE;
 
@@ -573,8 +592,8 @@ function template($file, $templateid = 0, $tpldir = '', $gettplfile = 0, $primal
 	}
 
 	$cachefile = './data/template/'.(defined('STYLEID') ? STYLEID.'_' : '_').$templateid.'_'.str_replace('/', '_', $file).'.tpl.php';
-
-	if($templateid != 1 && !file_exists(DISCUZ_ROOT.$tplfile) && !file_exists(substr(DISCUZ_ROOT.$tplfile, 0, -4).'.php')) {
+	if($templateid != 1 && !file_exists(DISCUZ_ROOT.$tplfile) && !file_exists(substr(DISCUZ_ROOT.$tplfile, 0, -4).'.php')
+			&& !file_exists(DISCUZ_ROOT.($tplfile = $tpldir.$filebak.'.htm'))) {
 		$tplfile = './template/default/'.$filebak.'.htm';
 	}
 
@@ -648,7 +667,7 @@ function loadcache($cachenames, $force = false) {
 		foreach($cachedata as $cname => $data) {
 			if($cname == 'setting') {
 				$_G['setting'] = $data;
-			} elseif(strpos($cname, 'usergroup_'.$_G['groupid']) !== false) {
+			} elseif($cname == 'usergroup_'.$_G['groupid']) {
 				$_G['cache'][$cname] = $_G['group'] = $data;
 			} elseif($cname == 'style_default') {
 				$_G['cache'][$cname] = $_G['style'] = $data;
@@ -961,8 +980,10 @@ function output() {
 	if(defined('IN_MOBILE')) {
 		mobileoutput();
 	}
-	$tipsService = Cloud::loadClass('Service_DiscuzTips');
-	$tipsService->show();
+	if(!defined('IN_MOBILE') && !defined('IN_ARCHIVER')) {
+		$tipsService = Cloud::loadClass('Service_DiscuzTips');
+		$tipsService->show();
+	}
 	$havedomain = implode('', $_G['setting']['domain']['app']);
 	if($_G['setting']['rewritestatus'] || !empty($havedomain)) {
 		$content = ob_get_contents();
@@ -979,7 +1000,7 @@ function output() {
 	}
 	$_G['setting']['ftp'] = array();
 
-	if(defined('CACHE_FILE') && CACHE_FILE && !defined('CACHE_FORBIDDEN') && !defined('IN_MOBILE')) {
+	if(defined('CACHE_FILE') && CACHE_FILE && !defined('CACHE_FORBIDDEN') && !defined('IN_MOBILE') && !checkmobile()) {
 		if(diskfreespace(DISCUZ_ROOT.'./'.$_G['setting']['cachethreaddir']) > 1000000) {
 			if($fp = @fopen(CACHE_FILE, 'w')) {
 				flock($fp, LOCK_EX);
@@ -1209,7 +1230,7 @@ function checkformulacredits($formula) {
 
 function debug($var = null, $vardump = false) {
 	echo '<pre>';
-	$vardump = $var === null ? true : $vardump;
+	$vardump = empty($var) ? true : $vardump;
 	if($vardump) {
 		var_dump($var);
 	} else {
@@ -1306,7 +1327,9 @@ function adshow($parameter) {
 	$adfunc = 'ad_'.$params[0];
 	$_G['setting']['pluginhooks'][$adfunc] = null;
 	hookscript('ad', 'global', 'funcs', array('params' => $params, 'content' => $adcontent), $adfunc);
-	hookscript('ad', $_G['basescript'], 'funcs', array('params' => $params, 'content' => $adcontent), $adfunc);
+	if(!$_G['setting']['hookscript']['global']['ad']['funcs'][$adfunc]) {
+		hookscript('ad', $_G['basescript'], 'funcs', array('params' => $params, 'content' => $adcontent), $adfunc);
+	}
 	return $_G['setting']['pluginhooks'][$adfunc] === null ? $adcontent : $_G['setting']['pluginhooks'][$adfunc];
 }
 
@@ -1402,7 +1425,7 @@ function dreferer($default = '') {
 	if(strpos($_G['referer'], 'member.php?mod=logging')) {
 		$_G['referer'] = $default;
 	}
-	$_G['referer'] = htmlspecialchars($_G['referer'], ENT_QUOTES);
+	$_G['referer'] = dhtmlspecialchars($_G['referer'], ENT_QUOTES);
 	$_G['referer'] = str_replace('&amp;', '&', $_G['referer']);
 	$reurl = parse_url($_G['referer']);
 	if(!empty($reurl['host']) && !in_array($reurl['host'], array($_SERVER['HTTP_HOST'], 'www.'.$_SERVER['HTTP_HOST'])) && !in_array($_SERVER['HTTP_HOST'], array($reurl['host'], 'www.'.$reurl['host']))) {
@@ -1654,9 +1677,6 @@ function forumperm($permstr, $groupid = 0) {
 	global $_G;
 
 	$groupidarray = array($_G['groupid']);
-	if($_G['connectguest']) {
-		$groupid = $_G['setting']['connect']['register_groupid'] ? $_G['setting']['connect']['register_groupid'] : $_G['setting']['newusergroupid'];
-	}
 	if($groupid) {
 		return preg_match("/(^|\t)(".$groupid.")(\t|$)/", $permstr);
 	}
@@ -1804,6 +1824,9 @@ function iswhitelist($host) {
 	}
 	$hostlen = strlen($host);
 	$iswhitelist[$host] = false;
+	if(!$_G['cache']['domainwhitelist']) {
+		loadcache('domainwhitelist');
+	}
 	if(is_array($_G['cache']['domainwhitelist'])) foreach($_G['cache']['domainwhitelist'] as $val) {
 		$domainlen = strlen($val);
 		if($domainlen > $hostlen) {
@@ -1949,7 +1972,7 @@ function dunserialize($data) {
 
 function browserversion($type) {
 	static $return = array();
-	$types = array('ie' => 'msie', 'firefox' => '', 'chrome' => '', 'opera' => '', 'safari' => '', 'mozilla' => '', 'webkit' => '', 'maxthon' => '', 'qq' => 'qqbrowser');
+	static $types = array('ie' => 'msie', 'firefox' => '', 'chrome' => '', 'opera' => '', 'safari' => '', 'mozilla' => '', 'webkit' => '', 'maxthon' => '', 'qq' => 'qqbrowser');
 	if(!$return) {
 		$useragent = strtolower($_SERVER['HTTP_USER_AGENT']);
 		$other = 1;

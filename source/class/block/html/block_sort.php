@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: block_sort.php 26707 2011-12-20 08:31:04Z zhangguosheng $
+ *      $Id: block_sort.php 29557 2012-04-18 10:10:07Z svn_project_zhangjie $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -141,7 +141,7 @@ class block_sort extends commonblock_html {
 		$orderby	= isset($parameter['orderby']) ? (in_array($parameter['orderby'],array('lastpost','dateline','replies','views','heats','recommends')) ? $parameter['orderby'] : 'lastpost') : 'lastpost';
 		$lastpost	= isset($parameter['lastpost']) ? intval($parameter['lastpost']) : 0;
 		$recommend	= !empty($parameter['recommend']) ? 1 : 0;
-		$sortids	= isset($parameter['sortids']) ? $parameter['sortids'] : '';
+		$sortid	= isset($parameter['sortids']) ? intval($parameter['sortids']) : '';
 
 		if($fids) {
 			$thefids = array();
@@ -164,7 +164,7 @@ class block_sort extends commonblock_html {
 		$threadtypeids = array();
 
 		$sql = ($tids ? ' AND t.tid IN ('.dimplode($tids).')' : '')
-			.($sortids ? ' AND t.sortid IN ('.dimplode($sortids).')' : '')
+			.($sortid ? ' AND t.sortid='.$sortid : '')
 			.($fids ? ' AND t.fid IN ('.dimplode($fids).')' : '')
 			.($digest ? ' AND t.digest IN ('.dimplode($digest).')' : '')
 			.($stick ? ' AND t.displayorder IN ('.dimplode($stick).')' : '')
@@ -185,9 +185,9 @@ class block_sort extends commonblock_html {
 		}
 
 		require_once libfile('function/threadsort');
-		$sortid = intval($sortids);
 		$templatearray = $sortoptionarray = array();
 		loadcache(array('threadsort_option_'.$sortid, 'threadsort_template_'.$sortid));
+		sortthreadsortselectoption($sortid);
 		$templatearray[$sortid] = $_G['cache']['threadsort_template_'.$sortid]['block'];
 		$sortoptionarray[$sortid] = $_G['cache']['threadsort_option_'.$sortid];
 		$isthreadtype = (strpos($templatearray[$sortid], '{typename}') !== false || strpos($templatearray[$sortid], '{typename_url}') !== false ) ? true : false;
@@ -199,7 +199,7 @@ class block_sort extends commonblock_html {
 		}
 
 		$html = '';
-		$threadlist = array();
+		$threadlist = $verify = $verifyuids = array();
 		$query = DB::query("SELECT t.*
 			$sqlfrom WHERE 1 $sql
 			AND t.readperm='0'
@@ -209,6 +209,10 @@ class block_sort extends commonblock_html {
 			);
 
 		while($thread = DB::fetch($query)) {
+
+			if(isset($_G['setting']['verify']['enabled']) && $_G['setting']['verify']['enabled']) {
+				$verifyuids[$thread['authorid']] = $thread['authorid'];
+			}
 
 			if($thread['highlight']) {
 				$color = array('', '#EE1B2E', '#EE5023', '#996600', '#3C9D40', '#2897C5', '#2B65B7', '#8F2A90', '#EC1282');
@@ -242,8 +246,23 @@ class block_sort extends commonblock_html {
 			$thread['lastpost'] = dgmdate($thread['lastpost'], 'u');
 			$threadlist[$thread['tid']] = $thread;
 		}
+
 		if(!empty($threadlist)) {
-			$html = implode('', showsortmodetemplate($sortid, $fids, $sortoptionarray, $templatearray, $threadlist, array_keys($threadlist)));
+			if($verifyuids) {
+				foreach(C::t('common_member_verify')->fetch_all($verifyuids) as $value) {
+					foreach($_G['setting']['verify'] as $vid => $vsetting) {
+						if($vsetting['available'] && $vsetting['showicon'] && $value['verify'.$vid] == 1) {
+							$srcurl = '';
+							if(!empty($vsetting['icon'])) {
+								$srcurl = $vsetting['icon'];
+							}
+							$verify[$value['uid']] .= "<a href=\"home.php?mod=spacecp&ac=profile&op=verify&vid=$vid\" target=\"_blank\">".(!empty($srcurl) ? '<img src="'.$srcurl.'" class="vm" alt="'.$vsetting['title'].'" title="'.$vsetting['title'].'" />' : $vsetting['title']).'</a>';
+						}
+					}
+
+				}
+			}
+			$html = implode('', showsortmodetemplate($sortid, $fids, $sortoptionarray, $templatearray, $threadlist, array_keys($threadlist), $verify));
 		}
 
 		return array('html' => $html, 'data' => null);

@@ -54,7 +54,7 @@
 				<script type="text/javascript">
 					var upload = new SWFUpload({
 						// Backend Settings
-						upload_url: "{$_G[siteroot]}misc.php?mod=swfupload&action=swfupload&operation=album",
+						upload_url: "{$_G[siteurl]}misc.php?mod=swfupload&action=swfupload&operation=album",
 						post_params: {"uid" : "$_G[uid]", "hash":"$swfconfig[hash]"},
 
 						// File Upload Settings
@@ -78,29 +78,18 @@
 						upload_complete_handler : uploadComplete,
 
 						// Button Settings
-						button_image_url : IMGDIR+"/uploadbutton.png",
+						button_image_url : "{IMGDIR}/uploadbutton.png",
 						button_placeholder_id : "imgSpanButtonPlaceholder",
 						button_width: 100,
 						button_height: 25,
 						button_cursor:SWFUpload.CURSOR.HAND,
-						button_text_left_padding:16,
-						button_text_style: '.button { vertical-align: middle; overflow: hidden; }',
-						//button_text: '<span class="button">上传</span>',
-						button_text: '',
 						button_window_mode: "transparent",
-
-						// Flash Settings
-						flash_url : IMGDIR+"/swfupload.swf",
-						flash9_url : IMGDIR+"/swfupload_fp9.swf",
-
+						
 						custom_settings : {
 							progressTarget : "imgUploadProgress",
 							uploadSource: 'home',
 							uploadType: 'album',
 							imgBoxObj: $('attachbody')
-							//thumbnail_height: 400,
-							//thumbnail_width: 400,
-							//thumbnail_quality: 100
 						},
 
 						// Debug Settings

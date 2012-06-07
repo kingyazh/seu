@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: class_image.php 28221 2012-02-24 08:00:30Z zhengqingpeng $
+ *      $Id: class_image.php 30471 2012-05-30 06:06:09Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -51,6 +51,9 @@ class image {
 			return $this->returncode(0);
 		}
 		$this->param['thumbwidth'] = $thumbwidth;
+		if(!$thumbheight || $thumbheight > $this->imginfo['height']) {
+			$thumbheight = $thumbwidth > $this->imginfo['width'] ? $this->imginfo['height'] : $this->imginfo['height']*($thumbwidth/$this->imginfo['width']);
+		}
 		$this->param['thumbheight'] = $thumbheight;
 		$this->param['thumbtype'] = $thumbtype;
 		if($thumbwidth < 100 && $thumbheight < 100) {
@@ -70,7 +73,7 @@ class image {
 			return $this->returncode($return);
 		}
 		if($dstwidth < 0 || $dstheight < 0) {
-			return false;
+			return $this->returncode(false);
 		}
 		$this->param['dstwidth'] = $dstwidth;
 		$this->param['dstheight'] = $dstheight;
@@ -181,7 +184,7 @@ class image {
 			$this->imginfo['animated'] = strpos($content, 'NETSCAPE2.0') === FALSE ? 0 : 1;
 		}
 
-		return $this->imagecreatefromfunc ? 1 : 0;
+		return $this->imagecreatefromfunc ? 1 : -4;
 	}
 
 	function sleep($return) {
@@ -210,7 +213,7 @@ class image {
 				$h = $this->imginfo['height'];
 				$w = $h * $thumbratio;
 				$x = ($this->imginfo['width'] - $thumbratio * $this->imginfo['height']) / 2;
-			} elseif($imgratio >= 1 && $imgratio <= $thumbratio || $imgratio < 1 && $imgratio < $thumbratio) {
+			} elseif($imgratio >= 1 && $imgratio <= $thumbratio || $imgratio < 1 && $imgratio <= $thumbratio) {
 				$w = $this->imginfo['width'];
 				$h = $w / $thumbratio;
 			}
@@ -265,7 +268,7 @@ class image {
 		switch($this->param['thumbtype']) {
 			case 'fixnone':
 			case 1:
-				if($this->imginfo['width'] >= $this->param['thumbwidth'] || $this->imginfo['height'] >= $this->param['thumbheight']) {
+				if($this->imginfo['width'] > $this->param['thumbwidth'] || $this->imginfo['height'] > $this->param['thumbheight']) {
 					$thumb = array();
 					list(,,$thumb['width'], $thumb['height']) = $this->sizevalue(0);
 					$cx = $this->imginfo['width'];
@@ -305,7 +308,7 @@ class image {
 		switch($this->param['thumbtype']) {
 			case 'fixnone':
 			case 1:
-				if($this->imginfo['width'] >= $this->param['thumbwidth'] || $this->imginfo['height'] >= $this->param['thumbheight']) {
+				if($this->imginfo['width'] > $this->param['thumbwidth'] || $this->imginfo['height'] > $this->param['thumbheight']) {
 					$exec_str = $this->param['imageimpath'].'/convert -quality '.intval($this->param['thumbquality']).' -geometry '.$this->param['thumbwidth'].'x'.$this->param['thumbheight'].' '.$this->source.' '.$this->target;
 					$return = exec($exec_str);
 					if(!file_exists($this->target)) {

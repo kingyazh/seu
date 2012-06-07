@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_menu.php 27617 2012-02-07 08:24:14Z monkey $
+ *      $Id: admincp_menu.php 30365 2012-05-24 07:51:03Z chenmengshu $
  */
 
 global $_G;
@@ -61,7 +61,7 @@ $menu['global'] = array(
 );
 
 $menu['style'] = array(
-	array('menu_setting_customnav', 'nav_headernav'),
+	array('menu_setting_customnav', 'nav'),
 	array('menu_setting_styles', 'setting_styles'),
 	array('menu_styles', 'styles'),
 	$isfounder ? array('menu_styles_templates', 'templates') : null,
@@ -111,6 +111,7 @@ $menu['user'] = array(
 	array('menu_members_profile', 'members_profile'),
 	array('menu_members_stat', 'members_stat'),
 	array('menu_members_newsletter', 'members_newsletter'),
+	array('menu_members_mobile', 'members_newsletter_mobile'),
 	array('menu_usertag', 'usertag'),
 	array('menu_members_edit_ban_user', 'members_ban'),
 	array('menu_members_ipban', 'members_ipban'),
@@ -198,6 +199,7 @@ if(file_exists($menudir = DISCUZ_ROOT.'./source/admincp/menu')) {
 
 if($isfounder) {
 	$menu['plugin'] = array(
+		array('menu_addons', 'cloudaddons'),
 		array('menu_plugins', 'plugins'),
 	);
 }
@@ -229,7 +231,7 @@ if($isfounder) {
 		array('menu_patch', 'patch'),
 		array('menu_setting_uc', 'setting_uc'),
 		array('menu_db', 'db_export'),
-		array('menu_membersplit', 'membersplit_manage'),
+		array('menu_membersplit', 'membersplit_check'),
 		array('menu_postsplit', 'postsplit_manage'),
 		array('menu_threadsplit', 'threadsplit_manage'),
 		array('menu_upgrade', 'upgrade'),

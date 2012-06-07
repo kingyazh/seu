@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_threadtypes.php 28113 2012-02-22 09:25:55Z svn_project_zhangjie $
+ *      $Id: admincp_threadtypes.php 29387 2012-04-10 02:21:02Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -605,6 +605,25 @@ EOT;
 <?php
 
 	} else {
+		$threadtype = C::t('forum_threadtype')->fetch($_GET['sortid']);
+		if($_GET['typeexpiration'] != $threadtype['expiration']) {
+			$query = C::t('forum_forum')->fetch_all_for_threadsorts();
+			$fidsarray = array();
+			foreach($query as $forum) {
+				$forum['threadsorts'] = dunserialize($forum['threadsorts']);
+				if(is_array($forum['threadsorts']['types'])) {
+					foreach($forum['threadsorts']['types'] as $typeid => $name) {
+						$typeid == $_GET['sortid'] && $fidsarray[$forum['fid']] = $forum['threadsorts'];
+					}
+				}
+			}
+			if($fidsarray) {
+				foreach($fidsarray as $changefid => $forumthreadsorts) {
+					$forumthreadsorts['expiration'][$_GET['sortid']] = $_GET['typeexpiration'];
+					C::t('forum_forumfield')->update($changefid, array('threadsorts' => serialize($forumthreadsorts)));
+				}
+			}
+		}
 		C::t('forum_threadtype')->update($_GET['sortid'], array('special' => 1, 'modelid' => $_GET['modelid'], 'expiration' => $_GET['typeexpiration']));
 
 		if(submitcheck('sortdetailsubmit')) {
@@ -772,7 +791,7 @@ EOT;
 		echo '<div id="ttype">'.
 			$showoption.
 			'<div id="ttype_tip"></div>'.
-			'<br /><textarea cols="100" rows="15" id="ttypetemplate" name="typetemplate" style="width: 95%;" onkeyup="textareasize(this)">'.$threadtype['template'].'</textarea>'.
+			'<br /><textarea cols="100" rows="15" id="ttypetemplate" name="typetemplate" style="width: 95%;" onkeyup="textareasize(this)">'.dhtmlspecialchars($threadtype['template']).'</textarea>'.
 			'</div>';
 
 		echo '<div id="stype" style="display:none">'.
@@ -798,13 +817,13 @@ EOT;
 			'<br />'.
 			$showoption.
 			'<div id="stype_tip"></div>'.
-			'<br /><textarea cols="100" rows="15" id="stypetemplate" name="stypetemplate" style="width: 95%;" onkeyup="textareasize(this)">'.$threadtype['stemplate'].'</textarea>'.
+			'<br /><textarea cols="100" rows="15" id="stypetemplate" name="stypetemplate" style="width: 95%;" onkeyup="textareasize(this)">'.dhtmlspecialchars($threadtype['stemplate']).'</textarea>'.
 			'</div>';
 
 		echo '<div id="ptype" style="display:none">'.
 			$showoption.
 			'<div id="ptype_tip"></div>'.
-			'<br /><textarea cols="100" rows="15" id="ptypetemplate" name="ptypetemplate" style="width: 95%;" onkeyup="textareasize(this)">'.$threadtype['ptemplate'].'</textarea>'.
+			'<br /><textarea cols="100" rows="15" id="ptypetemplate" name="ptypetemplate" style="width: 95%;" onkeyup="textareasize(this)">'.dhtmlspecialchars($threadtype['ptemplate']).'</textarea>'.
 			'</div>';
 
 		echo '<div id="btype" style="display:none">'.
@@ -820,7 +839,7 @@ EOT;
 			'<br />'.
 			$showoption.
 			'<div id="btype_tip"></div>'.
-			'<br /><textarea cols="100" rows="15" id="btypetemplate" name="btypetemplate" style="width: 95%;" onkeyup="textareasize(this)">'.$threadtype['btemplate'].'</textarea>'.
+			'<br /><textarea cols="100" rows="15" id="btypetemplate" name="btypetemplate" style="width: 95%;" onkeyup="textareasize(this)">'.dhtmlspecialchars($threadtype['btemplate']).'</textarea>'.
 			'</div>'.
 			'<input type="submit" class="btn" name="sorttemplatesubmit" value="'.$lang['submit'].'"></form>';
 

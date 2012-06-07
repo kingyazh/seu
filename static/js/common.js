@@ -2,7 +2,7 @@
 	[Discuz!] (C)2001-2099 Comsenz Inc.
 	This is NOT a freeware, use is subject to license terms
 
-	$Id: common.js 27036 2011-12-30 09:09:34Z chenmengshu $
+	$Id: common.js 29624 2012-04-23 06:56:28Z monkey $
 */
 
 var BROWSER = {};
@@ -249,7 +249,7 @@ function checkall(form, prefix, checkall) {
 	count = 0;
 	for(var i = 0; i < form.elements.length; i++) {
 		var e = form.elements[i];
-		if(e.name && e.name != checkall && (!prefix || (prefix && e.name.match(prefix)))) {
+		if(e.name && e.name != checkall && !e.disabled && (!prefix || (prefix && e.name.match(prefix)))) {
 			e.checked = form.elements[checkall].checked;
 			if(e.checked) {
 				count++;
@@ -1731,7 +1731,7 @@ function parseurl(str, mode, parsecode) {
 
 function codetag(text) {
 	DISCUZCODE['num']++;
-	if(typeof wysiwyg != 'undefined' && wysiwyg) text = text.replace(/<br[^\>]*>/ig, '\n').replace(/<(\/|)[A-Za-z].*?>/ig, '');
+	if(typeof wysiwyg != 'undefined' && wysiwyg) text = text.replace(/<br[^\>]*>/ig, '\n');
 	DISCUZCODE['html'][DISCUZCODE['num']] = '[code]' + text + '[/code]';
 	return '[\tDISCUZ_CODE_' + DISCUZCODE['num'] + '\t]';
 }
@@ -1858,6 +1858,9 @@ function initSearchmenu(searchform, cloudSearchUrl) {
 			if((a[i].rel == 'forum' || a[i].rel == 'curforum') && defaultUrl != cloudSearchUrl) {
 				formobj.action = cloudSearchUrl;
 				formobj.method = 'get';
+				if($('srchFId')) {
+					$('srchFId').value = a[i].rel == 'forum' ? 0 : a[i].getAttribute('fid');
+				}
 			} else {
 				formobj.action = defaultUrl;
 			}
@@ -1869,6 +1872,9 @@ function initSearchmenu(searchform, cloudSearchUrl) {
 			if((this.rel == 'forum' || this.rel == 'curforum') && defaultUrl != cloudSearchUrl) {
 				formobj.action = cloudSearchUrl;
 				formobj.method = 'get';
+				if($('srchFId')) {
+					$('srchFId').value = this.rel == 'forum' ? 0 : this.getAttribute('fid');
+				}
 			} else {
 				formobj.action = defaultUrl;
 			}
@@ -1968,6 +1974,12 @@ function strLenCalc(obj, checklen, maxlen) {
 function patchNotice() {
 	if($('patch_notice')) {
 		ajaxget('misc.php?mod=patch&action=patchnotice', 'patch_notice', '');
+	}
+}
+
+function pluginNotice() {
+	if($('plugin_notice')) {
+		ajaxget('misc.php?mod=patch&action=pluginnotice', 'plugin_notice', '');
 	}
 }
 
@@ -2071,7 +2083,7 @@ function showfocus(ftype, autoshow) {
 		}
 	}
 	$('focuscur').innerHTML = id;
-	$('focus_con').innerHTML = $('focus_'+focus[(id-1)]).innerHTML;
+	$('focus_con').innerHTML = $('focus_'+(id-1)).innerHTML;
 }
 
 function rateStarHover(target,level) {

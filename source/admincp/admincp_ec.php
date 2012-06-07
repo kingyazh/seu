@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_ec.php 25246 2011-11-02 03:34:53Z zhangguosheng $
+ *      $Id: admincp_ec.php 30465 2012-05-30 04:10:03Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -327,23 +327,24 @@ if($operation == 'alipay') {
 
 		$numvalidate = 0;
 		if($_GET['validate']) {
-			$orderids = $comma = '';
+			$orderids = array();
 			$confirmdate = dgmdate(TIMESTAMP);
 
 			foreach(C::t('forum_order')->fetch_all($_GET['validate'], '1') as $order) {
 				updatemembercount($order['uid'], array($_G['setting']['creditstrans'] => $order['amount']));
-				$orderids .= "$comma'$order[orderid]'";
-				$comma = ',';
+				$orderids[] = $order['orderid'];
 
 				$submitdate = dgmdate($order['submitdate']);
 				notification_add($order['uid'], 'system', 'addfunds', array(
 					'orderid' => $order['orderid'],
 					'price' => $order['price'],
+					'from_id' => 0,
+					'from_idtype' => 'buycredit',
 					'value' => $_G['setting']['extcredits'][$_G['setting']['creditstrans']]['title'].' '.$order['amount'].' '.$_G['setting']['extcredits'][$_G['setting']['creditstrans']]['unit']
 				), 1);
 			}
 			if($orderids) {
-				C::t('forum_order')->update(explode(',', $orderids), array('status' => '3', 'admin' => $_G['username'], 'confirmdate' => $_G['timestamp']));
+				C::t('forum_order')->update($orderids, array('status' => '3', 'admin' => $_G['username'], 'confirmdate' => $_G['timestamp']));
 			}
 		}
 

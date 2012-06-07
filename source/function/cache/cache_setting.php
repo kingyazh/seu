@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: cache_setting.php 28361 2012-02-28 07:12:03Z monkey $
+ *      $Id: cache_setting.php 30309 2012-05-21 03:47:30Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -17,14 +17,14 @@ function build_cache_setting() {
 	$skipkeys = array('posttableids', 'mastermobile', 'masterqq', 'masteremail', 'closedreason',
 		'creditsnotify', 'backupdir', 'custombackup', 'jswizard', 'maxonlines', 'modreasons', 'newsletter',
 		'postno', 'postnocustom', 'customauthorinfo', 'domainwhitelist', 'ipregctrl',
-		'ipverifywhite', 'fastsmiley', 'defaultdoing', 'profilegroup',
+		'ipverifywhite', 'fastsmiley', 'defaultdoing',
 		);
 	$serialized = array('reginput', 'memory', 'search', 'creditspolicy', 'ftp', 'secqaa', 'ec_credit', 'qihoo', 'spacedata',
 		'infosidestatus', 'uc', 'indexhot', 'relatedtag', 'sitemessage', 'uchome', 'heatthread', 'recommendthread',
 		'disallowfloat', 'allowviewuserthread', 'advtype', 'click', 'card', 'rewritestatus', 'rewriterule', 'privacy', 'focus',
 		'forumkeys', 'article_tags', 'verify', 'seotitle', 'seodescription', 'seokeywords', 'domain', 'ranklist', 'my_search_data',
 		'seccodedata', 'inviteconfig', 'advexpiration', 'allowpostcomment', /*(IN_MOBILE)*/ 'mobile', 'connect', 'upgrade', 'patch', 'strongpw',
-		'posttable_info', 'threadtable_info'
+		'posttable_info', 'threadtable_info', 'profilegroup'
 		);
 
 	$data = array();
@@ -66,9 +66,27 @@ function build_cache_setting() {
 						$setting['svalue'][$key][$k] = max(0, intval($v));
 					}
 				}
-			}
-			if($setting['skey'] == 'ftp') {
+			} elseif($setting['skey'] == 'ftp') {
 				$setting['svalue']['attachurl'] .= substr($setting['svalue']['attachurl'], -1, 1) != '/' ? '/' : '';
+			} elseif($setting['skey'] == 'inviteconfig') {
+				$setting['svalue']['invitecodeprompt'] = stripslashes($setting['svalue']['invitecodeprompt']);
+			} elseif($setting['skey'] == 'profilegroup') {
+				$profile_settings = C::t('common_member_profile_setting')->fetch_all_by_available(1);
+				foreach($setting['svalue'] as $key => $val) {
+					$temp = array();
+					foreach($profile_settings as $pval) {
+						if(in_array($pval['fieldid'], $val['field'])) {
+							$temp[$pval['fieldid']] = $pval['fieldid'];
+						}
+					}
+					foreach($val['field'] as $fieldid) {
+						if(!in_array($fieldid, $temp)) {
+							$temp[$fieldid] = $fieldid;
+						}
+					}
+					$setting['svalue'][$key]['field'] = $temp;
+				}
+				C::t('common_setting')->update('profilegroup', $setting['svalue']);
 			}
 		}
 		$_G['setting'][$setting['skey']] = $data[$setting['skey']] = $setting['svalue'];
@@ -268,7 +286,7 @@ function build_cache_setting() {
 			$credit['allowexchangein'] && $allowexchangein = TRUE;
 			$credit['allowexchangeout'] && $allowexchangeout = TRUE;
 		}
-		$data['creditnotice'] && $data['creditnames'][] = str_replace("'", "\'", htmlspecialchars($id.'|'.$credit['title'].'|'.$credit['unit']));
+		$data['creditnotice'] && $data['creditnames'][] = str_replace("'", "\'", dhtmlspecialchars($id.'|'.$credit['title'].'|'.$credit['unit']));
 	}
 	$data['creditnames'] = $data['creditnotice'] ? @implode(',', $data['creditnames']) : '';
 
@@ -412,30 +430,26 @@ function build_cache_setting() {
 			require_once libfile('function/admincp');
 			$output['preg'] = rewritedata(0);
 		}
-		if($repflag) {
-			if($defaultcurhost != '{CURHOST}') {
-				$defaultcurhost = 'http://'.$defaultcurhost.$_G['siteport'].'/';
+		if($output['preg']) {
+			foreach($data['footernavs'] as $id => $nav) {
+				$data['footernavs'][$id]['code'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['code']);
 			}
-			$output['preg']['search'][] = "/<a href=\"(\w+\.php)/";
-			$output['preg']['replace'][] = '<a href="'.$defaultcurhost."$1";
-		}
-		foreach($data['footernavs'] as $id => $nav) {
-			$data['footernavs'][$id]['code'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['code']);
-		}
-		foreach($data['spacenavs'] as $id => $nav) {
-			$data['spacenavs'][$id]['code'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['code']);
-		}
-		foreach($data['mynavs'] as $id => $nav) {
-			$data['mynavs'][$id]['code'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['code']);
-		}
-		foreach($data['topnavs'] as $id => $nav) {
-			$data['topnavs'][$id]['code'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['code']);
-		}
-		foreach($data['plugins']['jsmenu'] as $key => $nav) {
-			$data['plugins']['jsmenu'][$key]['url'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['url']);
+			foreach($data['spacenavs'] as $id => $nav) {
+				$data['spacenavs'][$id]['code'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['code']);
+			}
+			foreach($data['mynavs'] as $id => $nav) {
+				$data['mynavs'][$id]['code'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['code']);
+			}
+			foreach($data['topnavs'] as $id => $nav) {
+				$data['topnavs'][$id]['code'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['code']);
+			}
+			foreach($data['plugins']['jsmenu'] as $key => $nav) {
+				$data['plugins']['jsmenu'][$key]['url'] = preg_replace($output['preg']['search'], $output['preg']['replace'], $nav['url']);
+			}
 		}
 	}
 	$data['output'] = $output;
+	$data['connect'] = in_array('qqconnect', $data['plugins']['available']) ? $data['connect'] : array();
 
 	savecache('setting', $data);
 	$_G['setting'] = $data;
@@ -855,7 +869,7 @@ function get_cachedata_spacenavs() {
 				$nav['allowsubnew'] = $_G['setting']['ec_ratio'] && ($_G['setting']['ec_account'] || $_G['setting']['ec_tenpay_opentrans_chnid'] || $_G['setting']['ec_tenpay_bargainor']);
 			}
 		}
-		$nav['subcode'] = $nav['allowsubnew'] && helper_access::check_module($nav['identifier']) ? '<span><a href="'.$nav['suburl'].'"'.($nav['target'] == 1 ? ' target="_blank"' : '').$nav['extra'].'>'.$nav['subname'].'</a></span>' : '';
+		$nav['subcode'] = $nav['allowsubnew'] ? '<span><a href="'.$nav['suburl'].'"'.($nav['target'] == 1 ? ' target="_blank"' : '').$nav['extra'].'>'.$nav['subname'].'</a></span>' : '';
 		if($nav['name'] != '{hr}') {
 			if(in_array($nav['name'], array('{userpanelarea1}', '{userpanelarea2}'))) {
 				$nav['code'] = str_replace(array('{', '}'), '', $nav['name']);

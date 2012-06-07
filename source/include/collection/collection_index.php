@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: collection_index.php 28399 2012-02-29 03:01:32Z chenmengshu $
+ *      $Id: collection_index.php 29284 2012-03-31 09:42:04Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -23,9 +23,8 @@ $start = ($page-1)*$cpp;
 
 if($op == 'all' || $op == 'search') {
 	if($op == 'search' && $_GET['kw']) {
-		$orderbyarr = array('dateline');
-		$searchtitle = stripsearchkey($_GET['kw']);
-		$count = C::t('forum_collection')->count_by_title($searchtitle);
+		dheader('Location: search.php?mod=collection&searchsubmit=yes&srchtxt='.urlencode($_GET['kw']));
+		exit;
 	} else {
 		$orderbyarr = array('follownum', 'threadnum', 'commentnum', 'dateline');
 		$count = C::t('forum_collection')->count();
@@ -33,7 +32,7 @@ if($op == 'all' || $op == 'search') {
 
 	$orderby = (in_array($_GET['order'], $orderbyarr)) ? $_GET['order'] : 'dateline';
 	$collectiondata = processCollectionData(C::t('forum_collection')->fetch_all('', $orderby, 'DESC', $start, $cpp, $searchtitle), array(), $orderby);
-	$htmlsearchtitle = htmlspecialchars($searchtitle);
+	$htmlsearchtitle = dhtmlspecialchars($searchtitle);
 	$multipage = multi($count, $cpp, $page, 'forum.php?mod=collection&op='.$op.(($htmlsearchtitle) ? '&kw='.$htmlsearchtitle : ''));
 
 	include template('forum/collection_all');

@@ -16,7 +16,7 @@
 	<label><strong>{lang password_confirm}*</strong><input type="password" name="{$_G['setting']['reginput']['password2']}" size="25" id="password2" value="" class="txt" /></label>
 	<label><strong>{lang email}*</strong><input type="text" name="{$_G['setting']['reginput']['email']}" autocomplete="off" size="25" id="email" class="txt" /> </label>
 <!--{if empty($invite) && ($_G['setting']['regstatus'] == 2 || $_G['setting']['regstatus'] == 3)}-->
-	<label><strong>{lang invite_code}<!--{if $_G['setting']['regstatus'] == 2}-->*<!--{/if}--></strong><input type="text" name="invitecode" autocomplete="off" size="25" id="invitecode" class="txt" /></label>
+	<label><strong>{lang invite_code}<!--{if $_G['setting']['regstatus'] == 2 && !$invitestatus}-->*<!--{/if}--></strong><input type="text" name="invitecode" autocomplete="off" size="25" id="invitecode" class="txt" /></label>
 <!--{/if}-->
 <!--{if $_G['setting']['regverify'] == 2}-->
 	<label><strong>{lang register_message}*:</strong><input type="text" id="regmessage" name="regmessage" autocomplete="off" size="25" tabindex="1" class="txt" /> </label>

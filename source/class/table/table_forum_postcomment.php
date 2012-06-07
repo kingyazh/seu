@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_forum_postcomment.php 27806 2012-02-15 03:20:46Z svn_project_zhangjie $
+ *      $Id: table_forum_postcomment.php 29123 2012-03-27 06:00:56Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -45,7 +45,7 @@ class table_forum_postcomment extends discuz_table
 			for($i = 0; $i < count($message); $i++) {
 				if(preg_match("/\{(\d+)\}/", $message[$i])) {
 					$message[$i] = preg_replace("/\\\{(\d+)\\\}/", ".{0,\\1}", preg_quote($message[$i], '/'));
-					$message .= " $or comment REGEXP '".$message[$i]."'";
+					$sqlmessage .= " $or comment REGEXP '".$message[$i]."'";
 				} else {
 					$sqlmessage .= " $or ".DB::field('comment', '%'.$message[$i].'%', 'like');
 				}
@@ -72,7 +72,7 @@ class table_forum_postcomment extends discuz_table
 			for($i = 0; $i < count($message); $i++) {
 				if(preg_match("/\{(\d+)\}/", $message[$i])) {
 					$message[$i] = preg_replace("/\\\{(\d+)\\\}/", ".{0,\\1}", preg_quote($message[$i], '/'));
-					$message .= " $or comment REGEXP '".$message[$i]."'";
+					$sqlmessage .= " $or comment REGEXP '".$message[$i]."'";
 				} else {
 					$sqlmessage .= " $or ".DB::field('comment', '%'.$message[$i].'%', 'like');
 				}

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_blockstyle.php 25289 2011-11-03 10:06:19Z zhangguosheng $
+ *      $Id: admincp_blockstyle.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -168,7 +168,7 @@ BLOCKCLASSSEL;
 	}
 	$styles = array();
 	if(($styles = C::t('common_block_style')->fetch_all_by_blockclass($thestyle['blockclass']))) {
-		unsert($styles[$_GET['styleid']]);
+		unset($styles[$_GET['styleid']]);
 	}
 	if(empty($styles)) {
 		cpmsg('blockstyle_should_be_kept', 'action=blockstyle', 'error');
@@ -225,7 +225,7 @@ BLOCKCLASSSEL;
 	$likekeys = array('name', 'template');
 	$results = getwheres($intkeys, $strkeys, $randkeys, $likekeys);
 	foreach($likekeys as $k) {
-		$_GET[$k] = htmlspecialchars($_GET[$k]);
+		$_GET[$k] = dhtmlspecialchars($_GET[$k]);
 	}
 	$wherearr = $results['wherearr'];
 	$mpurl .= '&'.implode('&', $results['urls']);

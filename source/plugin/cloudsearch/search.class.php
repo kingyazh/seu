@@ -4,7 +4,7 @@
  *      [Discuz! X] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: search.class.php 28302 2012-02-27 09:08:49Z yangli $
+ *      $Id: search.class.php 30263 2012-05-17 13:44:07Z zhouxiaobo $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -21,41 +21,41 @@ class plugin_cloudsearch {
 	protected $allow_forum_recommend = FALSE;
 	protected $allow_forum_related = FALSE;
 	protected $allow_collection_related = FALSE;
+	protected $allow_search_suggest = FALSE;
 
 	public function plugin_cloudsearch() {
-		global $_G;
+		global $_G, $searchparams;
 
 		$cloudAppService = Cloud::loadClass('Service_App');
 		$this->allow = $cloudAppService->getCloudAppStatus('search');
 		if($this->allow) {
 			$this->allow_hot_topic = $_G['setting']['my_search_data']['allow_hot_topic'];
 			$this->allow_thread_related = $_G['setting']['my_search_data']['allow_thread_related'];
-			$this->allow_forum_recommend = FALSE;
+			$this->allow_forum_recommend = $_G['setting']['my_search_data']['allow_forum_recommend'];
 			$this->allow_forum_related = $_G['setting']['my_search_data']['allow_forum_related'];
 			$this->allow_collection_related = $_G['setting']['my_search_data']['allow_collection_related'];
+			$this->allow_search_suggest = $_G['setting']['my_search_data']['allow_search_suggest'];
+			$this->allow_thread_related_bottom = $_G['setting']['my_search_data']['allow_thread_related_bottom'];
 			include_once template('cloudsearch:module');
+
+			if (!$searchparams) {
+				$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
+				$searchparams = $searchHelper->makeSearchSignUrl();
+			}
 		}
 	}
 
 	public function common() {
-	    if(!$this->allow) {
+		if(!$this->allow) {
 			return;
 		}
 
-		global $searchparams;
-		$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
-		$searchparams = $searchHelper->makeSearchSignUrl();
-
-		if ($this->allow_forum_recommend && CURSCRIPT == 'forum' && (CURMODULE == 'forumdisplay') && $_GET['cloudop'] == 'relatedthread' && $_GET['fid']) {
-			global $_G;
-			require_once DISCUZ_ROOT.'./source/plugin/cloudsearch/forumdisplay.inc.php';
-		}
-
 		if ($_GET['mod'] == 'redirect' && $_GET['goto'] == 'findpost' && $_GET['ptid'] && $_GET['pid']) {
-            $post = get_post_by_pid($_GET['pid']);
-            if (empty($post)) {
-                $searchHelper->myPostLog('redelete', array('pid' => $_GET['pid']));
-            }
+			$post = get_post_by_pid($_GET['pid']);
+			if (empty($post)) {
+				$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
+				$searchHelper->myPostLog('redelete', array('pid' => $_GET['pid']));
+			}
 		}
 	}
 
@@ -64,7 +64,8 @@ class plugin_cloudsearch {
 			return;
 		}
 
-		if($this->allow_thread_related && CURSCRIPT == 'forum' && CURMODULE == 'viewthread' && $GLOBALS['page'] == 1) {
+		$res = '';
+		if(($this->allow_thread_related && $GLOBALS['page'] == 1 || $this->allow_thread_related_bottom) && CURSCRIPT == 'forum' && CURMODULE == 'viewthread') {
 			$res = tpl_cloudsearch_global_footer_related();
 		}
 
@@ -72,230 +73,242 @@ class plugin_cloudsearch {
 			$res .= tpl_cloudsearch_global_footer_mini();
 		}
 
+		if ($this->allow_search_suggest) {
+			$params = array(
+			                'callback' => 'cloudsearch_suggest_callback'
+			               );
+			$util = Cloud::loadClass('Cloud_Service_Util');
+			$queryString = $util->generateSiteSignUrl($params, true, true);
+			$res .= tpl_cloudsearch_global_footer_suggest($queryString);
+		}
+		$res .= tpl_cloudsearch_global_footer_formula_output();
+
 		return $res;
 	}
 
 	public function topicadmin_message($params) {
-	    if(!$this->allow || !$params) {
-            return;
-        }
+		if(!$this->allow || !$params) {
+			return;
+		}
 
 		$param = $params['param'];
 		if($param[0] == 'admin_succeed') {
-		    $searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
-		    $action = $_GET['action'];
+			$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
+			$action = $_GET['action'];
 
-		    switch($action) {
-		        case 'moderate':
-		            global $operations;
-		            $moderate = empty($_GET['moderate']) ? array() : $_GET['moderate'];
+			switch($action) {
+				case 'moderate':
+					global $operations;
+					$moderate = empty($_GET['moderate']) ? array() : $_GET['moderate'];
 
-		            foreach($moderate as $tid) {
-    					if(!$tid = max(0, intval($tid))) {
-    					    continue;
-    					}
+					foreach($moderate as $tid) {
+						if(!$tid = max(0, intval($tid))) {
+							continue;
+						}
 
-    					foreach($operations as $operation) {
-        					if(in_array($operation, array('stick', 'highlight', 'digest', 'bump', 'down', 'delete', 'move', 'close', 'open'))) {
+						foreach($operations as $operation) {
+							if(in_array($operation, array('stick', 'highlight', 'digest', 'bump', 'down', 'delete', 'move', 'close', 'open'))) {
 
-        					    if($operation == 'stick') {
-        					        $my_opt = $_GET['stick_level'] ? 'sticky' : 'update';
-        					    } elseif($operation == 'digest') {
-        					        $my_opt = $_GET['digest_level'] ? 'digest' : 'update';
-        					    } else {
-        					        $my_opt = $operation;
-        					    }
+								if($operation == 'stick') {
+									$my_opt = $_GET['sticklevel'] ? 'sticky' : 'update';
+								} elseif($operation == 'digest') {
+									$my_opt = $_GET['digestlevel'] ? 'digest' : 'update';
+								} elseif($operation == 'highlight') {
+									$my_opt = $_GET['highlight_color'] ? 'highlight' : 'update';
+								} else {
+									$my_opt = $operation;
+								}
 
-            					$data = array('tid' => $tid);
-            					if($my_opt == 'move' && $_GET['moveto']) {
-            					    global $toforum;
-            					    $data['otherid'] = $toforum['fid'];
-            					}
+								$data = array('tid' => $tid);
+								if($my_opt == 'move' && $_GET['moveto']) {
+									global $toforum;
+									$data['otherid'] = $toforum['fid'];
+								}
 
-            					$searchHelper->myThreadLog($my_opt, $data);
-        					}
-    					}
-		            }
-		            break;
+								$searchHelper->myThreadLog($my_opt, $data);
+							}
+						}
+					}
+					break;
 
-		        case 'banpost':
-		            global $posts;
+				case 'banpost':
+					global $posts;
 
-                    $banned = intval($_GET['banned']);
-                    foreach($posts as $post) {
-                        if ($banned) {
-                            $searchHelper->myPostLog('ban', array('pid' => $post['pid'], 'uid' => $post['authorid']));
-                        } else {
-                            $searchHelper->myPostLog('unban', array('pid' => $post['pid'], 'uid' => $post['authorid']));
-                        }
-                    }
-                    break;
+					$banned = intval($_GET['banned']);
+					foreach($posts as $post) {
+						if ($banned) {
+							$searchHelper->myPostLog('ban', array('pid' => $post['pid'], 'uid' => $post['authorid']));
+						} else {
+							$searchHelper->myPostLog('unban', array('pid' => $post['pid'], 'uid' => $post['authorid']));
+						}
+					}
+					break;
 
-		        case 'merge':
-		            global $_G, $thread;
-		            $othertid = intval($_GET['othertid']);
+				case 'merge':
+					global $_G, $thread;
+					$othertid = intval($_GET['othertid']);
 
-		            if ($thread) {
-		                $searchHelper->myThreadLog('merge', array('tid' => $othertid, 'otherid' => $_G['tid'], 'fid' => $thread['fid']));
-		            }
-		            break;
+					if ($thread) {
+						$searchHelper->myThreadLog('merge', array('tid' => $othertid, 'otherid' => $_G['tid'], 'fid' => $thread['fid']));
+					}
+					break;
 
-		        case 'split':
-                    global $_G, $pids;
+				case 'split':
+					global $_G, $pids;
 
-		            $searchHelper->myThreadLog('split', array('tid' => $_G['tid']));
+					$searchHelper->myThreadLog('split', array('tid' => $_G['tid']));
 
-                	foreach((array)explode(',', $pids) as $pid) {
-                		$searchHelper->myPostLog('split', array('pid' => $pid));
-                	}
-                	break;
+					foreach((array)explode(',', $pids) as $pid) {
+						$searchHelper->myPostLog('split', array('pid' => $pid));
+					}
+					break;
 
-		        case 'warn':
-		            global $warned, $posts;
+				case 'warn':
+					global $warned, $posts;
 
-		            foreach((array)$posts as $k => $post) {
-                		if($warned && !($post['status'] & 2)) {
-                			$searchHelper->myPostLog('warn', array('pid' => $post['pid'], 'uid' => $post['authorid']));
-                		} elseif(!$warned && ($post['status'] & 2)) {
-                			$searchHelper->myPostLog('unwarn', array('pid' => $post['pid'], 'uid' => $post['authorid']));
-                		}
-		            }
-		            break;
+					foreach((array)$posts as $k => $post) {
+						if($warned && !($post['status'] & 2)) {
+							$searchHelper->myPostLog('warn', array('pid' => $post['pid'], 'uid' => $post['authorid']));
+						} elseif(!$warned && ($post['status'] & 2)) {
+							$searchHelper->myPostLog('unwarn', array('pid' => $post['pid'], 'uid' => $post['authorid']));
+						}
+					}
+					break;
 
-		        default:
-		            break;
-		    }
+				default:
+					break;
+			}
 		}
 	}
 
 	public function modcp_message($params) {
-	    if(!$this->allow || !$params) {
-            return;
-        }
+		if(!$this->allow || !$params) {
+			return;
+		}
 
-        $param = $params['param'];
+		$param = $params['param'];
 		if(in_array($param[0], array('modcp_member_ban_succeed', 'modcp_mod_succeed', 'modcp_recyclebin_restore_succeed', 'modcp_recyclebin_delete_succeed'))) {
-		    $searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
-		    $action = $_GET['action'];
+			$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
+			$action = $_GET['action'];
 
-		    switch($action) {
-		        case 'member':
-		            global $groupidnew, $member;
+			switch($action) {
+				case 'member':
+					global $groupidnew, $member;
 
-		            $my_opt = in_array($groupidnew, array(4, 5)) ? 'banuser' : 'unbanuser';
-		            $searchHelper->myThreadLog($my_opt, array('uid' => $member['uid']));
-		            break;
+					$my_opt = in_array($groupidnew, array(4, 5)) ? 'banuser' : 'unbanuser';
+					$searchHelper->myThreadLog($my_opt, array('uid' => $member['uid']));
+					break;
 
-		        case 'moderate':
-                    global $op, $postlist;
+				case 'moderate':
+					global $op, $postlist;
 
-                    if($op == 'replies') {
-                        global $postlist;
+					if($op == 'replies') {
+						global $postlist;
 
-                        foreach((array)$postlist as $post) {
-                            $searchHelper->myPostLog('validate', array('pid' => $post['pid']));
-                        }
-                    } else {
-                        global $moderation;
+						foreach((array)$postlist as $post) {
+							$searchHelper->myPostLog('validate', array('pid' => $post['pid']));
+						}
+					} else {
+						global $moderation;
 
-                        foreach((array)$moderation['validate'] as $tid) {
-			                $searchHelper->myThreadLog('validate', array('tid' => $tid));
-		                }
-                    }
-                    break;
+						foreach((array)$moderation['validate'] as $tid) {
+							$searchHelper->myThreadLog('validate', array('tid' => $tid));
+						}
+					}
+					break;
 
-		        case 'recyclebin':
-		            if(!empty($_GET['moderate'])) {
-		                global $_G;
+				case 'recyclebin':
+					if(!empty($_GET['moderate'])) {
+						global $_G;
 
-		                foreach(C::t('forum_thread')->fetch_all_by_tid_displayorder($_GET['moderate'], -1, '=', $_G['fid']) as $tid) {
-            				if($op == 'restore') {
-            					$searchHelper->myThreadLog('restore', array('tid' => $tid['tid']));
-            				} elseif($op == 'delete' && $_G['group']['allowclearrecycle']) {
-            				    $searchHelper->myPostLog('delete', array('tid' => $tid['tid']));
-            				}
-            			}
-		            }
-		            break;
+						foreach(C::t('forum_thread')->fetch_all_by_tid_displayorder($_GET['moderate'], -1, '=', $_G['fid']) as $tid) {
+							if($op == 'restore') {
+								$searchHelper->myThreadLog('restore', array('tid' => $tid['tid']));
+							} elseif($op == 'delete' && $_G['group']['allowclearrecycle']) {
+								$searchHelper->myPostLog('delete', array('tid' => $tid['tid']));
+							}
+						}
+					}
+					break;
 
-		        default:
-		            break;
-		    }
+				default:
+					break;
+			}
 		}
 	}
 
 	public function viewthread_message($params) {
-	    if(!$this->allow || !$params) {
-            return;
-        }
+		if(!$this->allow || !$params) {
+			return;
+		}
 
-        $param = $params['param'];
-        if ($param[0] == 'thread_nonexistence' && $_GET['tid']) {
-            $searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
-	        $searchHelper->myThreadLog('redelete', array('tid' => $_GET['tid']));
-        }
+		$param = $params['param'];
+		if ($param[0] == 'thread_nonexistence' && $_GET['tid']) {
+			$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
+			$searchHelper->myThreadLog('redelete', array('tid' => $_GET['tid']));
+		}
 	}
 
 	public function space_message($params) {
-	    if(!$this->allow || !$params) {
-            return;
-        }
+		if(!$this->allow || !$params) {
+			return;
+		}
 
-        $param = $params['param'];
-        if ($param[0] == 'thread_delete_succeed') {
-            global $moderate;
+		$param = $params['param'];
+		if ($param[0] == 'thread_delete_succeed') {
+			global $moderate;
 
-            $searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
-            foreach((array)$moderate as $tid) {
+			$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
+			foreach((array)$moderate as $tid) {
 				$searchHelper->myThreadLog('delete', array('tid' => $tid));
 			}
-        }
+		}
 	}
 
 	public function post_message($params) {
-	    if(!$this->allow || !$params) {
-            return;
-        }
+		if(!$this->allow || !$params) {
+			return;
+		}
 
-        global $_G, $isfirstpost, $pid, $modnewthreads, $pinvisible;
-        $param = $params['param'];
-        $searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
-        if($param[0] == 'post_edit_delete_succeed' && !empty($_GET['delete']) && $isfirstpost) {
-            $searchHelper->myThreadLog('delete', array('tid' => $_G['tid']));
-        } elseif($param[0] == 'post_edit_delete_succeed' && !empty($_GET['delete'])) {
-            $searchHelper->myPostLog('delete', array('pid' => $pid));
-        } elseif($param[0] == 'post_edit_succeed' && !$modnewreplies && $pinvisible != -3) {
-            $searchHelper->myPostLog('update', array('pid' => $pid));
-        }
+		global $_G, $isfirstpost, $pid, $modnewthreads, $pinvisible;
+		$param = $params['param'];
+		$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
+		if($param[0] == 'post_edit_delete_succeed' && !empty($_GET['delete']) && $isfirstpost) {
+			$searchHelper->myThreadLog('delete', array('tid' => $_G['tid']));
+		} elseif($param[0] == 'post_edit_delete_succeed' && !empty($_GET['delete'])) {
+			$searchHelper->myPostLog('delete', array('pid' => $pid));
+		} elseif($param[0] == 'post_edit_succeed' && !$modnewreplies && $pinvisible != -3) {
+			$searchHelper->myPostLog('update', array('pid' => $pid));
+		}
 	}
 
 	public function deletemember($params) {
-	    $uids = $params['param'][0];
+		$uids = $params['param'][0];
 		$step = $params['step'];
 
 		if($step == 'delete' && is_array($uids)) {
 			$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
-    		foreach($uids as $uid) {
-    		    $searchHelper->myThreadLog('deluser', array('uid' => $uid));
-    	    }
+			foreach($uids as $uid) {
+				$searchHelper->myThreadLog('deluser', array('uid' => $uid));
+			}
 		}
 	}
 
 	public function deletepost($params) {
-	    $pids = $params['param'][0];
-	    $idtype = $params['param'][1];
+		$pids = $params['param'][0];
+		$idtype = $params['param'][1];
 		$step = $params['step'];
 
 		if($step == 'delete' && $idtype == 'pid' && is_array($pids)) {
 			$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
 			foreach($pids as $pid) {
-			    $searchHelper->myPostLog('delete', array('pid' => $pid));
-		    }
+				$searchHelper->myPostLog('delete', array('pid' => $pid));
+			}
 		}
 	}
 
 	public function deletethread($params) {
-	    $tids = $params['param'][0];
+		$tids = $params['param'][0];
 		$step = $params['step'];
 
 		if($step == 'delete' && is_array($tids)) {
@@ -307,44 +320,44 @@ class plugin_cloudsearch {
 	}
 
 	public function undeletethreads($params) {
-	    $tids = $params['param'][0];
+		$tids = $params['param'][0];
 
 		if(is_array($tids)) {
 			$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
 			foreach($tids as $tid) {
-		        $searchHelper->myThreadLog('restore', array('tid' => $tid));
-	        }
+				$searchHelper->myThreadLog('restore', array('tid' => $tid));
+			}
 		}
 	}
 
 	public function recyclebinpostundelete($params) {
-	    $pids = $params['param'][0];
+		$pids = $params['param'][0];
 
 		if(is_array($pids)) {
 			$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
 			foreach($pids as $pid) {
-		        $searchHelper->myPostLog('restore', array('pid' => $pid));
-	        }
+				$searchHelper->myPostLog('restore', array('pid' => $pid));
+			}
 		}
 	}
 
 	public function threadpubsave($params) {
-	    global $thread;
-	    $step = $params['step'];
-	    $posts = $params['posts'];
+		global $thread;
+		$step = $params['step'];
+		$posts = $params['posts'];
 
-        if($step == 'save') {
-    	    $searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
-    		if ($thread['tid']) {
-    		    $searchHelper->myThreadLog('update', array('tid' => $thread['tid']));
-    		}
+		if($step == 'save') {
+			$searchHelper = Cloud::loadClass('Cloud_Service_SearchHelper');
+			if ($thread['tid']) {
+				$searchHelper->myThreadLog('update', array('tid' => $thread['tid']));
+			}
 
-    		if($thread['replies'] && is_array($posts)) {
-    		    foreach($posts as $post) {
-    		        $searchHelper->myPostLog('update', array('pid' => $post['pid']));
-    		    }
-    		}
-        }
+			if($thread['replies'] && is_array($posts)) {
+				foreach($posts as $post) {
+					$searchHelper->myPostLog('update', array('pid' => $post['pid']));
+				}
+			}
+		}
 	}
 }
 
@@ -359,13 +372,14 @@ class plugin_cloudsearch_forum extends plugin_cloudsearch {
 			return;
 		}
 
+		global $searchparams;
+
 		$searchHelper = Cloud::loadClass('Service_SearchHelper');
 		$recwords = $searchHelper->getRecWords(14, 'assoc');
-		$searchparams = $searchHelper->makeSearchSignUrl();
 		$srchotquery = '';
 		if(!empty($searchparams['params'])) {
 			foreach($searchparams['params'] as $key => $value) {
-				$srchotquery .= '&' . $key . '=' . $value;
+				$srchotquery .= '&' . $key . '=' . rawurlencode($value);
 			}
 		}
 		return tpl_cloudsearch_index_top($recwords, $searchparams, $srchotquery);
@@ -448,26 +462,106 @@ class plugin_cloudsearch_forum extends plugin_cloudsearch {
 		return tpl_cloudsearch_relate_threadlist_output(urlencode($_G['forum']['name']));
 	}
 
-	public function forumdisplay_threadtype_extra_output() {
-		if(!$this->allow_forum_recommend) {
-			return;
-		}
-		global $_G;
-
-		$searchHelper = Cloud::loadClass('Service_SearchHelper');
-		$recwords = $searchHelper->getRecWords(10);
-		if(!$recwords) {
+	public function forumdisplay_middle_output() {
+		if(!$this->allow || !$this->allow_forum_recommend) {
 			return;
 		}
 
-		return tpl_cloudsearch_forumdisplay_threadtype_extra_output($recwords);
+		global $_G, $searchparams;
+		$result = '';
+		if ($_G['fid']) {
+			$searchHelper = Cloud::loadClass('Service_SearchHelper');
+			$recwords = $searchHelper->getRecWords(14, 'assoc', $_G['fid']);
+			$srchotquery = '';
+			if(!empty($searchparams['params'])) {
+				foreach($searchparams['params'] as $key => $value) {
+					$srchotquery .= '&' . $key . '=' . rawurlencode($value);
+				}
+			}
+			$result = tpl_cloudsearch_index_top($recwords, $searchparams, $srchotquery, 'hotopic_fm');
+		}
+
+		return $result;
 	}
-	public function forumdisplay_threadtype_inner_output() {
-		if(!$this->allow_forum_recommend) {
+
+	public function viewthread_middle_output() {
+
+		if (!$this->allow || !$this->allow_thread_related_bottom) {
 			return;
 		}
 
-		return tpl_cloudsearch_forumdisplay_threadtype_inner_output();
+		global $_G;
+		if ($_G['page'] == 1) {
+			return;
+		}
+
+		return tpl_cloudsearch_viewthread_modaction_output();
+	}
+
+	public function index_forum_extra_output() {
+
+		return;
+		if (!$this->allow || !$this->allow_forum_recommend) {
+			return;
+		}
+
+		global $forumlist;
+
+		return $this->_get_forum_hotspot($forumlist);
+	}
+
+	public function forumdisplay_subforum_extra_output() {
+
+		return;
+		if (!$this->allow || !$this->allow_forum_recommend) {
+			return;
+		}
+
+		global $sublist;
+
+		return $this->_get_forum_hotspot($sublist);
+	}
+
+	private function _get_forum_hotspot($forumlist) {
+		if (!$this->allow || !$this->allow_forum_recommend) {
+			return;
+		}
+
+		global $_G, $searchparams;
+
+		if (!is_array($forumlist) || count($forumlist) == 0 || !$searchparams) {
+			return;
+		}
+
+		$srchotquery = '';
+		if(!empty($searchparams['params'])) {
+			foreach($searchparams['params'] as $key => $value) {
+				$srchotquery .= '&' . $key . '=' . rawurlencode($value);
+			}
+		}
+
+		$return = $cachenames = $fids = array();
+		foreach ($forumlist as $fid => $forum) {
+			$cachenames[] = 'search_recommend_words_' . $forum['fid'];
+			$fids[] = $forum['fid'];
+		}
+
+		loadcache($cachenames);
+		foreach ($fids as $v) {
+			$forum_recwords = $_G['cache']['search_recommend_words_' . $v]['result'];
+			if (!$forum_recwords) {
+				continue;
+			}
+
+			$forum_recwords = array_slice($forum_recwords, 0, 3);
+
+			foreach($forum_recwords as $key => $word) {
+				$forum_recwords[$key]['url'] = $searchparams['url'] . '?' . $srchotquery . '&q=' . urlencode($word['word']) . '&source=word.hotopic_if.'.($key + 1).'&keywordType=recommend&hwfId=' . $v;
+			}
+			$return[$v] = tpl_index_forum_extra_output($forum_recwords);
+		}
+
+		return $return;
 	}
 
 }
@@ -479,5 +573,3 @@ class plugin_cloudsearch_group extends plugin_cloudsearch {
 class plugin_cloudsearch_home extends plugin_cloudsearch {
 
 }
-
-?>

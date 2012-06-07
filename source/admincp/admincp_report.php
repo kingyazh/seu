@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_report.php 26205 2011-12-05 10:09:32Z zhangguosheng $
+ *      $Id: admincp_report.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -26,7 +26,7 @@ if(submitcheck('resolvesubmit')) {
 			$creditchange = '';
 			$opresult = !empty($_GET['creditsvalue'][$id])? $curcredits."\t".intval($_GET['creditsvalue'][$id]) : 'ignore';
 			$uid = $_GET['reportuids'][$id];
-			$msg = !empty($_GET['msg'][$id]) ? '<br />'.htmlspecialchars($_GET['msg'][$id]) : '';
+			$msg = !empty($_GET['msg'][$id]) ? '<br />'.dhtmlspecialchars($_GET['msg'][$id]) : '';
 			if(!empty($_GET['creditsvalue'][$id])) {
 				$credittag = $_GET['creditsvalue'][$id] > 0 ? '+' : '';
 				$creditchange = '<br />'.cplang('report_your').$_G['setting']['extcredits'][$curcredits]['title'].'&nbsp;'.$credittag.$_GET['creditsvalue'][$id];

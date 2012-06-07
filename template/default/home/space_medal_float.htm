@@ -33,26 +33,25 @@
 					<p class="pbm mbm bbda xw0">$medal[description]</p>
 					<p>
 						<!--{if $medal[expiration]}-->
-							{lang expire} $medal[expiration] {lang days},
+							{lang expire} $medal[expiration] {lang days}<br />
 						<!--{/if}-->
-						<!--{if $medal[permission] && !$medal['price']}-->
-							$medal[permission]
-						<!--{else}-->
-							<!--{if $medal[type] == 0}-->
-								{lang medals_type_0}
-							<!--{elseif $medal[type] == 1}-->
-								<!--{if $medal['price']}-->
-									<!--{if {$_G['setting']['extcredits'][$medal[credit]][unit]}}-->
-										{$_G['setting']['extcredits'][$medal[credit]][title]} <strong class="xi1 xw1 xs2">$medal[price]</strong> {$_G['setting']['extcredits'][$medal[credit]][unit]}
-									<!--{else}-->
-										<strong class="xi1 xw1 xs2">$medal[price]</strong> {$_G['setting']['extcredits'][$medal[credit]][title]}
-									<!--{/if}-->
+						<!--{if $medal[permission]}-->
+							$medal[permission]<br />
+						<!--{/if}-->
+						<!--{if $medal[type] == 0}-->
+							{lang medals_type_0}
+						<!--{elseif $medal[type] == 1}-->
+							<!--{if $medal['price']}-->
+								<!--{if {$_G['setting']['extcredits'][$medal[credit]][unit]}}-->
+									{$_G['setting']['extcredits'][$medal[credit]][title]} <strong class="xi1 xw1 xs2">$medal[price]</strong> {$_G['setting']['extcredits'][$medal[credit]][unit]}
 								<!--{else}-->
-									{lang medals_type_1}
+									<strong class="xi1 xw1 xs2">$medal[price]</strong> {$_G['setting']['extcredits'][$medal[credit]][title]}
 								<!--{/if}-->
-							<!--{elseif $medal[type] == 2}-->
-								{lang medals_type_2}
+							<!--{else}-->
+								{lang medals_type_1}
 							<!--{/if}-->
+						<!--{elseif $medal[type] == 2}-->
+							{lang medals_type_2}
 						<!--{/if}-->
 					</p>
 				</dt>

@@ -54,7 +54,7 @@ var fid = parseInt('$_G[fid]');
 										<!--{if !$_G['connectguest']}-->
 											{lang login_to_post} <a href="member.php?mod=logging&action=login" onclick="showWindow('login', this.href)" class="xi2">{lang login}</a> | <a href="member.php?mod={$_G[setting][regname]}" class="xi2">$_G['setting']['reglinkname']</a>
 										<!--{else}-->
-											{lang fill_profile_to_post}
+											{lang connect_fill_profile_to_post}
 										<!--{/if}-->
 									<!--{else}-->
 										{lang no_permission_to_post}<a href="javascript:;" onclick="$('newspecial').onclick()" class="xi2">{lang click_to_show_reason}</a>
@@ -104,18 +104,13 @@ var fid = parseInt('$_G[fid]');
 					<div class="fieldset flash" id="attachlist"></div>
 				<script type="text/javascript">
 					var upload = new SWFUpload({
-						// Backend Settings
-						upload_url: "{$_G[siteroot]}misc.php?mod=swfupload&action=swfupload&operation=upload&fid=$fid",
+						upload_url: "{$_G[siteurl]}misc.php?mod=swfupload&action=swfupload&operation=upload&fid=$_G[fid]",
 						post_params: {"uid" : "$_G[uid]", "hash":"$swfconfig[hash]"},
-
-						// File Upload Settings
-						file_size_limit : "$swfconfig[max]",	// 100MB
+						file_size_limit : "$swfconfig[max]",
 						file_types : "$swfconfig[attachexts][ext]",
 						file_types_description : "$swfconfig[attachexts][depict]",
 						file_upload_limit : $swfconfig['limit'],
 						file_queue_limit : 0,
-
-						// Event Handler Settings (all my handlers are in the Handler.js file)
 						swfupload_preload_handler : preLoad,
 						swfupload_load_failed_handler : loadFailed,
 						file_dialog_start_handler : fileDialogStart,
@@ -127,22 +122,12 @@ var fid = parseInt('$_G[fid]');
 						upload_error_handler : uploadError,
 						upload_success_handler : uploadSuccess,
 						upload_complete_handler : uploadComplete,
-
-						// Button Settings
-						button_image_url : IMGDIR+"/uploadbutton_small.png",
+						button_image_url : "{IMGDIR}/uploadbutton_small.png",
 						button_placeholder_id : "spanButtonPlaceholder",
 						button_width: 17,
 						button_height: 25,
 						button_cursor:SWFUpload.CURSOR.HAND,
-						button_text_left_padding: 0,
-						button_text_style: '.button { vertical-align: middle; overflow: hidden; }',
-						//button_text: '<span class="button">上传</span>',
-						button_text: '',
 						button_window_mode: "transparent",
-
-						// Flash Settings
-						flash_url : IMGDIR+"/swfupload.swf",
-						flash9_url : IMGDIR+"/swfupload_fp9.swf",
 
 						custom_settings : {
 							progressTarget : "attachlist",
@@ -156,8 +141,6 @@ var fid = parseInt('$_G[fid]');
 							<!--{/if}-->
 							uploadFrom: 'fastpost'
 						},
-
-						// Debug Settings
 						debug: false
 					});
 
@@ -176,7 +159,7 @@ var fid = parseInt('$_G[fid]');
 					</span>
 				<!--{/if}-->
 				<!--{if helper_access::check_module('follow')}-->
-				<label><input type="checkbox" name="adddynamic" value="1" {if $_G['forum']['allowfeed'] && !$_G[tid] && empty($_G['forum']['viewperm'])}checked="checked"{/if} />{lang post_relay}</label>
+				<label><input type="checkbox" name="adddynamic" class="pc" value="1" {if $_G['forum']['allowfeed'] && !$_G[tid] && empty($_G['forum']['viewperm'])}checked="checked"{/if} />{lang post_relay}</label>
 				<!--{/if}-->
 			</p>
 		</form>

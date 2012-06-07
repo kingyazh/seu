@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_cloudaddons.php 28363 2012-02-28 07:28:58Z monkey $
+ *      $Id: admincp_cloudaddons.php 29634 2012-04-23 08:29:45Z monkey $
  */
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
 	exit('Access Denied');
@@ -13,6 +13,10 @@ if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
 require_once libfile('function/cloudaddons');
 
 cpheader();
+
+if(!$admincp->isfounder) {
+	cpmsg('noaccess_isfounder', '', 'error');
+}
 
 if(!$operation) {
 
@@ -82,7 +86,7 @@ if(!$operation) {
 						cpmsg('cloudaddons_download_error', '', 'error', array('ErrorCode' => 102));
 					}
 				}
-				$end = rawurlencode(http_build_query($array));
+				$end = rawurlencode(cloudaddons_http_build_query($array));
 			}
 			$packnum++;
 		} while(!$end);
@@ -94,7 +98,7 @@ if(!$operation) {
 		cpmsg('cloudaddons_installing', "action=cloudaddons&operation=download&addonids=$_GET[addonids]&i=$addoni&end=$end&step=2&md5hash=".$_GET['md5hash'].'&timestamp='.$_GET['timestamp'], 'loading', array('addonid' => $_GET['key'].'.'.$_GET['type']), FALSE);
 	} elseif($step == 2) {
 		$tmpdir = DISCUZ_ROOT.'./data/download/'.$_GET['rid'];
-		if(!is_dir($tmpdir)) {
+		if(!file_exists($tmpdir)) {
 			cloudaddons_faillog($_GET['rid'], 103);
 			cpmsg('cloudaddons_download_error', '', 'error', array('ErrorCode' => 103));
 		}
@@ -137,8 +141,8 @@ if(!$operation) {
 			cpmsg('cloudaddons_downloading', "action=cloudaddons&operation=download&addonids=$_GET[addonids]&i=$addoni&step=1&md5hash=".$_GET['md5hash'].'&timestamp='.$_GET['timestamp'], 'loading', array('addonid' => $_GET['key'].'.'.$_GET['type']), FALSE);
 		}
 		list($_GET['key'], $_GET['type'], $_GET['rid']) = explode('.', $addonids[0]);
+		cloudaddons_downloadlog($_GET['key'].'.'.$_GET['type']);
 		if($_GET['type'] == 'plugin') {
-			cloudaddons_downloadlog($_GET['key'].'.plugin');
 			$plugin = C::t('common_plugin')->fetch_by_identifier($_GET['key']);
 			if(!$plugin['pluginid']) {
 				dheader('location: '.ADMINSCRIPT.'?action=plugins&operation=import&dir='.$_GET['key']);
@@ -146,7 +150,6 @@ if(!$operation) {
 				dheader('location: '.ADMINSCRIPT.'?action=plugins&operation=upgrade&pluginid='.$plugin['pluginid']);
 			}
 		} elseif($_GET['type'] == 'template') {
-			cloudaddons_downloadlog($_GET['key'].'.template');
 			dheader('location: '.ADMINSCRIPT.'?action=styles&operation=import&dir='.$_GET['key']);
 		} else {
 			cloudaddons_validator($_GET['key'].'.pack');

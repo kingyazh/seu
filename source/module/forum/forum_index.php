@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: forum_index.php 28438 2012-03-01 02:20:33Z monkey $
+ *      $Id: forum_index.php 29580 2012-04-20 02:53:59Z svn_project_zhangjie $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -99,7 +99,9 @@ if(!$gid && (!defined('FORUM_INDEX_PAGE_MEMORY') || !FORUM_INDEX_PAGE_MEMORY)) {
 	$forum_fields = C::t('forum_forumfield')->fetch_all($fids);
 
 	foreach($forums as $forum) {
-		$forum = array_merge($forum, $forum_fields[$forum['fid']]);
+		if($forum_fields[$forum['fid']]['fid']) {
+			$forum = array_merge($forum, $forum_fields[$forum['fid']]);
+		}
 		if($forum_access['fid']) {
 			$forum = array_merge($forum, $forum_access[$forum['fid']]);
 		}
@@ -144,6 +146,7 @@ if(!$gid && (!defined('FORUM_INDEX_PAGE_MEMORY') || !FORUM_INDEX_PAGE_MEMORY)) {
 
 		}
 	}
+	unset($forum_access, $forum_fields);
 
 	foreach($catlist as $catid => $category) {
 		$catlist[$catid]['collapseimg'] = 'collapsed_no.gif';

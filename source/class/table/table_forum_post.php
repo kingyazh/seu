@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_forum_post.php 28391 2012-02-28 10:56:20Z svn_project_zhangjie $
+ *      $Id: table_forum_post.php 28985 2012-03-21 07:24:35Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -660,7 +660,7 @@ class table_forum_post extends discuz_table
 
 	public function count_by_search($tableid, $tid = null, $keywords = null, $invisible =null, $fid = null, $authorid = null, $author = null, $starttime = null, $endtime = null, $useip = null, $first = null) {
 		$sql = '';
-		$sql .= $tid ? ' AND '.DB::field('tid', $invisible) : '';
+		$sql .= $tid ? ' AND '.DB::field('tid', $tid) : '';
 		$sql .= $authorid !== null ? ' AND '.DB::field('authorid', $authorid) : '';
 		$sql .= $invisible !== null ? ' AND '.DB::field('invisible', $invisible) : '';
 		$sql .= $first !== null ? ' AND '.DB::field('first', $first) : '';
@@ -753,7 +753,10 @@ class table_forum_post extends discuz_table
 	}
 
 	public function fetch_all_new_post_by_pid($pid, $start = 0, $limit = 0, $tableid = 0, $glue = '>', $sort = 'ASC') {
-		return DB::fetch_all("SELECT * FROM %t WHERE pid{$glue}%d ORDER BY pid $sort".DB::limit($start, $limit), array($this->get_tablename($tableid), $pid), $this->_pk);
+		return $limit ? DB::fetch_all('SELECT * FROM '.DB::table($this->get_tablename($tableid)).
+				' WHERE '.DB::field('pid', $pid, $glue).
+				' ORDER BY '.DB::order('pid', $sort).
+				DB::limit($start, $limit), $this->_pk) : array();
 	}
 	public function fetch_all_prune_by_search($tableid, $isgroup = null, $keywords = null, $message_length = null, $fid = null, $authorid = null, $starttime = null, $endtime = null, $useip = null, $outmsg = true, $start = null, $limit = null) {
 		$sql = '';

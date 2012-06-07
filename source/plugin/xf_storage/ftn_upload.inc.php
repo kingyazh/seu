@@ -3,7 +3,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: ftn_upload.inc.php 27316 2012-01-16 03:08:11Z songlixin $
+ *      $Id: ftn_upload.inc.php 29265 2012-03-31 06:03:26Z yexinhao $
  */
 if(!defined('IN_DISCUZ')) {
 	exit('Access Denied');
@@ -19,5 +19,3 @@ if($_GET['formhash'] == $formhash && $_GET['inajax']){
 }
 
 include template('xf_storage:upload');
-
-?>

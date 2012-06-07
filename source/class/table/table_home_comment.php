@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_home_comment.php 27895 2012-02-16 07:26:42Z chenmengshu $
+ *      $Id: table_home_comment.php 30374 2012-05-24 09:24:58Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -84,11 +84,11 @@ class table_home_comment extends discuz_table
 		return DB::result_first('SELECT COUNT(*) FROM %t WHERE '.$cidsql.' id=%d AND idtype=%s', array($this->_table, $id, $idtype));
 	}
 
-	public function fetch_all_by_id_idtype($id, $idtype, $start, $limit, $cid = '') {
+	public function fetch_all_by_id_idtype($id, $idtype, $start, $limit, $cid = '', $order = '') {
 		if($cid) {
 			$cidsql = DB::field('cid', $cid). ' AND ';
 		}
-		return DB::fetch_all('SELECT * FROM %t WHERE '.$cidsql.' id=%d AND idtype=%s ORDER BY dateline DESC %i', array($this->_table, $id, $idtype, DB::limit($start, $limit)));
+		return DB::fetch_all('SELECT * FROM %t WHERE '.$cidsql.' id=%d AND idtype=%s ORDER BY '.DB::order('dateline', $order).' %i', array($this->_table, $id, $idtype, DB::limit($start, $limit)));
 	}
 
 	public function fetch_latest_by_authorid($uid, $cid) {
@@ -156,9 +156,9 @@ class table_home_comment extends discuz_table
 				for($i = 0; $i < count($keywords); $i++) {
 					if(preg_match("/\{(\d+)\}/", $keywords[$i])) {
 						$keywords[$i] = preg_replace("/\\\{(\d+)\\\}/", ".{0,\\1}", preg_quote($keywords[$i], '/'));
-						$sqlkeywords .= " $or message REGEXP '".$keywords[$i]."'";
+						$sqlkeywords .= " $or message REGEXP '".addslashes(stripsearchkey($keywords[$i]))."'";
 					} else {
-						$sqlkeywords .= " $or message LIKE '%".$keywords[$i]."%'";
+						$sqlkeywords .= " $or message LIKE '%".addslashes(stripsearchkey($keywords[$i]))."%'";
 					}
 					$or = 'OR';
 				}

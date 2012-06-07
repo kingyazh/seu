@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_forum.php 28475 2012-03-01 08:16:46Z liulanbo $
+ *      $Id: function_forum.php 29218 2012-03-29 08:41:31Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -802,7 +802,8 @@ function insertpost($data) {
 
 function threadmodstatus($string) {
 	global $_G;
-	if(periodscheck('postmodperiods', 0)) {
+	$postmodperiods = periodscheck('postmodperiods', 0);
+	if($postmodperiods) {
 		$modnewthreads = $modnewreplies = 1;
 	} else {
 		$censormod = censormod($string);
@@ -817,7 +818,10 @@ function threadmodstatus($string) {
 
 	$_G['group']['allowposturl'] = $_G['forum']['status'] != 3 ? $_G['group']['allowposturl'] : $_G['group']['allowgroupposturl'];
 	if($_G['group']['allowposturl'] == 1) {
-		if(censormod($string)) {
+		if(!$postmodperiods) {
+			$censormod = censormod($string);
+		}
+		if($censormod) {
 			$modnewthreads = $modnewreplies = 1;
 		}
 	}
@@ -883,7 +887,14 @@ function threadpubsave($tid, $passapproval = false) {
 	if($_G['forum']['status'] == 3) {
 		C::t('forum_groupuser')->update_counter_for_user($thread['authorid'], $thread['fid'], 1);
 	}
+
+	$subject = str_replace("\t", ' ', $thread['subject']);
+	$lastpost = $thread['tid']."\t".$subject."\t".$thread['lastpost']."\t".$thread['lastposter'];
+	C::t('forum_forum')->update($_G['fid'], array('lastpost' => $lastpost));
 	C::t('forum_forum')->update_forum_counter($thread['fid'], 1, $posts, $posts, $modworksql);
+	if($_G['forum']['type'] == 'sub') {
+		C::t('forum_forum')->update($_G['forum']['fup'], array('lastpost' => $lastpost));
+	}
 	if($_G['setting']['plugins']['func'][HOOKTYPE]['threadpubsave']) {
 		hookscript('threadpubsave', 'global', 'funcs', array('param' => $hookparam, 'step' => 'save', 'posts' => $saveposts), 'threadpubsave');
 	}

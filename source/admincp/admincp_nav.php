@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_nav.php 28176 2012-02-23 10:38:49Z zhengqingpeng $
+ *      $Id: admincp_nav.php 30365 2012-05-24 07:51:03Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -12,6 +12,10 @@ if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
 }
 
 cpheader();
+
+if(!$operation) {
+	$operation = 'headernav';
+}
 
 $navs = array('headernav', 'topnav', 'footernav', 'mynav', 'spacenav');
 $navdata = array();
@@ -138,6 +142,7 @@ if($operation == 'headernav') {
 				}
 				$applist .= '</select>';
 			}
+			$applist = str_replace("'", "\'", $applist);
 
 			echo <<<EOT
 <script type="text/JavaScript">

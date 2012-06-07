@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: forum_forumdisplay.php 28479 2012-03-01 08:49:44Z liulanbo $
+ *      $Id: forum_forumdisplay.php 29464 2012-04-13 03:58:54Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -55,7 +55,7 @@ $forumarchive = array();
 if($_G['forum']['archive']) {
 	foreach(C::t('forum_forum_threadtable')->fetch_all_by_fid($_G['fid']) as $archive) {
 		$forumarchive[$archive['threadtableid']] = array(
-			'displayname' => htmlspecialchars($threadtable_info[$archive['threadtableid']]['displayname']),
+			'displayname' => dhtmlspecialchars($threadtable_info[$archive['threadtableid']]['displayname']),
 			'threads' => $archive['threads'],
 			'posts' => $archive['posts'],
 		);
@@ -224,7 +224,7 @@ if(!empty($_G['forum']['threadsorts']['types'])) {
 }
 
 $moderatedby = $_G['forum']['status'] != 3 ? moddisplay($_G['forum']['moderators'], 'forumdisplay') : '';
-$_GET['highlight'] = empty($_GET['highlight']) ? '' : htmlspecialchars($_GET['highlight']);
+$_GET['highlight'] = empty($_GET['highlight']) ? '' : dhtmlspecialchars($_GET['highlight']);
 if($_G['forum']['autoclose']) {
 	$closedby = $_G['forum']['autoclose'] > 0 ? 'dateline' : 'lastpost';
 	$_G['forum']['autoclose'] = abs($_G['forum']['autoclose']) * 86400;
@@ -419,7 +419,7 @@ if($filter) {
 	$simplestyle = true;
 }
 
-if(!empty($_GET['orderby']) && in_array($_GET['orderby'], array('lastpost', 'dateline', 'replies', 'views', 'recommends', 'heats'))) {
+if(!empty($_GET['orderby']) && !$_G['setting']['closeforumorderby'] && in_array($_GET['orderby'], array('lastpost', 'dateline', 'replies', 'views', 'recommends', 'heats'))) {
 	$forumdisplayadd['orderby'] .= '&orderby='.$_GET['orderby'];
 } else {
 	$_GET['orderby'] = isset($_G['cache']['forums'][$_G['fid']]['orderby']) ? $_G['cache']['forums'][$_G['fid']]['orderby'] : 'lastpost';
@@ -534,13 +534,13 @@ if($_G['forum']['picstyle']) {
 	}
 }
 
+$filterbool = !empty($filter) && in_array($filter, $filterfield);
+$_G['forum_threadcount'] += $filterbool ? 0 : $stickycount;
 if(@ceil($_G['forum_threadcount']/$_G['tpp']) < $page) {
 	$page = 1;
 }
 $start_limit = ($page - 1) * $_G['tpp'];
 
-$filterbool = !empty($filter) && in_array($filter, $filterfield);
-$_G['forum_threadcount'] += $filterbool ? 0 : $stickycount;
 $forumdisplayadd['page'] = !empty($forumdisplayadd['page']) ? $forumdisplayadd['page'] : '';
 $multipage_archive = $_GET['archiveid'] && in_array($_GET['archiveid'], $threadtableids) ? "&archiveid={$_GET['archiveid']}" : '';
 $multipage = multi($_G['forum_threadcount'], $_G['tpp'], $page, "forum.php?mod=forumdisplay&fid=$_G[fid]".$forumdisplayadd['page'].($multiadd ? '&'.implode('&', $multiadd) : '')."$multipage_archive", $_G['setting']['threadmaxpages']);
@@ -574,6 +574,7 @@ if(($start_limit && $start_limit > $stickycount) || !$stickycount || $filterbool
 		$limit = $_G['tpp'] - $stickycount + $start_limit;
 		$otherthread =  C::t('forum_thread')->fetch_all_search($filterarr, $tableid, 0, $limit, "displayorder DESC, $_GET[orderby] $_GET[ascdesc]", '');
 		$threadlist = array_merge($threadlist, $otherthread);
+		unset($otherthread);
 	} else {
 		$query = '';
 	}
@@ -656,8 +657,7 @@ foreach($threadlist as $thread) {
 	}
 
 	$thread['moved'] = $thread['heatlevel'] = $thread['new'] = 0;
-	$thread['icontid'] = $thread['forumstick'] || !$thread['moved'] && $thread['isgroup'] != 1 ? $thread['tid'] : $thread['closed'];
-	if($_G['forum']['status'] != 3 && ($thread['closed'] || ($_G['forum']['autoclose'] && TIMESTAMP - $thread[$closedby] > $_G['forum']['autoclose']))) {
+	if($_G['forum']['status'] != 3 && ($thread['closed'] || ($_G['forum']['autoclose'] && $thread['fid'] == $_G['fid'] && TIMESTAMP - $thread[$closedby] > $_G['forum']['autoclose']))) {
 		if($thread['isgroup'] == 1) {
 			$thread['folder'] = 'common';
 			$grouptids[] = $thread['closed'];
@@ -685,6 +685,10 @@ foreach($threadlist as $thread) {
 				}
 			}
 		}
+	}
+	$thread['icontid'] = $thread['forumstick'] || !$thread['moved'] && $thread['isgroup'] != 1 ? $thread['tid'] : $thread['closed'];
+	if(!$thread['forumstick'] && ($thread['isgroup'] == 1 || $thread['fid'] != $_G['fid'])) {
+		$thread['icontid'] = $thread['closed'] > 1 ? $thread['closed'] : $thread['tid'];
 	}
 	$thread['istoday'] = $thread['dateline'] > $todaytime ? 1 : 0;
 	$thread['dbdateline'] = $thread['dateline'];
@@ -753,13 +757,13 @@ if(!empty($grouptids)) {
 }
 
 $stemplate = null;
-if($_G['forum']['threadsorts']['types'] && $sortoptionarray && $templatearray) {
+if($_G['forum']['threadsorts']['types'] && $sortoptionarray && $templatearray && $threadids) {
 	$sortid = intval($_GET['sortid']);
 	if(!strexists($templatearray[$sortid], '{subject_url}') && !strexists($templatearray[$sortid], '{tid}')) {
 		$sortlistarray = showsorttemplate($sortid, $_G['fid'], $sortoptionarray, $templatearray, $_G['forum_threadlist'], $threadids);
 		$stemplate = $sortlistarray['template'];
 	} else {
-		$sorttemplate = showsortmodetemplate($sortid, $_G['fid'], $sortoptionarray, $templatearray, $_G['forum_threadlist'], $threadids);
+		$sorttemplate = showsortmodetemplate($sortid, $_G['fid'], $sortoptionarray, $templatearray, $_G['forum_threadlist'], $threadids, $verify);
 		$_G['forum']['sortmode'] = 1;
 	}
 

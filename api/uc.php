@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: uc.php 25756 2011-11-22 02:47:45Z zhangguosheng $
+ *      $Id: uc.php 30176 2012-05-15 08:25:28Z zhangguosheng $
  */
 
 error_reporting(0);
@@ -117,7 +117,6 @@ class uc_note {
 		$tables = array(
 			'common_block' => array('id' => 'uid', 'name' => 'username'),
 			'common_invite' => array('id' => 'fuid', 'name' => 'fusername'),
-			'common_member' => array('id' => 'uid', 'name' => 'username'),
 			'common_member_verify_info' => array('id' => 'uid', 'name' => 'username'),
 			'common_mytask' => array('id' => 'uid', 'name' => 'username'),
 			'common_report' => array('id' => 'uid', 'name' => 'username'),
@@ -153,6 +152,10 @@ class uc_note {
 			'portal_topic_pic' => array('id' => 'uid', 'name' => 'username'),
 		);
 
+		if(!C::t('common_member')->update($get['uid'], array('username' => $get[newusername])) && isset($_G['setting']['membersplit'])){
+			C::t('common_member_archive')->update($get['uid'], array('username' => $get[newusername]));
+		}
+
 		loadcache("posttableids");
 		if($_G['cache']['posttableids']) {
 			foreach($_G['cache']['posttableids'] AS $tableid) {
@@ -161,7 +164,7 @@ class uc_note {
 		}
 
 		foreach($tables as $table => $conf) {
-			DB::query("UPDATE ".DB::table($table)." SET `$conf[name]`='$get[newusername]' WHERE `$conf[id]`='$get[uid]' AND `$conf[name]`='$get[oldusername]'");
+			DB::query("UPDATE ".DB::table($table)." SET `$conf[name]`='$get[newusername]' WHERE `$conf[id]`='$get[uid]'");
 		}
 		return API_RETURN_SUCCEED;
 	}
@@ -344,7 +347,7 @@ class uc_note {
 		}
 		$uid = intval($get['uid']);
 		$credit = intval($get['credit']);
-		$_G['uid'] = $uid;
+		$_G['uid'] = $_G['member']['uid'] = $uid;
 		return getuserprofile('extcredits'.$credit);
 	}
 

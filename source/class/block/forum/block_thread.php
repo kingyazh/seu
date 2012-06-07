@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: block_thread.php 27934 2012-02-17 02:36:31Z zhangguosheng $
+ *      $Id: block_thread.php 29655 2012-04-24 05:51:56Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -327,14 +327,19 @@ class block_thread extends discuz_block {
 		if($orderby == 'heats') {
 			$sql .= " AND t.heats>'0'";
 		}
-		$sqlfrom = '';
+		$sqlfrom = $sqlfield = $joinmethodpic = '';
 
-		$sqlfield = '';
-		$joinmethod = empty($tids) ? 'INNER' : 'LEFT';
 		if($picrequired) {
-			$sqlfrom .= " $joinmethod JOIN `".DB::table('forum_threadimage')."` ti ON t.tid=ti.tid";
+			$joinmethodpic = 'INNER';
+		} else if($style['getpic']) {
+			$joinmethodpic = 'LEFT';
+		}
+		if($joinmethodpic) {
+			$sqlfrom .= " $joinmethodpic JOIN `".DB::table('forum_threadimage')."` ti ON t.tid=ti.tid";
 			$sqlfield = ', ti.attachment as attachmenturl, ti.remote';
 		}
+
+		$joinmethod = empty($tids) ? 'INNER' : 'LEFT';
 		if($recommend) {
 			$sqlfrom .= " $joinmethod JOIN `".DB::table('forum_forumrecommend')."` fc ON fc.tid=t.tid";
 		}
@@ -344,9 +349,8 @@ class block_thread extends discuz_block {
 		}
 
 		$maxwhere = '';
-		if(!$tids) {
-			$maxitemnum = $_G['setting']['blockmaxaggregationitem'] ? $_G['setting']['blockmaxaggregationitem'] : 65535;
-			$maxwhere = ($maxid = $this->getmaxid() - $maxitemnum) > 0 ? 't.tid > '.$maxid.' AND ' : '';
+		if(!$tids && !$fids && $_G['setting']['blockmaxaggregationitem']) {
+			$maxwhere = ($maxid = $this->getmaxid() - $_G['setting']['blockmaxaggregationitem']) > 0 ? 't.tid > '.$maxid.' AND ' : '';
 		}
 
 		$query = DB::query("SELECT DISTINCT t.*$sqlfield

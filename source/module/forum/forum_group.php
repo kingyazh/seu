@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: forum_group.php 27723 2012-02-13 06:50:39Z zhengqingpeng $
+ *      $Id: forum_group.php 30373 2012-05-24 09:10:34Z liulanbo $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -244,7 +244,7 @@ if($action == 'index') {
 			if($modmember == 4) {
 				C::t('forum_forumfield')->update_membernum($_G['fid']);
 			}
-			updateactivity($_G['fid'], 0);
+			C::t('forum_forumfield')->update($_G['fid'], array('lastupdate' => TIMESTAMP));
 		}
 		include_once libfile('function/stat');
 		updatestat('groupjoin');
@@ -481,7 +481,7 @@ if($action == 'index') {
 			$checktype = intval($_GET['checktype']);
 		} elseif(getgpc('checkall') == 1 || getgpc('checkall') == 2) {
 			$checktype = $_GET['checkall'];
-			$query = C::t('forum_groupuser')->fetch_all_by_fid($_G['fid']);
+			$query = C::t('forum_groupuser')->fetch_all_by_fid($_G['fid'], 1);
 			foreach($query as $row) {
 				$checkusers[] = $row['uid'];
 			}
@@ -523,7 +523,7 @@ if($action == 'index') {
 			} else {
 				$start = 0;
 			}
-			$userlist = C::t('forum_groupuser')->groupuserlist($_G['fid'], '', $perpage, $start, $_GET['srchuser'] ? "AND username like '$_GET[srchuser]%'" : "AND level='4'");
+			$userlist = C::t('forum_groupuser')->groupuserlist($_G['fid'], '', $perpage, $start, $_GET['srchuser'] ? "AND username like '".addslashes($_GET[srchuser])."%'" : "AND level='4'");
 		} else {
 			$muser = getgpc('muid');
 			$targetlevel = $_GET['targetlevel'];
@@ -616,7 +616,7 @@ if($action == 'index') {
 					if(!empty($threadtypesnew['options']['delete'])) {
 						C::t('forum_threadclass')->delete_by_typeid_fid($threadtypesnew['options']['delete'], $_G['fid']);
 					}
-					foreach(C::t('forum_threadclass')->fetch_all_by_typeid_fid($typeids) as $type) {
+					foreach(C::t('forum_threadclass')->fetch_all_by_typeid_fid($typeids, $_G['fid']) as $type) {
 						if($threadtypesnew['options']['name'][$type['typeid']] != $type['name'] || $threadtypesnew['options']['displayorder'][$type['typeid']] != $type['displayorder']) {
 							$threadtypesnew['options']['name'][$type['typeid']] = dhtmlspecialchars(censor(cutstr(trim($threadtypesnew['options']['name'][$type['typeid']]), 16, '')));
 							$threadtypesnew['options']['displayorder'][$type['typeid']] = intval($threadtypesnew['options']['displayorder'][$type['typeid']]);
@@ -627,7 +627,6 @@ if($action == 'index') {
 						}
 					}
 				}
-
 				if($threadtypesnew && $typeids) {
 					foreach(C::t('forum_threadclass')->fetch_all_by_typeid($typeids) as $type) {
 						if($threadtypesnew['options']['enable'][$type['typeid']]) {

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: helper_form.php 27894 2012-02-16 07:26:19Z monkey $
+ *      $Id: helper_form.php 29417 2012-04-11 06:03:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -112,6 +112,20 @@ class helper_form {
 		if(!$_G['setting']['seccodestatus']) {
 			return true;
 		}
+		if(!is_numeric($_G['setting']['seccodedata']['type'])) {
+			if(file_exists($codefile = libfile('seccode/'.$_G['setting']['seccodedata']['type'], 'class'))) {
+				@include_once $codefile;
+				$class = 'seccode_'.$_G['setting']['seccodedata']['type'];
+				if(class_exists($class)) {
+					$code = new $class();
+					$code->setting = $_G['setting']['seccodedata']['extra'][$_G['setting']['seccodedata']['type']];
+					if(method_exists($code, 'check')) {
+						return $code->check($value, $idhash);
+					}
+				}
+			}
+			return false;
+		}
 		if(!isset($_G['cookie']['seccode'.$idhash])) {
 			return false;
 		}
@@ -137,7 +151,7 @@ class helper_form {
 		$return = array();
 
 		(strpos($message, '[/img]') || strpos($message, '[/flash]')) && $message = preg_replace("/\[img[^\]]*\]\s*([^\[\<\r\n]+?)\s*\[\/img\]|\[flash[^\]]*\]\s*([^\[\<\r\n]+?)\s*\[\/flash\]/is", '', $message);
-		if(preg_match_all("/((https?|ftp|gopher|news|telnet|rtsp|mms|callto|bctp|thunder|qqdl|synacast){1}:\/\/|www\.)[^\[\]\"']+/i", $message, $urllist)) {
+		if(preg_match_all("/((https?|ftp|gopher|news|telnet|rtsp|mms|callto|bctp|thunder|qqdl|synacast){1}:\/\/|www\.)[^ \[\]\"']+/i", $message, $urllist)) {
 			foreach($urllist[0] as $key => $val) {
 				$val = trim($val);
 				$return[0][$key] = $val;
@@ -149,7 +163,6 @@ class helper_form {
 				}
 			}
 		}
-
 		return $return;
 	}
 

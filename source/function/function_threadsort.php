@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_threadsort.php 28293 2012-02-27 07:46:51Z svn_project_zhangjie $
+ *      $Id: function_threadsort.php 29393 2012-04-10 06:41:27Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -16,7 +16,7 @@ function gettypetemplate($option, $optionvalue, $optionid) {
 
 	if(in_array($option['type'], array('number', 'text', 'email', 'calendar', 'image', 'url', 'range', 'upload', 'range'))) {
 		if($option['type'] == 'calendar') {
-			$showoption[$option['identifier']]['value'] = '<script type="text/javascript" src="'.$_G['setting']['jspath'].'calendar.js?'.VERHASH.'"></script><input type="text" name="typeoption['.$option['identifier'].']" tabindex="1" id="typeoption_'.$option['identifier'].'" style="width:'.$option['inputsize'].'px;" onBlur="checkoption(\''.$option['identifier'].'\', \''.$option['required'].'\', \''.$option['type'].'\')" value="'.$optionvalue['value'].'" onclick="showcalendar(event, this, false)" '.$optionvalue['unchangeable'].' class="px"/>';
+			$showoption[$option['identifier']]['value'] = '<script type="text/javascript" src="'.$_G['setting']['jspath'].'calendar.js?'.VERHASH.'"></script><input type="text" name="typeoption['.$option['identifier'].']" tabindex="1" id="typeoption_'.$option['identifier'].'" style="width:'.$option['inputsize'].'px;" onchange="checkoption(\''.$option['identifier'].'\', \''.$option['required'].'\', \''.$option['type'].'\')" value="'.$optionvalue['value'].'" onclick="showcalendar(event, this, false)" '.$optionvalue['unchangeable'].' class="px"/>';
 		} elseif($option['type'] == 'image') {
 			$showoption[$option['identifier']]['value'] = '<button type="button" class="pn" onclick="uploadWindow(function (aid, url){updatesortattach(aid, url, \''.$_G['setting']['attachurl'].'forum\', \''.$option['identifier'].'\')})"><span>'.($optionvalue['value'] ? lang('forum/misc', 'sort_update') : lang('forum/misc', 'sort_upload')).'</span></button>
 				<input type="hidden" name="typeoption['.$option['identifier'].'][aid]" id="sortaid_'.$option['identifier'].'" value="'.$optionvalue['value']['aid'].'" tabindex="1" />'.
@@ -303,7 +303,7 @@ function showsorttemplate($sortid, $fid, $sortoptionarray, $templatearray, $thre
 	return $sortlistarray;
 }
 
-function showsortmodetemplate($sortid, $fid, $sortoptionarray, $templatearray, $threadlist, $threadids = array()) {
+function showsortmodetemplate($sortid, $fid, $sortoptionarray, $templatearray, $threadlist, $threadids = array(), &$verify = array()) {
 	global $_G;
 	$sorttemplate = $replaces = array();
 	if(strexists($templatearray[$sortid], '[loop]') && strexists($templatearray[$sortid], '[/loop]')) {
@@ -329,7 +329,7 @@ function showsortmodetemplate($sortid, $fid, $sortoptionarray, $templatearray, $
 		$replaces['{typename_url}'] = 'forum.php?mod=forumdisplay&fid='.$fid.'&filter=typeid&typeid='.$thread['tid'];
 		$replaces['{attachment}'] = ($thread['attachment'] == 2 ? '<img src="'.STATICURL.'image/filetype/image_s.gif" align="absmiddle" />' :
 						($thread['attachment'] == 1 ? '<img src="'.STATICURL.'image/filetype/common.gif" align="absmiddle" />' : ''));
-		$replaces['{author_verify}'] = $GLOBALS['verify'][$thread['authorid']] ? $GLOBALS['verify'][$thread['authorid']] : '';
+		$replaces['{author_verify}'] = $verify[$thread['authorid']] ? $verify[$thread['authorid']] : '';
 		if($_G['forum']['ismoderator']) {
 			if($thread['fid'] == $fid && $thread['displayorder'] <= 3 || $_G['adminid'] == 1) {
 				$replaces['{modcheck}'] = '<input onclick="tmodclick(this)" type="checkbox" name="moderate[]" value="'.$thread['tid'].'" />';
@@ -409,10 +409,13 @@ function threadsortshow($sortid, $tid) {
 						$_G['forum_option'][$option['identifier']]['value'] = $optiondata[$optionid]['value'] ? "<a href=\"".$optiondata[$optionid]['value']."\" target=\"_blank\">".$optiondata[$optionid]['value']."</a>" : '';
 					} else {
 						if($option['protect']['status'] && $optiondata[$optionid]['value']) {
-							$optiondata[$optionid]['value'] = $option['protect']['mode'] == 1 ? '<image src="'.makevaluepic($optiondata[$optionid]['value']).'">' : '<span id="sortmessage_'.$option['identifier'].'"><a href="###" onclick="ajaxget(\'forum.php?mod=misc&action=protectsort&tid='.$tid.'&optionid='.$optionid.'\', \'sortmessage_'.$option['identifier'].'\');return false;">'.lang('forum/misc', 'click_view').'</a></span>';
+							$optiondata[$optionid]['value'] = $option['protect']['mode'] == 1 ? '<image src="'.makevaluepic($optiondata[$optionid]['value']).'">' : (!defined('IN_MOBILE') ? '<span id="sortmessage_'.$option['identifier'].'"><a href="###" onclick="ajaxget(\'forum.php?mod=misc&action=protectsort&tid='.$tid.'&optionid='.$optionid.'\', \'sortmessage_'.$option['identifier'].'\');return false;">'.lang('forum/misc', 'click_view').'</a></span>' : $optiondata[$optionid]['value']);
+							$_G['forum_option'][$option['identifier']]['value'] = $optiondata[$optionid]['value'] ? $optiondata[$optionid]['value'] : $option['defaultvalue'];
+						} elseif($option['type'] == 'textarea') {
+							$_G['forum_option'][$option['identifier']]['value'] = $optiondata[$optionid]['value'] ? nl2br($optiondata[$optionid]['value']) : '';
+						} else {
+							$_G['forum_option'][$option['identifier']]['value'] = $optiondata[$optionid]['value'] ? $optiondata[$optionid]['value'] : $option['defaultvalue'];
 						}
-
-						$_G['forum_option'][$option['identifier']]['value'] = $optiondata[$optionid]['value'] ? $optiondata[$optionid]['value'] : $option['defaultvalue'];
 					}
 				} else {
 					if(empty($option['permprompt'])) {
@@ -714,7 +717,7 @@ function optionlistxml($input, $pre = '') {
 				$value = ($value == true) ? 'true' : 'false';
 			}
 			$value = str_replace("\r\n", '<br>', $value);
-			if(htmlspecialchars($value) != $value) {
+			if(dhtmlspecialchars($value) != $value) {
 				$str .= "<$key><![CDATA[$value]]></$key>";
 			} else {
 				$str .= "<$key>$value</$key>";

@@ -21,9 +21,11 @@
 						<a id="filter_dateline" href="javascript:;" class="showmenu xi2" onclick="showMenu(this.id)">
 							<!--{if $_GET['dateline'] == 86400}-->{lang last_1_days}<!--{elseif $_GET['dateline'] == 172800}-->{lang last_2_days}<!--{elseif $_GET['dateline'] == 604800}-->{lang list_one_week}<!--{elseif $_GET['dateline'] == 2592000}-->{lang list_one_month}<!--{elseif $_GET['dateline'] == 7948800}-->{lang list_three_month}<!--{else}-->{lang search_any_date}<!--{/if}-->
 						</a>
+						<!--{if !$_G['setting']['closeforumorderby']}-->
 						{lang orderby}:
 						<a id="filter_orderby" href="javascript:;" class="showmenu xi2" onclick="showMenu(this.id)">
 							<!--{if $_GET['orderby'] == 'dateline'}-->{lang list_post_time}<!--{elseif $_GET['orderby'] == 'replies'}-->{lang replies}<!--{elseif $_GET['orderby'] == 'views'}-->{lang views}<!--{elseif $_GET['orderby'] == 'lastpost'}-->{lang lastpost}<!--{elseif $_GET['orderby'] == 'heats'}-->{lang order_heats}<!--{else}-->{lang list_default_sort}<!--{/if}-->
+						<!--{/if}-->
 						</a><span class="pipe">|</span><a href="forum.php?mod=forumdisplay&fid=$_G[fid]&filter=digest&digest=1$forumdisplayadd[digest]{if $_GET['archiveid']}&archiveid={$_GET['archiveid']}{/if}" class="xi2">{lang digest_posts}</a><!--{if !empty($_G[setting][recommendthread][status])}--><span class="pipe">|</span><a href="forum.php?mod=forumdisplay&fid=$_G[fid]&filter=recommend&orderby=recommends&recommend=1$forumdisplayadd[recommend]{if $_GET['archiveid']}&archiveid={$_GET['archiveid']}{/if}" class="xi2">{lang order_recommends}</a><!--{/if}-->
 						<!--{if empty($_G['forum']['picstyle']) && $_GET['orderby'] == 'lastpost' && (!$_G['setting']['forumseparator'] || !$separatepos) && !$_GET['filter']}--><span class="pipe">|</span><a href="javascript:;" onclick="checkForumnew_btn('{$_G['fid']}')" title="{lang showupgrade}" class="forumrefresh"></a><!--{/if}-->
 						<!--{hook/forumdisplay_filter_extra}-->
@@ -125,8 +127,12 @@
 									</td>
 									<!--{if !$_GET['archiveid'] && $_G['forum']['ismoderator']}-->
 									<td class="o">
-										<!--{if $thread['fid'] == $_G[fid] && $thread['displayorder'] <= 3 || $_G['adminid'] == 1}-->
-											<input onclick="tmodclick(this)" type="checkbox" name="moderate[]" value="$thread[tid]" />
+										<!--{if $thread['fid'] == $_G[fid]}-->
+											<!--{if $thread['displayorder'] <= 3 || $_G['adminid'] == 1}-->
+												<input onclick="tmodclick(this)" type="checkbox" name="moderate[]" value="$thread[tid]" />
+											<!--{else}-->
+												<input type="checkbox" disabled="disabled" />
+											<!--{/if}-->
 										<!--{else}-->
 											<input type="checkbox" disabled="disabled" />
 										<!--{/if}-->
@@ -318,6 +324,7 @@
 			<li><a href="forum.php?mod=forumdisplay&fid=$_G[fid]&orderby={$_GET['orderby']}&filter=dateline&dateline=7948800$forumdisplayadd[dateline]{if $_GET['archiveid']}&archiveid={$_GET['archiveid']}{/if}">{lang list_three_month}</a></li>
 		</ul>
 	</div>
+	<!--{if !$_G['setting']['closeforumorderby']}-->
 	<div id="filter_orderby_menu" class="p_pop" style="display:none">
 		<ul>
 			<li><a href="forum.php?mod=forumdisplay&fid=$_G[fid]{if $_GET['archiveid']}&archiveid={$_GET['archiveid']}{/if}">{lang list_default_sort}</a></li>
@@ -328,11 +335,12 @@
 			<li><a href="forum.php?mod=forumdisplay&fid=$_G[fid]&filter=heat&orderby=heats$forumdisplayadd[heat]{if $_GET['archiveid']}&archiveid={$_GET['archiveid']}{/if}">{lang order_heats}</a></li>
 		<ul>
 	</div>
+	<!--{/if}-->
 <!--{/if}-->
 
 <div class="bm bw0 pgs cl">
 	<span id="fd_page_bottom">$multipage</span>
 	<span {if $_G[setting][visitedforums]}id="visitedforumstmp" onmouseover="$('visitedforums').id = 'visitedforumstmp';this.id = 'visitedforums';showMenu({'ctrlid':this.id,'pos':'21'})"{/if} class="pgb y"><a href="forum.php">{lang return_index}</a></span>
-	<!--{if !$_GET['archiveid']}--><a href="javascript:;" id="newspecialtmp" onmouseover="$('newspecial').id = 'newspecialtmp';this.id = 'newspecial';showMenu({'ctrlid':this.id})"{if !$_G['forum']['allowspecialonly'] && empty($_G['forum']['picstyle'])} onclick="showWindow('newthread', 'forum.php?mod=post&action=newthread&fid=$_G[fid]')"{else} onclick="location.href='forum.php?mod=post&action=newthread&fid=$_G[fid]';return false;"{/if} title="{lang send_posts}"><img src="{IMGDIR}/pn_post.png" alt="{lang send_posts}" /></a><!--{/if}-->
+	<!--{if !$_GET['archiveid']}--><a href="javascript:;" id="newspecialtmp" onmouseover="$('newspecial').id = 'newspecialtmp';this.id = 'newspecial';showMenu({'ctrlid':this.id})"{if !$_G['forum']['allowspecialonly'] && empty($_G['forum']['picstyle']) && !$_G['forum']['threadsorts']['required']} onclick="showWindow('newthread', 'forum.php?mod=post&action=newthread&fid=$_G[fid]')"{else} onclick="location.href='forum.php?mod=post&action=newthread&fid=$_G[fid]';return false;"{/if} title="{lang send_posts}"><img src="{IMGDIR}/pn_post.png" alt="{lang send_posts}" /></a><!--{/if}-->
 	<!--{hook/forumdisplay_postbutton_bottom}-->
 </div>

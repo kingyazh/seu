@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: space_home.php 28376 2012-02-28 09:11:37Z zhengqingpeng $
+ *      $Id: space_home.php 29462 2012-04-13 02:21:59Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -102,7 +102,7 @@ if(!IS_ROBOT) {
 
 	$need_count = true;
 	$uids = array();
-	$hot = '';
+	$multi = $hot = '';
 
 	if($_GET['view'] == 'all') {
 
@@ -140,7 +140,6 @@ if(!IS_ROBOT) {
 
 		} else {
 
-			if(empty($space['feedfriend'])) $_GET['type'] = 'me';
 
 			if($_GET['type'] == 'me') {
 				$uids = $_G['uid'];
@@ -159,7 +158,6 @@ if(!IS_ROBOT) {
 		}
 
 		$icon = empty($_GET['icon'])?'':trim($_GET['icon']);
-		$multi = '';
 
 		$feed_list = $appfeed_list = $hiddenfeed_list = $filter_list = $hiddenfeed_num = $icon_num = array();
 		$count = $filtercount = 0;
@@ -217,7 +215,6 @@ if(!IS_ROBOT) {
 	$gidactives[$gid] = ' class="a"';
 
 	$count = $filtercount = 0;
-	$multi = '';
 
 	if($need_count) {
 

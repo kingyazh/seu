@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_adv.php 28113 2012-02-22 09:25:55Z svn_project_zhangjie $
+ *      $Id: admincp_adv.php 29369 2012-04-09 04:13:40Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -432,7 +432,7 @@ if($operation == 'ad') {
 			if($_FILES['advnew'.$advnew['style']]) {
 				$upload = new discuz_upload();
 				if($upload->init($_FILES['advnew'.$advnew['style']], 'common') && $upload->save(1)) {
-					$advnew[$advnew['style']]['url'] = $_G['siteurl'].$_G['setting']['attachurl'].'common/'.$upload->attach['attachment'];
+					$advnew[$advnew['style']]['url'] = (!strstr($_G['setting']['attachurl'], '://') ? $_G['siteurl'] : '').$_G['setting']['attachurl'].'common/'.$upload->attach['attachment'];
 				}
 			} else {
 				$advnew[$advnew['style']]['url'] = $_GET['advnew'.$advnew['style']];
@@ -475,6 +475,7 @@ if($operation == 'ad') {
 			array('adv_admin_setting', 'adv&operation=setting', 1),
 			array('adv_admin_list', 'adv&operation=list', 0),
 			array('adv_admin_listall', 'adv&operation=ad', 0),
+			array('adv_admin_discuzunion', 'http://union.discuz.qq.com/?ADTAG=CP.DISCUZ. ADSET.TAG', 0, 1, 1)
 		));
 
 		$advexpiration = C::t('common_setting')->fetch('advexpiration', true);
@@ -597,7 +598,7 @@ if($operation == 'ad') {
 		if(!submitcheck('submit')) {
 			ajaxshowheader();
 			showformheader("adv&operation=custom&do=edit&id=$_GET[id]");
-			echo $lang['adv_custom_edit'].'<br /><input name="customnew" class="txt" value="'.htmlspecialchars($name).'" />&nbsp;'.
+			echo $lang['adv_custom_edit'].'<br /><input name="customnew" class="txt" value="'.dhtmlspecialchars($name).'" />&nbsp;'.
 				'<input name="submit" class="btn" type="submit" value="'.$lang['submit'].'" />&nbsp;'.
 				'<input class="btn" type="button" onclick="location.href=\''.ADMINSCRIPT.'?action=adv&operation=list\'" value="'.$lang['cancel'].'" />';
 			showformfooter();

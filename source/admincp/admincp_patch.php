@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_patch.php 28113 2012-02-22 09:25:55Z svn_project_zhangjie $
+ *      $Id: admincp_patch.php 29258 2012-03-31 03:56:17Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -32,9 +32,6 @@ if($operation == 'patchsetting') {
 		showformheader('patch&operation=patchsetting');
 		showtableheader();
 		showsetting('founder_patch_autoupdate', 'settingnew[patch][autoopened]', $_G['setting']['patch']['autoopened'], 'radio');
-		showsetting('founder_patch_autoupdate_mobile', 'settingnew[mastermobile]', $view_mastermobile, 'text');
-		showsetting('founder_patch_autoupdate_qq', 'settingnew[masterqq]', $save_master['masterqq'], 'text');
-		showsetting('founder_patch_autoupdate_email', 'settingnew[masteremail]', $save_master['masteremail'], 'text');
 		showsubmit('settingsubmit', 'submit');
 		showtablefooter();
 		showformfooter();
@@ -43,20 +40,7 @@ if($operation == 'patchsetting') {
 		$settingnew = $_POST['settingnew'];
 		if($settingnew) {
 
-			if(!(strlen($settingnew['mastermobile']) == 11 && is_numeric($settingnew['mastermobile']) && in_array(substr($settingnew['mastermobile'], 0, 2), array('13', '15', '18')))) {
-				$settingnew['mastermobile'] = $save_mastermobile;
-			}
-			if(!(is_numeric($settingnew['masterqq']))) {
-				$settingnew['masterqq'] = $save_master['masterqq'];
-			}
-			if(!(strlen($settingnew['masteremail']) > 6 && preg_match("/^[\w\-\.]+@[\w\-\.]+(\.\w+)+$/", $settingnew['masteremail']))) {
-				$settingnew['masteremail'] = $save_master['masteremail'];
-			}
 
-			if($settingnew['mastermobile']) {
-				$save_mastermobile = $settingnew['mastermobile'];
-				$settingnew['mastermobile'] = authcode($save_mastermobile, 'ENCODE', $_G['config']['security']['authkey']);
-			}
 
 			if(!$discuz_patch->save_patch_setting($settingnew)) {
 				cpmsg('patch_no_privilege_autoupdate', '', 'error');

@@ -7,13 +7,15 @@
 	<table width="100%" cellpadding="0" cellspacing="0" class="fwin"><tr><td class="t_l"></td><td class="t_c"></td><td class="t_r"></td></tr><tr><td class="m_l">&nbsp;&nbsp;</td><td class="m_c"><div class="mtm mbm">
 	<ul class="tb tb_s cl" id="icoImg_image_ctrl" style="margin-top:0;margin-bottom:0;">
 		<li class="y"><span class="flbc" onclick="hideAttachMenu('icoImg_image_menu')">{lang close}</span></li>
+		<!--{if $_G['basescript'] == 'home' && $_G['group']['allowupload'] || $_G['basescript'] == 'portal'}-->
 		<li class="current" id="icoImg_btn_imgattachlist"><a href="javascript:;" hidefocus="true" onclick="switchImagebutton('imgattachlist');">{lang upload_pic}</a></li>
-		<!--{if helper_access::check_module('album')}-->
-		<li id="icoImg_btn_albumlist"><a href="javascript:;" hidefocus="true" onclick="switchImagebutton('albumlist');">{lang e_img_albumlist}</a></li>
 		<!--{/if}-->
-		<li id="icoImg_btn_www"><a href="javascript:;" hidefocus="true" onclick="switchImagebutton('www');">{lang e_img_www}</a></li>
+		<!--{if helper_access::check_module('album')}-->
+		<li id="icoImg_btn_albumlist" {if $_G['basescript'] == 'home' && !$_G['group']['allowupload']} class="current"{/if}><a href="javascript:;" hidefocus="true" onclick="switchImagebutton('albumlist');">{lang e_img_albumlist}</a></li>
+		<!--{/if}-->
+		<li id="icoImg_btn_www" {if $_G['basescript'] == 'home' && !$_G['group']['allowupload'] && !helper_access::check_module('album')} class="current"{/if}><a href="javascript:;" hidefocus="true" onclick="switchImagebutton('www');">{lang e_img_www}</a></li>
 	</ul>
-	<div class="p_opt popupfix" unselectable="on" id="icoImg_www" style="display: none">
+	<div class="p_opt popupfix" unselectable="on" id="icoImg_www" {if $_G['basescript'] == 'home' && ($_G['group']['allowupload'] || helper_access::check_module('album')) || $_G['basescript'] == 'portal'} style="display: none"{/if}>
 		<table cellpadding="0" cellspacing="0" width="100%">
 			<tr class="xg1">
 				<th>{lang e_img_inserturl}</th>
@@ -32,7 +34,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="p_opt" unselectable="on" id="icoImg_imgattachlist">
+	<div class="p_opt" unselectable="on" id="icoImg_imgattachlist"{if $_G['basescript'] == 'home' && !$_G['group']['allowupload']} style="display: none;"{/if}>
 		<div class="pbm bbda cl">
 			<div id="uploadPanel" class="y">
 				<!--{if $_G['basescript'] != 'portal'}-->
@@ -62,7 +64,7 @@
 		<p class="notice">{lang click_pic_to_editor}</p>
 	</div>
 	<!--{if helper_access::check_module('album')}-->
-		<div class="p_opt" unselectable="on" id="icoImg_albumlist" style="display: none;">
+		<div class="p_opt" unselectable="on" id="icoImg_albumlist" {if $_G['basescript'] == 'home' && $_G['group']['allowupload'] || $_G['basescript'] == 'portal'} style="display: none;"{/if}>
 			<div class="upfilelist pbm bbda">
 				{lang select_album}:
 				<select name="view_albumid" onchange="picView(this.value, 'albumphoto')" class="ps">
@@ -114,7 +116,7 @@
 							<script type="text/javascript">
 								var attachUpload = new SWFUpload({
 									// Backend Settings
-									upload_url: "{$_G[siteroot]}misc.php?mod=swfupload&action=swfupload&operation=<!--{if $_G['basescript'] == 'portal'}-->portal<!--{else}-->album<!--{/if}-->",
+									upload_url: "{$_G[siteurl]}misc.php?mod=swfupload&action=swfupload&operation=<!--{if $_G['basescript'] == 'portal'}-->portal<!--{else}-->album<!--{/if}-->",
 									post_params: {"uid" : "$_G[uid]", "hash":"$swfconfig[hash]"<!--{if $_G['basescript'] == 'portal'}-->,"aid":$aid,"catid":$catid<!--{/if}-->},
 
 									// File Upload Settings
@@ -143,20 +145,12 @@
 									upload_complete_handler : uploadComplete,
 
 									// Button Settings
-									button_image_url : IMGDIR+"/uploadbutton.png",
+									button_image_url : "{IMGDIR}/uploadbutton.png",
 									button_placeholder_id : "spanButtonPlaceholder",
 									button_width: 100,
 									button_height: 25,
 									button_cursor:SWFUpload.CURSOR.HAND,
-									button_text_left_padding:16,
-									button_text_style: '.button { vertical-align: middle; overflow: hidden; }',
-									//button_text: '<span class="button">上传</span>',
-									button_text: '',
 									button_window_mode: "transparent",
-
-									// Flash Settings
-									flash_url : IMGDIR+"/swfupload.swf",
-									flash9_url : IMGDIR+"/swfupload_fp9.swf",
 
 									custom_settings : {
 										progressTarget : "fsUploadProgress",
@@ -196,7 +190,7 @@
 <script type="text/javascript">
 	var upload = new SWFUpload({
 		// Backend Settings
-		upload_url: "{$_G[siteroot]}misc.php?mod=swfupload&action=swfupload&operation=<!--{if $_G['basescript'] == 'portal'}-->portal<!--{else}-->album<!--{/if}-->",
+		upload_url: "{$_G[siteurl]}misc.php?mod=swfupload&action=swfupload&operation=<!--{if $_G['basescript'] == 'portal'}-->portal<!--{else}-->album<!--{/if}-->",
 		post_params: {"uid" : "$_G[uid]", "hash":"$swfconfig[hash]"<!--{if $_G['basescript'] == 'portal'}-->,"aid":$aid,"catid":$catid<!--{/if}-->},
 
 		// File Upload Settings
@@ -220,20 +214,12 @@
 		upload_complete_handler : uploadComplete,
 
 		// Button Settings
-		button_image_url : IMGDIR+"/uploadbutton.png",
+		button_image_url : "{IMGDIR}/uploadbutton.png",
 		button_placeholder_id : "imgSpanButtonPlaceholder",
 		button_width: 100,
 		button_height: 25,
 		button_cursor:SWFUpload.CURSOR.HAND,
-		button_text_left_padding:16,
-		button_text_style: '.button { vertical-align: middle; overflow: hidden; }',
-		//button_text: '<span class="button">上传</span>',
-		button_text: '',
 		button_window_mode: "transparent",
-
-		// Flash Settings
-		flash_url : IMGDIR+"/swfupload.swf",
-		flash9_url : IMGDIR+"/swfupload_fp9.swf",
 
 		custom_settings : {
 			progressTarget : "imgUploadProgress",

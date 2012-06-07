@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_forum_activity.php 27449 2012-02-01 05:32:35Z zhangguosheng $
+ *      $Id: table_forum_activity.php 30378 2012-05-24 09:52:46Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -24,7 +24,7 @@ class table_forum_activity extends discuz_table
 	public function fetch_all_for_search($view, $order, $searchkey, $type, $frienduid, $spaceuid, $minhot, $count = 0, $start = 0, $limit = 0) {
 		$today = strtotime(dgmdate(TIMESTAMP, 'Y-m-d'));
 		$wheresql = '1';
-		$threadsql = $apply_sql = '';
+		$threadsql = $ordersql = $apply_sql = '';
 		if($view == 'all') {
 			if($order == 'hot') {
 				$threadsql .= " t.special='4' AND t.replies>='$minhot'";
@@ -38,18 +38,19 @@ class table_forum_activity extends discuz_table
 			} else {
 				$wheresql = "a.uid = '$spaceuid'";
 			}
+			$ordersql = 'DESC';
 		} else {
 			if($frienduid) {
 				$wheresql = "a.".DB::field('uid', $frienduid);
 			}
+			$ordersql = 'DESC';
 		}
-		$ordersql = '';
 		if($view != 'all') {
 		} elseif(empty($order)) {
 			$ordersql = 'DESC';
 		}
 		if($searchkey) {
-			$threadsql .= " AND t.subject LIKE ".DB::quote('%'.$searchkey.'%');
+			$threadsql .= " AND t.subject LIKE ".DB::quote('%'.addslashes($searchkey).'%');
 		}
 		if($count) {
 			return DB::result(DB::query("SELECT COUNT(*) FROM ".DB::table('forum_activity')." a $apply_sql WHERE $wheresql"),0);

@@ -2,7 +2,7 @@
 	[Discuz!] (C)2001-2099 Comsenz Inc.
 	This is NOT a freeware, use is subject to license terms
 
-	$Id: imgcropper.js 24840 2011-10-12 09:47:18Z zhengqingpeng $
+	$Id: imgcropper.js 29037 2012-03-23 05:35:25Z zhengqingpeng $
 */
 (function(){
 
@@ -96,6 +96,8 @@
 			this._tempImg.src = this._layBase.src = this._layCropper.src = this.url;
 			if(BROWSER.ie){
 				this._layBase.style.filter = "alpha(opacity:" + this.opacity + ")";
+				this._layHandle.style.filter = "alpha(opacity:0)";
+				this._layHandle.style.backgroundColor = "#FFF";
 			} else {
 				this._layBase.style.opacity = this.opacity / 100;
 			}
@@ -152,13 +154,13 @@
 			this._layBase.style.height = this._layCropper.style.height = s.Height + "px";
 			this._drag.maxRight = s.Width; this._drag.maxBottom = s.Height;
 			if(this.resize) {
+				this._container.style.width = this._layBase.style.width; this._container.style.height = this._layBase.style.height;
 				if(this.setLayHandle) {
 					this._layHandle.style.left = ((s.Width - this._layHandle.offsetWidth)/2)+"px";
 					this._layHandle.style.top = ((s.Height - this._layHandle.offsetHeight)/2)+"px";
 					this.setPos();
 					this.setLayHandle = false;
 				}
-				this._container.style.width = this._layBase.style.width; this._container.style.height = this._layBase.style.height;
 			}
 		},
 		getPos: function() {

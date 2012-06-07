@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: forum_misc.php 28331 2012-02-28 04:25:50Z liulanbo $
+ *      $Id: forum_misc.php 30465 2012-05-30 04:10:03Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -131,18 +131,20 @@ if($_GET['action'] == 'paysucceed') {
 		if($status == 1) {
 			showmessage('credits_balance_insufficient', '', array('title' => $_G['setting']['extcredits'][$_G['setting']['creditstransextra'][1]]['title'], 'minbalance' => $attach['price']));
 		}
-
 		foreach($aids as $aid) {
 			$updateauthor = 1;
+			$authorEarn = $prices[$aid][1];
 			if($_G['setting']['maxincperthread'] > 0) {
 				$extcredit = 'extcredits'.$_G['setting']['creditstransextra'][1];
 				$alog = C::t('common_credit_log')->count_credit_by_uid_operation_relatedid($attach['uid'], 'SAC', $aid, $_G['setting']['creditstransextra'][1]);
-				if($alog['credit'] > $_G['setting']['maxincperthread']) {
+				if($alog['credit'] >= $_G['setting']['maxincperthread']) {
 					$updateauthor = 0;
+				} else {
+					$authorEarn = min($_G['setting']['maxincperthread'] - $alog['credit'], $prices[$aid][1]);
 				}
 			}
 			if($updateauthor) {
-				updatemembercount($attach['uid'], array($_G['setting']['creditstransextra'][1] => $prices[$aid][1]), 1, 'SAC', $aid);
+				updatemembercount($attach['uid'], array($_G['setting']['creditstransextra'][1] => $authorEarn), 1, 'SAC', $aid);
 			}
 			updatemembercount($_G['uid'], array($_G['setting']['creditstransextra'][1] => -$prices[$aid][0]), 1, 'BAC', $aid);
 
@@ -433,9 +435,7 @@ if($_GET['action'] == 'votepoll' && submitcheck('pollsubmit', 1)) {
 		$polloptionids[] = $id;
 	}
 
-	$pollanswers = implode('\',\'', $polloptionids);
-
-	C::t('forum_polloption')->update_vote($pollanswers, $voterids."\t", 1);
+	C::t('forum_polloption')->update_vote($polloptionids, $voterids."\t", 1);
 	C::t('forum_thread')->update($_G['tid'], array('lastpost'=>$_G['timestamp']), true);
 	C::t('forum_poll')->update_vote($_G['tid']);
 	C::t('forum_pollvoter')->insert(array(
@@ -649,6 +649,8 @@ if($_GET['action'] == 'votepoll' && submitcheck('pollsubmit', 1)) {
 				'subject' => $thread['subject'],
 				'ratescore' => $ratescore,
 				'reason' => $reason,
+				'from_id' => 0,
+				'from_idtype' => 'rate'
 			));
 		}
 
@@ -739,6 +741,8 @@ if($_GET['action'] == 'votepoll' && submitcheck('pollsubmit', 1)) {
 					'subject' => $thread['subject'],
 					'ratescore' => $ratescore,
 					'reason' => $reason,
+					'from_id' => 0,
+					'from_idtype' => 'removerate'
 				));
 			}
 			C::t('forum_post')->increase_rate_by_pid('tid:'.$_G['tid'], $_GET['pid'], $rate, $ratetimes);
@@ -840,15 +844,18 @@ if($_GET['action'] == 'votepoll' && submitcheck('pollsubmit', 1)) {
 	} else {
 
 		$updateauthor = true;
+		$authorEarn = $thread['netprice'];
 		if($_G['setting']['maxincperthread'] > 0) {
 			$extcredit = 'extcredits'.$_G['setting']['creditstransextra'][1];
 			$log = C::t('common_credit_log')->count_credit_by_uid_operation_relatedid($thread['authorid'], 'STC', $_G['tid'], $_G['setting']['creditstransextra'][1]);
-			if($log['credit'] > $_G['setting']['maxincperthread']) {
+			if($log['credit'] >= $_G['setting']['maxincperthread']) {
 				$updateauthor = false;
+			} else {
+				$authorEarn = min($_G['setting']['maxincperthread'] - $log['credit'], $thread['netprice']);
 			}
 		}
 		if($updateauthor) {
-			updatemembercount($thread['authorid'], array($_G['setting']['creditstransextra'][1] => $thread['netprice']), 1, 'STC', $_G['tid']);
+			updatemembercount($thread['authorid'], array($_G['setting']['creditstransextra'][1] => $authorEarn), 1, 'STC', $_G['tid']);
 		}
 		updatemembercount($_G['uid'], array($_G['setting']['creditstransextra'][1] => -$thread['price']), 1, 'BTC', $_G['tid']);
 
@@ -1093,12 +1100,6 @@ if($_GET['action'] == 'votepoll' && submitcheck('pollsubmit', 1)) {
 	}
 
 	if(!submitcheck('applylistsubmit')) {
-		$sqlverified = $isactivitymaster ? '' : "AND verified='1'";
-
-		if(!empty($_GET['uid']) && $isactivitymaster) {
-			$sqlverified .= " AND uid='$_GET[uid]'";
-		}
-
 		$applylist = array();
 		$activity['ufield'] = $activity['ufield'] ? dunserialize($activity['ufield']) : array();
 		$query = C::t('forum_activityapply')->fetch_all_for_thread($_G['tid'], 0, 500, $_GET['uid'], $isactivitymaster);

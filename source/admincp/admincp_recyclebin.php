@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_recyclebin.php 28286 2012-02-27 06:43:22Z yexinhao $
+ *      $Id: admincp_recyclebin.php 30009 2012-05-07 07:28:31Z svn_project_zhangjie $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -69,7 +69,7 @@ if(!$operation) {
 					'<a href="home.php?mod=space&uid='.$thread['authorid'].'" target="_blank">'.$thread['author'].'</a><br /><em style="font-size:9px;color:#999999;">'.dgmdate($thread['dateline'], 'd').'</em>',
 					$thread['replies'].' / '.$thread['views'],
 					$thread['lastposter'].'<br /><em style="font-size:9px;color:#999999;">'.dgmdate($thread['lastpost'], 'd').'</em>',
-					$thread['modusername'].'<br /><em style="font-size:9px;color:#999999;">'.dgmdate($thread['moddateline'], 'd').'</em>',
+					$thread['modusername'] ? $thread['modusername'].'<br /><em style="font-size:9px;color:#999999;">'.dgmdate($thread['moddateline'], 'd').'</em>' : '',
 					$thread['reason']
 				));
 			}
@@ -77,7 +77,7 @@ if(!$operation) {
 
 
 		$threadcount = C::t('forum_thread')->count_by_displayorder(-1);
-		$multipage = multi($threadcount, $lpp, $page, ADMINSCRIPT."?action=recyclebin&lpp=$lpp", 0, 3);
+		$multipage = multi($threadcount, $lpp, $page, ADMINSCRIPT."?action=recyclebin&lpp=$lpp", 0, 6);
 
 		showsubmit('', '', '', '<input type="checkbox" name="chkall" id="chkall" class="checkbox" onclick="checkAll(\'prefix\', this.form, \'threadlist\')" /><label for="chkall">'.cplang('select_all').'</label>&nbsp;&nbsp;<input type="submit" class="btn" name="delsubmit" value="'.cplang('recyclebin_delete').'" />&nbsp;<input type="submit" class="btn" name="undelsubmit" value="'.cplang('recyclebin_undelete').'" />', $multipage);
 		showtablefooter();

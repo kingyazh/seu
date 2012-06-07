@@ -72,7 +72,7 @@ Created & Modified by Monkey, Lushnis, Pony, Dfox & DragonLee.
 	Name:			mod_announcement
 	Level:			Function
 	Explain:		公告。放置在不同位置时注意调整 #anc, #an li 的高度
-	Last Modify:	Pony 11050309
+	Last Modify:	Pony 1203191111
 */
 	#an { margin-bottom: 5px; }
 		#an dt { display: none; }
@@ -80,6 +80,7 @@ Created & Modified by Monkey, Lushnis, Pony, Dfox & DragonLee.
 			#an li span { float: left; width: 450px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 			#an li em { float: left; width: 75px; color: {LIGHTTEXT}; }
 			#anc, #an li { height: 29px; overflow: hidden; }
+			#anc i { font-style: italic; }
 
 /* 在线会员列表 */
 	.oll li { float: left; overflow: hidden; white-space: nowrap; width: 19.9%; height: 24px; line-height: 24px; }
@@ -90,6 +91,14 @@ Created & Modified by Monkey, Lushnis, Pony, Dfox & DragonLee.
 	.heatl { padding-left: 15px; margin-left: 385px; background: url({IMGDIR}/vline.png) repeat-y 0 0; }
 /** end **/
 
+
+/** misc::faq **/
+/*
+	Explain:		帮助页面的标题要显示出来
+	Last Modify:	Pony 1203231449
+*/
+	.ct2_a h1.mt { display: block; }
+/** end **/
 
 /** misc::invite,group,forum::viewthread,portal::view,home::space **/
 	/* .usl -> 用于类似群组中邀请好友中的好友列表 by Pony */
@@ -154,8 +163,8 @@ Created & Modified by Monkey, Lushnis, Pony, Dfox & DragonLee.
 			.quote blockquote { display: inline; margin: 0; padding-right: 16px; background: url({IMGDIR}/qz.gif) no-repeat 100% 100%; }
 			.m_c .quote { width: 585px; }
 		.blockcode { overflow: hidden; margin: 10px 0; padding: 5px 10px; background: #F7F7F7; color: {MIDTEXT}; }
-			.blockcode code { font-family: Monaco, Consolas, "Lucida Console", "Courier New", serif; font-size: 12px; line-height: 1.8em; }
-			* html .blockcode code { font-family: "Courier New", serif; }
+			.blockcode code { font-family: Monaco, Consolas, 'Lucida Console', 'Courier New', serif; font-size: 12px; line-height: 1.8em; }
+			* html .blockcode code { font-family: 'Courier New', serif; }
 /** end **/
 
 
@@ -337,12 +346,19 @@ Created & Modified by Monkey, Lushnis, Pony, Dfox & DragonLee.
 		#f_pst .upfl td { padding: 4px 0; }
 		#f_pst .atds { width: 100px; }
 		#f_pst .px { padding: 2px; }
-	/* 手机发帖的相关样式 by Lushnis */
-	.mobile-type { position: absolute; margin-left: 103px; margin-top: -5px; width: 58px; height: 80px; background: url({IMGDIR}/mobile-type.png) no-repeat 100% 100%; }
-			.mobile-type a { display: block; width: 46px; height: 80px; background: url({IMGDIR}/mobile-type.png) no-repeat 0 0; }
-				.mobile-type-2 a { background-position: 0 -80px; }
-				.mobile-type-3 a { background-position: 0 -160px; }
-				.mobile-type-4 a { background-position: 0 -240px; }
+	/*
+		Name:			mod_mobile-type
+		Level:			Function
+		Explain:		手机发帖的相关样式
+		Author:			Lushnis
+		Last Modify:	Pony 1204111343
+	*/
+	.mobile-type { position: absolute; margin: -5px 0 -85px 103px; width: 58px; height: 80px; background: url({IMGDIR}/mobile-type.png) no-repeat 100% 100%; }
+		.ie6 .mobile-type, .ie7 .mobile-type { margin-left: 88px; }
+		.mobile-type a { display: block; width: 46px; height: 80px; background: url({IMGDIR}/mobile-type.png) no-repeat 0 0; }
+			.mobile-type-2 a { background-position: 0 -80px; }
+			.mobile-type-3 a { background-position: 0 -160px; }
+			.mobile-type-4 a { background-position: 0 -240px; }
 		.ie6 .mobile-type, .ie6 .mobile-type a { background-image: url({IMGDIR}/mobile-type-ie6.png) !important; }
 	.mobile-location { padding-left: 20px; background: url({IMGDIR}/mobile-attach-2.png) no-repeat 0 0; }
 /** end **/
@@ -471,6 +487,7 @@ Created & Modified by Monkey, Lushnis, Pony, Dfox & DragonLee.
 			#fh .o a { float: left; margin-right: 10px; }
 	#fh.m { padding-top: 0; background-color: {COMMONBG}; }
 	.xst { font-family: {THREADTITLEFONT}; font-size: {THREADTITLEFONTSIZE}; }
+		.xst i { font-style: italic; }
 
 	/* threadtype 帖子类型 */
 	.ttp { margin-bottom: 5px; padding-top: 10px; border-width: 2px 0 0; background: transparent; }
@@ -578,7 +595,7 @@ Created & Modified by Monkey, Lushnis, Pony, Dfox & DragonLee.
 */
 	.vwthd { padding-right: 80px !important; }
 		.vwthd div.y { display: inline; margin-right: -60px; }
-		.ts { display: inline; font: 700 16px "Microsoft Yahei", Hei, Tahoma, SimHei, sans-serif; }
+		.ts { display: inline; font: 700 16px 'Microsoft Yahei', 'Hei', Tahoma, 'SimHei', sans-serif; }
 
 #nv_forum #ct { border-color: {SPECIALBORDER}; }
 
@@ -717,6 +734,7 @@ Created & Modified by Monkey, Lushnis, Pony, Dfox & DragonLee.
 				ul.litype_1 li { list-style-type: decimal; }
 				ul.litype_2 li { list-style-type: lower-alpha; }
 				ul.litype_3 li { list-style-type: upper-alpha; }
+		.t_f i { font-style: italic; }
 		.sign { overflow: hidden; margin-bottom: 10px; padding-top: 20px; line-height: 1.6em; background: url({IMGDIR}/sigline.gif) no-repeat 0 0; }
 			* html .sign { height: expression(signature(this)); }
 			.sign * { line-height: normal; }
@@ -848,17 +866,18 @@ i.pstatus { display: block; margin-bottom: -30px; font-size: 12px; text-align: c
 		Level:			Function
 		Explain:		帖子代码/引用等样式
 		Author:			lushnis
-		Last Modify:	Pony 11053010
+		Last Modify:	Pony 1205241556
 	*/
 	.pl .quote, .pl .blockcode { margin: 10px 0; padding: 10px 10px 10px 65px; zoom: 1; }
 	.pl .quote { padding-bottom: 5px; background: #F9F9F9 url({IMGDIR}/icon_quote_s.gif) no-repeat 20px 6px; }
-		.pl .quote blockquote { margin: 0; padding: 0 65px 5px 0; background: url({IMGDIR}/icon_quote_e.gif) no-repeat 100% 100%; line-height: 1.6; zoom: 1; }
+		.pl .quote blockquote { display: inline-block; margin: 0; padding: 0 65px 5px 0; background: url({IMGDIR}/icon_quote_e.gif) no-repeat 100% 100%; line-height: 1.6; zoom: 1; }
+			.ie6 .pl .quote blockquote, .ie7 .pl .quote blockquote { display: inline }
 
 	.pl .blockcode { padding: 10px 0 5px 10px; border: 1px solid {WRAPBORDERCOLOR}; background: #F7F7F7 url({IMGDIR}/codebg.gif) repeat-y 0 0; overflow: hidden; }
 		.pl .blockcode ol { margin: 0 0 0 10px !important; padding: 0 !important; }
-			.pl .blockcode ol li { padding-left: 10px; list-style-type: decimal-leading-zero; font-family: Monaco,Consolas,"Lucida Console","Courier New",serif; font-size: 12px; line-height: 1.8em; }
+			.pl .blockcode ol li { padding-left: 10px; list-style-type: decimal-leading-zero; font-family: Monaco,Consolas,'Lucida Console','Courier New',serif; font-size: 12px; line-height: 1.8em; }
 				.pl .blockcode ol li:hover { background: {WRAPBG}; color: {HIGHLIGHTLINK}; }
-			* html .pl .blockcode ol li { font-family: "Courier New",serif; }
+			* html .pl .blockcode ol li { font-family: 'Courier New',serif; }
 		.pl .blockcode em { margin-left: 43px; color: {HIGHLIGHTLINK} !important; font-size: 12px; cursor: pointer; }
 
 /*投票 poll optionvessel by dfox */
@@ -1856,6 +1875,7 @@ body { background: #FFF none !important; }
 .flw_readfull { padding: 3px 5px; border: 1px solid #DDD; border-radius: 3px; background: #FFF; }
 	.flw_readfull:hover { border-color: #9EB4C2; text-decoration: none; }
 .flw_delete { visibility: hidden; float: right; width: 20px; height: 20px; background: url({IMGDIR}/cls.gif) no-repeat 0 0; text-indent: -9999px; overflow: hidden; }
+	.ie8 .flw_delete { position: relative; z-index: 1; }
 	.flw_delete:hover { background-position: 0 100%; }
 	.flw_feed_hover .flw_delete { visibility: visible; }
 .flw_loading { margin: 0 0 10px 80px; padding: 10px; box-shadow: 0 1px 0 rgba(0,0,0,0.05); border: 1px solid #DBDBDB; border-radius: 4px; background: #F4F7F9; }
@@ -1875,6 +1895,7 @@ body { background: #FFF none !important; }
 #flw_header #subject { margin: 5px; width: 580px; height: 20px; border: none; outline: none; background: transparent; line-height: 20px; }
 #flw_checklen { padding-right: 10px; }
 #flw_post_extra { width: 629px; }
+	#flw_post_extra .sec { padding: 8px 15px; border: 1px solid #EFEFEF; background: #F9FBFC; border-radius: 4px; }
 .tedt { width: auto; border: 1px solid #9EB4C2; border-radius: 4px; overflow: hidden; }
 #flw_header .bar { padding-left: 10px; border-top: 1px solid #EFEFEF; border-bottom: none; background: #F9FBFC; border-radius: 0 0 4px 4px; }
 #flw_header .area { background: #FFF url({IMGDIR}/input_shadow.png) repeat-x 0 0; border-radius: 4px 4px 0 0; }
@@ -1918,7 +1939,7 @@ body { background: #FFF none !important; }
 	.flw_uheader .flw_linktohome { padding: 0 0 0 20px; background-position: 0 3px; }
 
 /* 回复区域 */
-.flw_replybox { margin: -11px 0 20px 80px; padding: 15px 20px; box-shadow: 0 1px 0 rgba(0,0,0,0.05); border: 1px solid #DBDBDB; background: #F4F7F9; background: #E9EEF1; }
+.flw_replybox { margin: -11px 0 20px 70px; padding: 15px 20px; box-shadow: 0 1px 0 rgba(0,0,0,0.05); border: 1px solid #DBDBDB; background: #E9EEF1; }
 	.flw_replybox li { padding: 10px 80px 10px 0; border-top: 1px solid #DBE2E6; }
 		.flw_replybox li .d { margin-right: 10px; }
 	.flw_replybox .px, .flw_autopt { border: 1px solid #CCDBE5; border-radius: 4px; background: #FFF url({IMGDIR}/input_shadow.png) repeat-x 0 0; }
@@ -1928,7 +1949,7 @@ body { background: #FFF none !important; }
 			.ie8 .flw_autopt .pts, .ie9 .flw_autopt .pts { min-height: 21px; }
 	.flw_replybox .pnc { width: 77px; height: 33px; border: none; background: transparent url({IMGDIR}/pn_reply.png) no-repeat 0 0; }
 		.flw_replybox .pnc span { line-height: 99px; }
-		.flw_replybox table .pnc { background-image: url({IMGDIR}/pn_rt.png); }
+		.flw_replybox td table .pnc { background-image: url({IMGDIR}/pn_rt.png); }
 	/* 回复并转播选项 */
 	.flw_rert { display: inline-block; padding-right: 5px; width: 95px; text-align: right; }
 	.flw_replybox .cnr { position: relative; float: right; overflow: hidden; display: inline; margin: -22px 16px 0 0; width: 11px; height: 7px; background: transparent url({IMGDIR}/flw_cnr_t.png) no-repeat 0 0; }
@@ -1957,7 +1978,7 @@ body { background: #FFF none !important; }
 		.my_flw_stats .xg1 { padding-right: 10px; }
 
 .ie6 .tb .a { position: static; }
-#flw_bar .fpd { position: relative; }
+#flw_bar .fpd { position: relative; zoom: 1; }
 .ie6 #flw_bar object { position: absolute; }
 
 /*

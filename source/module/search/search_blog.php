@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: search_blog.php 25256 2011-11-02 07:08:43Z chenmengshu $
+ *      $Id: search_blog.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -35,7 +35,7 @@ $searchid = isset($_GET['searchid']) ? intval($_GET['searchid']) : 0;
 
 $srchtxt = $_GET['srchtxt'];
 
-$keyword = isset($srchtxt) ? htmlspecialchars(trim($srchtxt)) : '';
+$keyword = isset($srchtxt) ? dhtmlspecialchars(trim($srchtxt)) : '';
 
 if(!submitcheck('searchsubmit', 1)) {
 
@@ -56,7 +56,7 @@ if(!submitcheck('searchsubmit', 1)) {
 			showmessage('search_id_invalid');
 		}
 
-		$keyword = htmlspecialchars($index['keywords']);
+		$keyword = dhtmlspecialchars($index['keywords']);
 		$keyword = $keyword != '' ? str_replace('+', ' ', $keyword) : '';
 
 		$index['keywords'] = rawurlencode($index['keywords']);

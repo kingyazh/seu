@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_smilies.php 26994 2011-12-29 05:50:05Z chenmengshu $
+ *      $Id: admincp_smilies.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -112,7 +112,7 @@ if(!$operation) {
 				$_GET['availablenew'][$id] = $_GET['availablenew'][$id] && $_GET['smiliesnum'][$id] > 0 ? 1 : 0;
 				C::t('forum_imagetype')->update($id, array(
 				    'available' => $_GET['availablenew'][$id],
-				    'name' => htmlspecialchars(trim($val)),
+				    'name' => dhtmlspecialchars(trim($val)),
 				    'displayorder' => $_GET['displayordernew'][$id]
 				));
 			}
@@ -137,7 +137,7 @@ if(!$operation) {
 					$newavailable[$key] = $_GET['newavailable'][$key] && $smnums[$key] > 0 ? 1 : 0;
 					$data = array(
 						'available' => $_GET['newavailable'][$key],
-						'name' => htmlspecialchars($val),
+						'name' => dhtmlspecialchars($val),
 						'type' => 'smiley',
 						'displayorder' => $_GET['newdisplayorder'][$key],
 						'directory' => $_GET['newdirectory'][$key],

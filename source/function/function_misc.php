@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_misc.php 27020 2011-12-30 06:22:50Z zhengqingpeng $
+ *      $Id: function_misc.php 30465 2012-05-30 04:10:03Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -254,7 +254,11 @@ function procthread($thread, $timeformat = 'd') {
 	$postsnum = $thread['special'] ? $thread['replies'] : $thread['replies'] + 1;
 	$pagelinks = '';
 	if($postsnum  > $_G['ppp']) {
-		$domain = 'http://'.($_G['setting']['domain']['app']['forum'] ? $_G['setting']['domain']['app']['forum'] : ($_G['setting']['domain']['app']['default'] ? $_G['setting']['domain']['app']['default'] : '')).'/';
+		if($_G['setting']['domain']['app']['forum'] || $_G['setting']['domain']['app']['default']) {
+			$domain = 'http://'.($_G['setting']['domain']['app']['forum'] ? $_G['setting']['domain']['app']['forum'] : ($_G['setting']['domain']['app']['default'] ? $_G['setting']['domain']['app']['default'] : '')).'/';
+		} else {
+			$domain = $_G['siteurl'];
+		}
 		$posts = $postsnum;
 		$topicpages = ceil($posts / $_G['ppp']);
 		for($i = 1; $i <= $topicpages; $i++) {
@@ -315,6 +319,8 @@ function sendreasonpm($var, $item, $notevar) {
 	global $_G;
 	if(!empty($var['authorid']) && $var['authorid'] != $_G['uid']) {
 		if(!empty($notevar['modaction'])) {
+			$notevar['from_id'] = 0;
+			$notevar['from_idtype'] = 'moderate_'.$notevar['modaction'];
 			$notevar['modaction'] = lang('forum/modaction', $notevar['modaction']);
 		}
 		notification_add($var['authorid'], 'system', $item, $notevar, 1);
@@ -329,7 +335,7 @@ function modreasonselect($isadmincp = 0, $reasionkey = 'modreasons') {
 	$select = '';
 	if(!empty($_G['cache'][$reasionkey])) {
 		foreach($_G['cache'][$reasionkey] as $reason) {
-			$select .= !$isadmincp ? ($reason ? '<li>'.$reason.'</li>' : '<li>--------</li>') : ($reason ? '<option value="'.htmlspecialchars($reason).'">'.$reason.'</option>' : '<option></option>');
+			$select .= !$isadmincp ? ($reason ? '<li>'.$reason.'</li>' : '<li>--------</li>') : ($reason ? '<option value="'.dhtmlspecialchars($reason).'">'.$reason.'</option>' : '<option></option>');
 		}
 	}
 	if($select) {

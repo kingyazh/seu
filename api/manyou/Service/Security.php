@@ -4,7 +4,7 @@
  *		[Discuz!] (C)2001-2099 Comsenz Inc.
  *		This is NOT a freeware, use is subject to license terms
  *
- *		$Id: Security.php 28489 2012-03-01 09:32:40Z songlixin $
+ *		$Id: Security.php 30419 2012-05-28 05:34:35Z songlixin $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -35,6 +35,10 @@ class Cloud_Service_Security {
 		return self::$_instance;
 	}
 
+	private function _getUA() {
+		return $_SERVER['HTTP_USER_AGENT'];
+	}
+
 	private function _setClient() {
 		if (!self::$_secStatus) {
 			return false;
@@ -44,11 +48,11 @@ class Cloud_Service_Security {
 	}
 
 	public function reportRegister($uid) {
-        global $_G;
+		global $_G;
 		if (!self::$_secStatus) {
 			return false;
 		}
-        $startTime = microtime(true);
+		$startTime = microtime(true);
 
 		$uid = dintval($uid);
 		$member = C::t('common_member')->fetch($uid);
@@ -70,6 +74,7 @@ class Cloud_Service_Security {
 			'remoteIp' => $_SERVER['REMOTE_ADDR'],
 			'hasVerifyCode' => $secReportCodeStatus,
 			'regResult' => 1,
+			'userAgent' => $this->_getUA(),
 			'extra' => $extra
 		);
 		$result = false;
@@ -79,8 +84,8 @@ class Cloud_Service_Security {
 			$ids = array($uid);
 			$this->logFailed('register', $ids);
 		} catch (Exception $e) {
-        }
-        $this->benchMarkLog($startTime, $member['uid'], $batchData, 'register');
+		}
+		$this->benchMarkLog($startTime, $member['uid'], $batchData, 'register');
 
 		return $result;
 	}
@@ -90,10 +95,10 @@ class Cloud_Service_Security {
 		global $_G;
 		if (!self::$_secStatus) {
 			return false;
-        }
-        $startTime = microtime(true);
+		}
+		$startTime = microtime(true);
 
-        $uid = dintval($uid);
+		$uid = dintval($uid);
 		$member = C::t('common_member')->fetch($uid, 0 ,1);
 		if (!is_array($member)) {
 			return true;
@@ -151,6 +156,7 @@ class Cloud_Service_Security {
 			'posts' => $posts,
 			'signature' => $signature,
 			'userBitMap' => $userBitMap,
+			'userAgent' => $this->_getUA(),
 			'extra' => $extra
 		);
 
@@ -162,20 +168,20 @@ class Cloud_Service_Security {
 			$this->logFailed('login', $ids);
 		} catch (Exception $e) {
 
-        }
-        $this->benchMarkLog($startTime, $uid, $batchData, 'login');
+		}
+		$this->benchMarkLog($startTime, $uid, $batchData, 'login');
 
-        return $result;
+		return $result;
 	}
 
 
 	public function reportPost($type, $tid, $pid, $extra = NULL, $isFollow = 0) {
-        global $_G;
-        $utilService = Cloud::loadClass('Service_Util');
+		global $_G;
+		$utilService = Cloud::loadClass('Service_Util');
 		if (!self::$_secStatus) {
 			return false;
 		}
-        $startTime = microtime(true);
+		$startTime = microtime(true);
 
 		$tid = dintval($tid);
 		$pid = dintval($pid);
@@ -260,29 +266,29 @@ class Cloud_Service_Security {
 			'postAttachAudio' => 2,
 			'postShield' => ($post['status'] & 1) ? 1 : 2,
 			'postWarning' => ($post['status'] & 2) ? 1 : 2,
-            'isAdmin' => $member['adminid'] ? 1 : 2,
-            'isRush' => getstatus($thread['status'], 3) ? 1 : 2,
-            'hasReadPerm' => $thread['readperm'] ? 1 : 2,
-            'hasStamp' => ($thread['stamp'] >= 0) ? 1 : 2,
-            'hasIcon' => ($thread['icon'] >= 0) ? 1 : 2,
-            'isPushed' => $thread['pushedaid'] ? 1 : 2,
-            'hasCover' => $thread['cover'] ? 1 : 2,
-            'hasReward' => $thread['replycredit'] ? 1 : 2,
-            'isFollow' => $isFollow ? 1 : 2,
-            'threadStatus' => $thread['status'],
-            'postStatus' => $post['status'],
-        );
+			'isAdmin' => $member['adminid'] ? 1 : 2,
+			'isRush' => getstatus($thread['status'], 3) ? 1 : 2,
+			'hasReadPerm' => $thread['readperm'] ? 1 : 2,
+			'hasStamp' => ($thread['stamp'] >= 0) ? 1 : 2,
+			'hasIcon' => ($thread['icon'] >= 0) ? 1 : 2,
+			'isPushed' => $thread['pushedaid'] ? 1 : 2,
+			'hasCover' => $thread['cover'] ? 1 : 2,
+			'hasReward' => $thread['replycredit'] ? 1 : 2,
+			'isFollow' => $isFollow ? 1 : 2,
+			'threadStatus' => $thread['status'],
+			'postStatus' => $post['status'],
+		);
 
-        if ($post['first']) {
-            $contentBitMap['isMobile'] = $utilService->isMobile($thread['status']) ? 1 : 2;
-            if ($contentBitMap['isMobile'] == 1) {
-                $contentBitMap['isMobileSound'] = $utilService->mobileHasSound($thread['status']) ? 1 : 2;
-                $contentBitMap['isMobilePhoto'] = $utilService->mobileHasPhoto($thread['status']) ? 1 : 2;
-                $contentBitMap['isMobileGPS'] = $utilService->mobileHasGPS($thread['status']) ? 1 : 2;
-            }
-        } else {
-            $contentBitMap['isMobile'] = getstatus($post['status'], 4) ? 1 : 2;
-        }
+		if ($post['first']) {
+			$contentBitMap['isMobile'] = $utilService->isMobile($thread['status']) ? 1 : 2;
+			if ($contentBitMap['isMobile'] == 1) {
+				$contentBitMap['isMobileSound'] = $utilService->mobileHasSound($thread['status']) ? 1 : 2;
+				$contentBitMap['isMobilePhoto'] = $utilService->mobileHasPhoto($thread['status']) ? 1 : 2;
+				$contentBitMap['isMobileGPS'] = $utilService->mobileHasGPS($thread['status']) ? 1 : 2;
+			}
+		} else {
+			$contentBitMap['isMobile'] = getstatus($post['status'], 4) ? 1 : 2;
+		}
 
 
 		$userBitMap['isAdmin'] = $member['adminid'] ? 1 : 2;
@@ -362,6 +368,10 @@ class Cloud_Service_Security {
 			}
 		}
 		$contentBitMap['threadSort'] = $threadSort;
+		if ($_GET['action'] == 'newtrade') {
+			$type = 'newThread';
+			$pid = $firstPost['pid'];
+		}
 
 		$batchData[] = array(
 						'tId' => $tid,
@@ -386,6 +396,7 @@ class Cloud_Service_Security {
 						'shares' => $shares,
 						'title' => $post['subject'],
 						'content' => $post['message'],
+						'sortMessage' => $sortMessage,
 						'attachList' => $postAttachs,
 						'reportType' => $type,
 						'contentBitMap' => $contentBitMap,
@@ -393,6 +404,7 @@ class Cloud_Service_Security {
 						'extra' => $extra,
 						'specialType' => $threadSpecial,
 						'signature' => $memberField['sightml'],
+						'userAgent' => $this->_getUA(),
 					);
 
 		$result = false;
@@ -403,10 +415,10 @@ class Cloud_Service_Security {
 			$this->logFailed($type, $ids);
 		} catch (Exception $e) {
 
-        }
-        $this->benchMarkLog($startTime, $pid, $batchData, $type);
+		}
+		$this->benchMarkLog($startTime, $pid, $batchData, $type);
 
-        return $result;
+		return $result;
 	}
 
 	private function _convertSortInfo($sortId, $tid) {
@@ -505,10 +517,10 @@ class Cloud_Service_Security {
 		global $_G;
 		if (!self::$_secStatus) {
 			return false;
-        }
-        C::t('#security#security_failedlog')->deleteDirtyLog();
+		}
+		C::t('#security#security_failedlog')->deleteDirtyLog();
 
-        $num = dintval($num) ? dintval($num) : 1;
+		$num = dintval($num) ? dintval($num) : 1;
 		$result = 0;
 		$clearIds = array();
 		$retryData = C::t('#security#security_failedlog')->range(0, $num, 'ASC');
@@ -557,7 +569,7 @@ class Cloud_Service_Security {
 					$clearIds[] = $data['id'];
 				}
 			}
-        }
+		}
 		$this->_clearFailed($clearIds);
 	}
 
@@ -695,21 +707,23 @@ class Cloud_Service_Security {
 
 	public function logDeletePost($pids, $reason = 'Admin Delete') {
 		if (!is_array($pids)) {
-			return false;
+			$pids = array($pids);
 		}
 		$logData = array();
 		require_once libfile('function/forum');
 
 		foreach ($pids as $pid) {
 			$postInfo = get_post_by_pid($pid);
-			$logData[] = array(
-				'tid' => $postInfo['tid'],
-				'pid' => $postInfo['pid'],
-				'fid' => $postInfo['fid'],
-				'uid' => $postInfo['authorid'],
-				'clientIp' => $postInfo['useip'],
-				'openId' => $this->_getOpenId($postInfo['authorid']),
-			);
+			if ($postInfo['invisible'] != '-5') {
+				$logData[] = array(
+					'tid' => $postInfo['tid'],
+					'pid' => $postInfo['pid'],
+					'fid' => $postInfo['fid'],
+					'uid' => $postInfo['authorid'],
+					'clientIp' => $postInfo['useip'],
+					'openId' => $this->_getOpenId($postInfo['authorid']),
+				);
+			}
 		}
 
 		if (count($logData)) {
@@ -738,7 +752,7 @@ class Cloud_Service_Security {
 	public function logDeleteThread($tids, $reason = 'Admin Delete') {
 		global $_G;
 		if (!is_array($tids)) {
-			return false;
+			$tids = array($tids);
 		}
 
 		$postids = array();
@@ -752,6 +766,11 @@ class Cloud_Service_Security {
 		foreach($threadtableids as $tableid) {
 			$threads = C::t('forum_thread')->fetch_all_by_tid($tids, 0, 0, $tableid);
 			if (count($threads)) {
+				foreach ($threads as $tid => $thread) {
+					if ($thread['displayorder'] == '-1') {
+						unset($threads[$tid]);
+					}
+				}
 				$postids[$tableid] = array_keys($threads);
 			}
 		}
@@ -801,10 +820,10 @@ class Cloud_Service_Security {
 			$operateResult = $tempData['operateresult'] == 1 ? 'recover' : 'delete';
 			if ($type == 'post') {
 				require_once libfile('function/forum');
-                $detailData = get_post_by_pid($tempData['pid']);
+				$detailData = get_post_by_pid($tempData['pid']);
 
-                $detailData['pid'] = $tempData['pid'];
-                $detailData['tid'] = $tempData['tid'];
+				$detailData['pid'] = $tempData['pid'];
+				$detailData['tid'] = $tempData['tid'];
 				$detailData['uid'] = $id = $tempData['pid'];
 			} elseif ($type == 'user') {
 				$detailData = C::t('common_member')->fetch($tempData['uid'], 0, 1);
@@ -900,18 +919,18 @@ class Cloud_Service_Security {
 		return $mapArray[$str];
 	}
 
-    private function benchMarkLog($startTime, $id, $data, $type) {
-        return true;
-        $util = Cloud::loadClass('Service_Util');
-        $endTime = microtime(true);
-        $dataSize = strlen($util->httpBuildQuery($data));
-        $content = array(
-            date('Y-m-d H:i:s', $startTime),
-            $endTime - $startTime,
-            $type,
-            $id,
-            $dataSize,
-        );
-        $content = join(',', $content) . "\n";
-    }
+	private function benchMarkLog($startTime, $id, $data, $type) {
+		return true;
+		$util = Cloud::loadClass('Service_Util');
+		$endTime = microtime(true);
+		$dataSize = strlen($util->httpBuildQuery($data));
+		$content = array(
+			date('Y-m-d H:i:s', $startTime),
+			$endTime - $startTime,
+			$type,
+			$id,
+			$dataSize,
+		);
+		$content = join(',', $content) . "\n";
+	}
 }

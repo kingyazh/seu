@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: modcp_announcement.php 27197 2012-01-11 01:59:01Z monkey $
+ *      $Id: modcp_announcement.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_MODCP')) {
@@ -122,7 +122,7 @@ function save_announce($id = 0, $starttime, $endtime, $subject, $type, $message,
 	$starttime = empty($starttime) || strtotime($starttime) < TIMESTAMP ? TIMESTAMP : strtotime($starttime);
 	$endtime = empty($endtime) ? 0 : (strtotime($endtime) < $starttime ? ($starttime + 86400 * 30) : strtotime($endtime));
 
-	$subject = htmlspecialchars(trim($subject));
+	$subject = dhtmlspecialchars(trim($subject));
 
 	if($type == 1) {
 		list($message) = explode("\n", trim($message));

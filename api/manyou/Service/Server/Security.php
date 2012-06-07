@@ -4,7 +4,7 @@
  *		[Discuz!] (C)2001-2099 Comsenz Inc.
  *		This is NOT a freeware, use is subject to license terms
  *
- *		$Id: Security.php 26691 2011-12-20 05:25:10Z songlixin $
+ *		$Id: Security.php 28977 2012-03-21 05:21:17Z songlixin $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -183,7 +183,10 @@ class Cloud_Service_Server_Security extends Cloud_Service_Server_Restful {
 		$checkResult = $checkResult ? true : $this->_checkUserIgnore($post['authorid']);
 
 		$postStick = C::t('forum_poststick')->count_by_pid($pid);
-		$checkResult = $postStick ? true : false;
+		if ($checkResult || $postStick) {
+			$checkResult = true;
+		}
+
 		return $checkResult;
 	}
 

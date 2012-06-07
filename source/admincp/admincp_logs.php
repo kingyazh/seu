@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_logs.php 27854 2012-02-15 11:12:37Z svn_project_zhangjie $
+ *      $Id: admincp_logs.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -722,13 +722,13 @@ EOD;
 		if($srch_ip = trim($_GET['srch_ip'])) {
 			$pageadd .= '&srch_ip='.rawurlencode($srch_ip);
 			$inviteip = str_replace('*', '%', addcslashes($srch_ip, '%_'));
-			$srch_ip = htmlspecialchars($srch_ip);
+			$srch_ip = dhtmlspecialchars($srch_ip);
 			$where .= " AND i.`inviteip` LIKE '$inviteip%'";
 		}
 		if($srch_code = trim($_GET['srch_code'])) {
 			$pageadd .= '&srch_ip='.rawurlencode($srch_code);
 			$where .= " AND i.`code`='$srch_code'";
-			$srch_code = htmlspecialchars($srch_code);
+			$srch_code = dhtmlspecialchars($srch_code);
 		}
 
 		showtableheader('search', 'fixpadding');

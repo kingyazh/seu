@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: lang_admincp_menu.php 27604 2012-02-07 04:44:34Z zhengqingpeng $
+ *      $Id: lang_admincp_menu.php 29721 2012-04-26 07:01:08Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -21,7 +21,7 @@ $lang = array
 	'header_user' => '用户',
 	'header_topic' => '内容',
 	'header_extended' => '运营',
-	'header_plugin' => '插件',
+	'header_plugin' => '应用',
 	'header_style' => '界面',
 	'header_adv' => '广告',
 	'header_tools' => '工具',
@@ -72,6 +72,7 @@ $lang = array
 	'menu_members_add' => '添加用户',
 	'menu_members_edit' => '用户管理',
 	'menu_members_newsletter' => '发送通知',
+	'menu_members_mobile' => '发送手机通知',
 	'menu_usertag' => '用户标签',
 	'menu_members_edit_ban_user' => '禁止用户',
 	'menu_members_ipban' => '禁止 IP',
@@ -129,6 +130,7 @@ $lang = array
 	'menu_patch' => '安全中心',
 	'menu_upgrade' => '在线升级',
 
+	'menu_addons' => '应用中心',
 	'menu_plugins' => '插件',
 	'menu_tasks' => '站点任务',
 	'menu_magics' => '道具中心',

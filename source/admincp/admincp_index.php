@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_index.php 28361 2012-02-28 07:12:03Z monkey $
+ *      $Id: admincp_index.php 29203 2012-03-28 10:16:25Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -121,6 +121,7 @@ $save_masteremail = $save_master['masteremail'] ? $save_master['masteremail'] : 
 
 $securityadvise = '';
 if($isfounder) {
+	$securityadvise = $_G['setting']['cloud_status'] ? cplang('home_security_service_open_info') : cplang('home_security_service_close_info');
 	$securityadvise .= !$_G['config']['admincp']['founder'] ? $lang['home_security_nofounder'] : '';
 	$securityadvise .= !$_G['config']['admincp']['checkip'] ? $lang['home_security_checkip'] : '';
 	$securityadvise .= $_G['config']['admincp']['runquery'] ? $lang['home_security_runquery'] : '';
@@ -151,18 +152,6 @@ if($isfounder) {
 	}
 
 	$view_mastermobile = !empty($save_mastermobile) ? substr($save_mastermobile, 0 , 3).'*****'.substr($save_mastermobile, -3) : '';
-
-	$securityadvise =
-		'<li>'.
-		'<p>'.cplang('home_security_service_info').'</p>'.
-		'<form method="post" autocomplete="off" action="'.ADMINSCRIPT.'?action=index&securyservice=yes">'.
-			cplang('home_security_service_mobile').': <input type="text" class="txt" name="new_mastermobile" value="'.$view_mastermobile.'" size="30" />'.
-			cplang('home_security_service_qq').': <input type="text" class="txt" name="new_masterqq" value="'.$save_masterqq.'" size="30" />'.
-			cplang('home_security_service_email').': <input type="text" class="txt" name="new_masteremail" value="'.$save_masteremail.'" size="30" />'.
-			'<input type="submit" class="btn" name="securyservice" value="'.cplang(($view_mastermobile || $save_masterqq || $save_masteremail) ? 'submit' : 'home_security_service_open').'"  /> '.
-		'</form>'.
-		'</li>'.
-		$securityadvise;
 }
 
 if($securityadvise) {

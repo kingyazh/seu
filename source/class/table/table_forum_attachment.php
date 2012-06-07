@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_forum_attachment.php 27751 2012-02-14 02:26:11Z monkey $
+ *      $Id: table_forum_attachment.php 29217 2012-03-29 08:30:37Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -68,7 +68,7 @@ class table_forum_attachment extends discuz_table
 		$wherearr = array();
 		if($aids !== null) {
 			$parameter[] = $aids;
-			$wherearr[] = is_array($aids) ? 'aid IN(%n)' : 'aid=%d';
+			$wherearr[] = is_array($aids) ? 'a.aid IN(%n)' : 'a.aid=%d';
 		}
 		$parameter[] = $uid;
 		$wherearr[] = 'af.uid=%d';

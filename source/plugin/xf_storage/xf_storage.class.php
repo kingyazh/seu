@@ -4,7 +4,7 @@
  *		[Discuz!] (C)2001-2099 Comsenz Inc.
  *		This is NOT a freeware, use is subject to license terms
  *
- *		$Id: xf_storage.class.php 28286 2012-02-27 06:43:22Z yexinhao $
+ *		$Id: xf_storage.class.php 29353 2012-04-06 03:00:07Z liudongdong $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -14,8 +14,8 @@ if(!defined('IN_DISCUZ')) {
 class plugin_xf_storage {
 
 	protected $value = array();
-    protected $appStatus = '';
-    protected $jsCode = '';
+	protected $appStatus = '';
+	protected $jsCode = '';
 
 	public function plugin_xf_storage() {
 		global $_G;
@@ -33,7 +33,7 @@ class plugin_xf_storage {
 		}
 
 		return true;
-    }
+	}
 
 	public function global_footer(){
 		if (!$this->appStatus) {
@@ -41,27 +41,27 @@ class plugin_xf_storage {
 		}
 		include template('xf_storage:css');
 
-        return $return;
-    }
+		return $return;
+	}
 
 	public function _output($aid, $sha, $filename) {
-        include_once libfile('function/attachment');
-        $storageService = Cloud::loadClass('Service_Storage');
+		include_once libfile('function/attachment');
+		$storageService = Cloud::loadClass('Service_Storage');
 
-        $qqdlUrl = $storageService->makeQQdlUrl($sha, $filename);
-        $aidencode = packaids(array('aid' => $aid));
+		$qqdlUrl = $storageService->makeQQdlUrl($sha, $filename);
+		$aidencode = packaids(array('aid' => $aid));
 		include template('xf_storage:link');
 
 		return $return;
-    }
+	}
 
-    public function _jsOutput($aid, $return) {
-        $spanId = 'attach_' . $aid;
-        $return = str_replace(array("\r\n", '\'', '<p class="xg2">', '</p>'), array('', '\\\''), $return);
-        include template('xf_storage:jscode');
+	public function _jsOutput($aid, $return) {
+		$spanId = 'attach_' . $aid;
+		$return = str_replace(array("\r\n", '\'', '<p class="xg2">', '</p>', "\n"), array('', '\\\''), $return);
+		include template('xf_storage:jscode');
 
-        return $jscode;
-    }
+		return $jscode;
+	}
 
 }
 
@@ -89,23 +89,23 @@ class plugin_xf_storage_forum extends plugin_xf_storage {
 	}
 
 	public function viewthread_attach_extra_output() {
-        global $postlist, $_G;
-        $return = array();
-        foreach ($postlist as $pid => $post) {
+		global $postlist, $_G;
+		$return = array();
+		foreach ($postlist as $pid => $post) {
 			foreach ($post['attachments'] as $aid => $attachment) {
-					$sha1 = substr($attach['attachment'], -40);
-                    $return[$aid] = $this->_output($aid, $sha1, $attachment['filename']);
-                    if (in_array($aid, $_G['forum_attachtags'][$pid])) {
-                        $postlist[$pid]['message'] .= $this->_jsOutput($aid, $return[$aid]);
-                        unset($return[$aid]);
-                    }
-                    if ($attachment['isimage']) {
-                        unset($return[$aid]);
-                    }
+				if (strpos($attachment['attachment'], 'storage:') !== false) {
+					$sha1 = substr($attachment['attachment'], -40);
+					$return[$aid] = $this->_output($aid, $sha1, $attachment['filename']);
+					if (in_array($aid, $_G['forum_attachtags'][$pid])) {
+						$postlist[$pid]['message'] .= $this->_jsOutput($aid, $return[$aid]);
+						unset($return[$aid]);
+					}
+					if ($attachment['isimage']) {
+						unset($return[$aid]);
+					}
+				}
 			}
 		}
 		return $return;
-    }
+	}
 }
-
-?>

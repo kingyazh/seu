@@ -447,5 +447,3 @@ class CJSON {
 		return self::unicodeToUTF8($uni);
 	}
 }
-
-?>

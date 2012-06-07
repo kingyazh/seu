@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_card.php 27285 2012-01-13 01:57:08Z chenmengshu $
+ *      $Id: admincp_card.php 29335 2012-04-05 02:08:34Z cnteacher $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -557,6 +557,10 @@ EOT;
 
 
 function cardsql() {
+
+
+	$_GET = daddslashes($_GET);
+
 	$_GET['srch_id'] = trim($_GET['srch_id']);
 
 	$_GET['srch_price_max'] = intval($_GET['srch_price_max']);
@@ -578,12 +582,10 @@ function cardsql() {
 	if($_GET['srch_card_type'] != '') {
 		$sqladd .= " AND typeid = '{$_GET['srch_card_type']}'";
 	}
-	if($_GET['srch_price_min'] == 0 || $_GET['srch_price_max'] == 0) {
-		if($_GET['srch_price_max'] == 0 && $_GET['srch_price_min']) {
-			$sqladd .= " AND price = '{$_GET['srch_price_min']}'";
-		} elseif($srch_price_min == 0 && $srch_price_max) {
-			$sqladd .= " AND price = '{$_GET['srch_price_max']}'";
-		}
+	if($_GET['srch_price_min'] && !$_GET['srch_price_max']) {
+		$sqladd .= " AND price = '{$_GET['srch_price_min']}'";
+	} elseif($_GET['srch_price_max'] && !$_GET['srch_price_min']) {
+		$sqladd .= " AND price = '{$_GET['srch_price_max']}'";
 	} elseif($_GET['srch_price_min'] && $_GET['srch_price_max']) {
 		$sqladd .= " AND price between '{$_GET['srch_price_min']}' AND '{$_GET['srch_price_max']}'";
 	}

@@ -201,7 +201,7 @@
 									<tr>
 										<th><!--{if $field['required']}--><span class="rq">*</span><!--{/if}--><label for="$field['fieldid']">$field[title]:</label></th>
 										<td>$htmls[$field['fieldid']]</td>
-										<td class="tipcol"><i id="tip_$field['fieldid']" class="p_tip"><!--{if $field['description']}--><!--{echo htmlspecialchars($field[description])}--><!--{/if}--></i><kbd id="chk_$field['fieldid']" class="p_chk"></kbd></td>
+										<td class="tipcol"><i id="tip_$field['fieldid']" class="p_tip"><!--{if $field['description']}--><!--{echo dhtmlspecialchars($field[description])}--><!--{/if}--></i><kbd id="chk_$field['fieldid']" class="p_chk"></kbd></td>
 									</tr>
 								</table>
 							</div>

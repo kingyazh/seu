@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: post_newreply.php 28475 2012-03-01 08:16:46Z liulanbo $
+ *      $Id: post_newreply.php 30397 2012-05-25 09:03:57Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -76,7 +76,7 @@ if($_G['setting']['commentnumber'] && !empty($_GET['comment'])) {
 			}
 		}
 	}
-	$comment = cutstr(($commentscore ? $commentscore.'<br />' : '').censor(trim(htmlspecialchars($_GET['message'])), '***'), 200, ' ');
+	$comment = cutstr(($commentscore ? $commentscore.'<br />' : '').censor(trim(dhtmlspecialchars($_GET['message'])), '***'), 200, ' ');
 	if(!$comment) {
 		showmessage('post_sm_isnull');
 	}
@@ -97,6 +97,8 @@ if($_G['setting']['commentnumber'] && !empty($_GET['comment'])) {
 			'tid' => $_G['tid'],
 			'pid' => $_GET['pid'],
 			'subject' => $thread['subject'],
+			'from_id' => $_G['tid'],
+			'from_idtype' => 'pcomment',
 			'commentmsg' => cutstr(str_replace(array('[b]', '[/b]', '[/color]'), '', preg_replace("/\[color=([#\w]+?)\]/i", "", $comment)), 200)
 		));
 	}
@@ -201,15 +203,15 @@ if(!submitcheck('replysubmit', 0, $seccodecheck, $secqaacheck)) {
 			}
 
 			$post_reply_quote = lang('forum/misc', 'post_reply_quote', array('author' => $thaquote['author'], 'time' => $time));
-			$noticeauthormsg = htmlspecialchars($message);
+			$noticeauthormsg = dhtmlspecialchars($message);
 			if(!defined('IN_MOBILE')) {
 				$message = "[quote][size=2][color=#999999]{$post_reply_quote}[/color] [url=forum.php?mod=redirect&goto=findpost&pid=$_GET[repquote]&ptid={$_G['tid']}][img]static/image/common/back.gif[/img][/url][/size]\n{$message}[/quote]";
 			} else {
 				$message = "[quote][color=#999999]{$post_reply_quote}[/color]\n[color=#999999]{$message}[/color][/quote]";
 			}
 			$quotemessage = discuzcode($message, 0, 0);
-			$noticeauthor = htmlspecialchars(authcode('q|'.$thaquote['authorid'], 'ENCODE'));
-			$noticetrimstr = htmlspecialchars($message);
+			$noticeauthor = dhtmlspecialchars(authcode('q|'.$thaquote['authorid'], 'ENCODE'));
+			$noticetrimstr = dhtmlspecialchars($message);
 			$message = '';
 		}
 		$reppid = $_GET['repquote'];
@@ -232,9 +234,9 @@ if(!submitcheck('replysubmit', 0, $seccodecheck, $secqaacheck)) {
 			$thapost['author'] = '[color=Olive]'.$thapost['author'].'[/color]';
 		}
 		$quotemessage = discuzcode($message, 0, 0);
-		$noticeauthormsg = htmlspecialchars(messagecutstr($thapost['message'], 100));
-		$noticeauthor = htmlspecialchars(authcode('r|'.$thapost['authorid'], 'ENCODE'));
-		$noticetrimstr = htmlspecialchars($message);
+		$noticeauthormsg = dhtmlspecialchars(messagecutstr($thapost['message'], 100));
+		$noticeauthor = dhtmlspecialchars(authcode('r|'.$thapost['authorid'], 'ENCODE'));
+		$noticetrimstr = dhtmlspecialchars($message);
 		$message = '';
 		$reppid = $_GET['reppost'];
 	}
@@ -295,12 +297,12 @@ if(!submitcheck('replysubmit', 0, $seccodecheck, $secqaacheck)) {
 
 } else {
 
-	if(trim($subject) == '' && trim($message) == '' && $thread['special'] != 2) {
-		showmessage('post_sm_isnull');
-	} elseif($thread['closed'] && !$_G['forum']['ismoderator'] && !$thread['isgroup']) {
+	if($thread['closed'] && !$_G['forum']['ismoderator'] && !$thread['isgroup']) {
 		showmessage('post_thread_closed');
 	} elseif(!$thread['isgroup'] && $post_autoclose = checkautoclose($thread)) {
 		showmessage($post_autoclose, '', array('autoclose' => $_G['forum']['autoclose']));
+	} if(trim($subject) == '' && trim($message) == '' && $thread['special'] != 2) {
+		showmessage('post_sm_isnull');
 	} elseif($post_invalid = checkpost($subject, $message, $special == 2 && $_G['group']['allowposttrade'])) {
 		showmessage($post_invalid, '', array('minpostsize' => $_G['setting']['minpostsize'], 'maxpostsize' => $_G['setting']['maxpostsize']));
 	} elseif(checkflood()) {
@@ -423,7 +425,7 @@ if(!submitcheck('replysubmit', 0, $seccodecheck, $secqaacheck)) {
 	));
 	if($_G['group']['allowat'] && $atlist) {
 		foreach($atlist as $atuid => $atusername) {
-			notification_add($atuid, 'at', 'at_message', array('from_id' => $_G['tid'], 'from_idtype' => 'thread', 'buyerid' => $_G['uid'], 'buyer' => $_G['username'], 'tid' => $_G['tid'], 'subject' => $thread['subject'], 'pid' => $pid, 'message' => messagecutstr($message, 150)));
+			notification_add($atuid, 'at', 'at_message', array('from_id' => $_G['tid'], 'from_idtype' => 'at', 'buyerid' => $_G['uid'], 'buyer' => $_G['username'], 'tid' => $_G['tid'], 'subject' => $thread['subject'], 'pid' => $pid, 'message' => messagecutstr($message, 150)));
 		}
 		set_atlist_cookie(array_keys($atlist));
 	}
@@ -448,6 +450,8 @@ if(!submitcheck('replysubmit', 0, $seccodecheck, $secqaacheck)) {
 					'subject' => $thread['subject'],
 					'fid' => $_G['fid'],
 					'pid' => $pid,
+					'from_id' => $pid,
+					'from_idtype' => 'quote',
 				));
 			} elseif($ac == 'r') {
 				notification_add($nauthorid, 'post', 'reppost_noticeauthor', array(
@@ -511,12 +515,12 @@ if(!submitcheck('replysubmit', 0, $seccodecheck, $secqaacheck)) {
 		} else {
 			C::t('forum_threadpreview')->update_relay_by_tid($thread['tid'], 1);
 		}
-
+		$notemsg = cutstr($message, 140);
 		$followfeed = array(
 			'uid' => $_G['uid'],
 			'username' => $_G['username'],
 			'tid' => $thread['tid'],
-			'note' => cutstr(followcode($message, $thread['tid'], $pid, 0, false), 140),
+			'note' => followcode($notemsg, $thread['tid'], $pid, 0, false),
 			'dateline' => TIMESTAMP
 		);
 		$feedid = C::t('home_follow_feed')->insert($followfeed, true);
@@ -656,7 +660,7 @@ if(!submitcheck('replysubmit', 0, $seccodecheck, $secqaacheck)) {
 					C::t('forum_thread')->increase($_G['forum']['closed'], $fieldarr, true);
 				}
 				C::t('forum_groupuser')->update_counter_for_user($_G['uid'], $_G['fid'], 0, 1);
-				updateactivity($_G['fid'], 0);
+				C::t('forum_forumfield')->update($_G['fid'], array('lastupdate' => TIMESTAMP));
 				require_once libfile('function/grouplog');
 				updategroupcreditlog($_G['fid'], $_G['uid']);
 			}
@@ -751,7 +755,7 @@ if(!submitcheck('replysubmit', 0, $seccodecheck, $secqaacheck)) {
 			C::t('forum_thread')->update($_G['tid'], $updatethreaddata, false, false, 0, true);
 		}
 		if($special == 2 && !empty($_GET['continueadd'])) {
-			dheader("location: forum.php?mod=post&action=reply&fid={$_G[forum][fid]}&firstpid=$pid&tid={$thread[tid]}&addtrade=yes");
+			showmessage('post_reply_succeed', "forum.php?mod=post&action=reply&fid={$_G[forum][fid]}&firstpid=$pid&tid={$thread[tid]}&addtrade=yes", $param, array('header' => true));
 		} else {
 			$url = empty($_POST['portal_referer']) ? "forum.php?mod=viewthread&tid={$thread[tid]}&pid=$pid&page=$page&extra=$extra#pid$pid" : $_POST['portal_referer'];
 		}

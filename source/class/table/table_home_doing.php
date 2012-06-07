@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_home_doing.php 27895 2012-02-16 07:26:42Z chenmengshu $
+ *      $Id: table_home_doing.php 30377 2012-05-24 09:52:22Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -21,7 +21,7 @@ class table_home_doing extends discuz_table
 		parent::__construct();
 	}
 
-	public function update_replynum_by_doid($doid, $inc_replynum) {
+	public function update_replynum_by_doid($inc_replynum, $doid) {
 		return DB::query('UPDATE %t SET replynum=replynum+\'%d\' WHERE doid=%d', array($this->_table, $inc_replynum, $doid));
 	}
 
@@ -61,8 +61,8 @@ class table_home_doing extends discuz_table
 	public function fetch_all_search($start, $limit, $fetchtype, $uids, $useip, $keywords, $lengthlimit, $starttime, $endtime, $basickeywords = 0, $doid = '', $findex = '') {
 		$parameter = array($this->_table);
 		$wherearr = array();
-		if(is_array($doid) && count($doid)) {
-			$parameter[] = $doid;
+		if($doid) {
+			$parameter[] = (array)$doid;
 			$wherearr[] = 'doid IN(%n)';
 		}
 		if(is_array($uids) && count($uids)) {
@@ -80,6 +80,7 @@ class table_home_doing extends discuz_table
 				$keywords = explode(',', str_replace(' ', '', $keywords));
 
 				for($i = 0; $i < count($keywords); $i++) {
+					$keywords[$i] = addslashes(stripsearchkey($keywords[$i]));
 					if(preg_match("/\{(\d+)\}/", $keywords[$i])) {
 						$keywords[$i] = preg_replace("/\\\{(\d+)\\\}/", ".{0,\\1}", preg_quote($keywords[$i], '/'));
 						$sqlkeywords .= " $or message REGEXP '".$keywords[$i]."'";

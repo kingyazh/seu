@@ -4,7 +4,7 @@
  *      [Discuz! X] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: soso.class.php 28073 2012-02-22 04:59:14Z monkey $
+ *      $Id: soso.class.php 29265 2012-03-31 06:03:26Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -188,5 +188,3 @@ class mobileplugin_soso_smilies extends plugin_soso_smilies_base {
 	}
 
 }
-
-?>

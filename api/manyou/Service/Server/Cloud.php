@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: Cloud.php 25828 2011-11-23 10:50:40Z zhengqingpeng $
+ *      $Id: Cloud.php 29177 2012-03-28 05:56:17Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -60,6 +60,7 @@ class Cloud_Service_Server_Cloud extends Cloud_Service_Server_Restful {
 		try {
 			require_once libfile('function/cache');
 			updatecache(array('plugin', 'setting', 'styles'));
+			cleartemplatecache();
 		} catch (Exception $e) {
 		}
 

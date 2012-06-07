@@ -2,7 +2,7 @@
 	[Discuz!] (C)2001-2099 Comsenz Inc.
 	This is NOT a freeware, use is subject to license terms
 
-	$Id: portal_diy.js 27875 2012-02-16 04:24:34Z zhangguosheng $
+	$Id: portal_diy.js 29297 2012-04-01 01:59:13Z zhangguosheng $
 */
 
 var drag = new Drag();
@@ -690,7 +690,7 @@ drag.extend({
 			if (!$('frameexport')){
 				var dom  = document.createElement('div');
 				dom.innerHTML = '<form id="frameexport" method="post" action="" target="_blank"><input type="hidden" name="frame" value="" />\n\
-					<input type="hidden" name="tpl" value="'+document.diyform.template.value+'" />\n\\n\
+					<input type="hidden" name="tpl" value="'+document.diyform.template.value+'" />\n\
 					<input type="hidden" name="tpldirectory" value="'+document.diyform.tpldirectory.value+'" />\n\
 					<input type="hidden" name="diysign" value="'+document.diyform.diysign.value+'" />\n\
 					<input type="hidden" name="formhash" value="'+document.diyform.formhash.value+'" /><input type="hidden" name="exportsubmit" value="true"/></form>';

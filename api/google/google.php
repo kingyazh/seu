@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: google.php 24215 2011-08-31 09:50:03Z liulanbo $
+ *      $Id: google.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 @define('IN_API', true);
@@ -123,7 +123,7 @@ class GoogleAPI
 					foreach($tablenamelist AS $tablename => $tids) {
 						$pquery = DB::query("SELECT tid, message FROM ".DB::table($tablename)." WHERE tid IN (".dimplode($tids).") AND first=1", 'SILENT');
 						while($pquery && $post = DB::fetch($pquery)) {
-							$threadlist[$post['tid']]['message'] = htmlspecialchars($post['message']);
+							$threadlist[$post['tid']]['message'] = dhtmlspecialchars($post['message']);
 						}
 					}
 					unset($tablenamelist);
@@ -176,7 +176,7 @@ class GoogleAPI
 		}
 
 		$xmlcontent .= "<sitedata>\n".
-		"	<bbname>".htmlspecialchars($bbname)."</bbname>\n".
+		"	<bbname>".dhtmlspecialchars($bbname)."</bbname>\n".
 		"	<threads>$threads</threads>\n".
 		"	<posts>$posts</posts>\n".
 		"	<members>$members</members>\n".
@@ -191,8 +191,8 @@ class GoogleAPI
 			echo "	<$forum[type]>\n".
 			"		<fid>$forum[fid]</fid>\n".
 			"		<fup>$forum[fup]</fup>\n".
-			"		<name>".htmlspecialchars($forum['name'])."</name>\n".
-			"		<description>".htmlspecialchars($forum['description'])."</description>\n".
+			"		<name>".dhtmlspecialchars($forum['name'])."</name>\n".
+			"		<description>".dhtmlspecialchars($forum['description'])."</description>\n".
 			"		<threads>$forum[threads]</threads>\n".
 			"		<posts>$forum[posts]</posts>\n".
 			"		<todayposts>$forum[todayposts]</todayposts>\n".

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_forum_order.php 28467 2012-03-01 07:13:37Z chenmengshu $
+ *      $Id: table_forum_order.php 29009 2012-03-22 07:37:36Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -34,7 +34,7 @@ class table_forum_order extends discuz_table
 		$sql .= $submit_endtime ? ' AND o.'.DB::field('submitdate', $submit_endtime, '<') : '';
 		$sql .= $confirm_starttime ? ' AND o.'.DB::field('confirmdate', $confirm_starttime, '>=') : '';
 		$sql .= $confirm_endtime ? ' AND o.'.DB::field('confirmdate', $confirm_endtime, '<') : '';
-		return DB::result_first('SELECT COUNT(*) FROM %t o '.($username ? DB::table('common_member').' m WHERE o.uid=m.uid' : 'WHERE 1').' %i', array($this->_table, $sql));
+		return DB::result_first('SELECT COUNT(*) FROM %t o'.(($uid !== 0) ? ', '.DB::table('common_member').' m WHERE o.uid=m.uid' : ' WHERE 1 ').' %i', array($this->_table, $sql));
 	}
 
 	public function fetch_all_by_search($uid = null, $status = null, $orderid = null, $email = null, $username = null, $buyer = null, $admin = null, $submit_starttime = null, $submit_endtime = null, $confirm_starttime = null, $confirm_endtime = null, $start = null, $limit = null) {
@@ -50,7 +50,7 @@ class table_forum_order extends discuz_table
 		$sql .= $submit_endtime ? ' AND o.'.DB::field('submitdate', $submit_endtime, '<') : '';
 		$sql .= $confirm_starttime ? ' AND o.'.DB::field('confirmdate', $confirm_starttime, '>=') : '';
 		$sql .= $confirm_endtime ? ' AND o.'.DB::field('confirmdate', $confirm_endtime, '<') : '';
-		return DB::fetch_all('SELECT * FROM %t o '.($username ? DB::table('common_member').' m WHERE o.uid=m.uid' : 'WHERE 1').' %i ORDER BY o.submitdate DESC '.DB::limit($start, $limit), array($this->_table, $sql));
+		return DB::fetch_all('SELECT o.*'.(($uid !== 0) ? ', m.username' : '').' FROM %t o'.(($uid !== 0) ? ', '.DB::table('common_member').' m WHERE o.uid=m.uid' : ' WHERE 1 ').' %i ORDER BY o.submitdate DESC '.DB::limit($start, $limit), array($this->_table, $sql));
 	}
 
 	public function fetch_all($orderid, $status = '') {

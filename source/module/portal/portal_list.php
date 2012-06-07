@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: portal_list.php 27332 2012-01-16 09:24:24Z zhangguosheng $
+ *      $Id: portal_list.php 28903 2012-03-19 06:37:49Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -151,7 +151,7 @@ function category_get_list_more($cat, $wheresql, $hassub = true,$hasnew = true,$
 	$allowmemory = memory('check');
 	foreach ($cachearr as $key) {
 		$cachekey = $key.$catid;
-		$data[$key] = $allowmemory ? memory('get', $cachekey) : '';
+		$data[$key] = $allowmemory ? memory('get', $cachekey) : false;
 		if($data[$key] === false) {
 			$list = array();
 			$sql = '';

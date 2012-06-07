@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_blog.php 26038 2011-11-29 10:09:52Z zhengqingpeng $
+ *      $Id: function_blog.php 29276 2012-03-31 08:23:41Z svn_project_zhangjie $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -317,7 +317,7 @@ function blog_flash($swf_url, $type='') {
 			<embed autostart="false" src="'.$swf_url.'" type="audio/x-pn-realaudio-plugin" width="'.$width.'" height="'.$height.'" controls="controlpanel" console="cons"></embed>
 			</object>';
 	} elseif ($type == 'mp3') {
-		$swf_url = urlencode($swf_url);
+		$swf_url = urlencode(str_replace('&amp;', '&', $swf_url));
 		$html = '<object id="audioplayer_SHAREID" height="24" width="290" data="'.STATICURL.'image/common/player.swf" type="application/x-shockwave-flash">
 			<param value="'.STATICURL.'image/common/player.swf" name="movie"/>
 			<param value="autostart=yes&bg=0xCDDFF3&leftbg=0x357DCE&lefticon=0xF2F2F2&rightbg=0xF06A51&rightbghover=0xAF2910&righticon=0xF2F2F2&righticonhover=0xFFFFFF&text=0x357DCE&slider=0x357DCE&track=0xFFFFFF&border=0xFFFFFF&loader=0xAF2910&soundFile='.$swf_url.'" name="FlashVars"/>

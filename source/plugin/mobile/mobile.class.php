@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: mobile.class.php 28449 2012-03-01 04:12:13Z monkey $
+ *      $Id: mobile.class.php 29292 2012-03-31 11:00:07Z congyushuai $
  */
 
 class mobile_core {
@@ -34,13 +34,20 @@ class mobile_core {
 						$return[$key] = mobile_core::getvalues($value, $subkeys);
 					} else {
 						if(!empty($value) || !empty($_GET['debug']) || (is_numeric($value) && intval($value) === 0 )) {
-							$return[$key] = $value;
+							$return[$key] = is_array($value) ? mobile_core::arraystring($value) : (string)$value;
 						}
 					}
 				}
 			}
 		}
 		return $return;
+	}
+
+	function arraystring($array) {
+		foreach($array as $k => $v) {
+			$array[$k] = is_array($v) ? mobile_core::arraystring($v) : (string)$v;
+		}
+		return $array;
 	}
 
 	function variable($variables = array()) {
@@ -54,6 +61,7 @@ class mobile_core {
 			'groupid' => $_G['groupid'],
 			'formhash' => FORMHASH,
 			'ismoderator' => $_G['forum']['ismoderator'],
+			'readaccess' => $_G['group']['readaccess'],
 		);
 		if(!empty($_GET['submodule']) == 'checkpost') {
 			$apifile = 'source/plugin/mobile/api/'.$_GET['version'].'/sub_checkpost.php';
@@ -73,11 +81,13 @@ class mobile_core {
 				$vars = explode(':', $_G['messageparam'][0]);
 				if (count($vars) == 2) {
 					$message_result = lang('plugin/' . $vars[0], $vars[1], $_G['messageparam'][2]);
+					$_G['messageparam'][0] = $vars[1];
 				} else {
 					$message_result = lang('message', $_G['messageparam'][0], $_G['messageparam'][2]);
 				}
 			}
 			$message_result = strip_tags($message_result);
+
 			if($_G['messageparam'][4]) {
 				$_G['messageparam'][0] = "custom";
 			}
@@ -110,11 +120,24 @@ class base_plugin_mobile {
 		if(!empty($_GET['ppp'])) {
 			$_G['ppp'] = intval($_GET['ppp']);
 		}
+		$_G['siteurl'] = preg_replace('/api\/mobile\/$/', '', $_G['siteurl']);
 		$_G['setting']['msgforward'] = '';
 		$_G['setting']['cacheindexlife'] = $_G['setting']['cachethreadlife'] = false;
 		if(class_exists('mobile_api', 'common')) {
 			mobile_api::common();
 		}
+	}
+
+	function discuzcode() {
+		if(!defined('IN_MOBILE_API')) {
+			return;
+		}
+		global $_G;
+		$_G['discuzcodemessage'] = preg_replace(array(
+			"/\[size=(\d{1,2}?)\]/i",
+			"/\[size=(\d{1,2}(\.\d{1,2}+)?(px|pt)+?)\]/i",
+			"/\[\/size]/i",
+		), '', $_G['discuzcodemessage']);
 	}
 
 	function global_mobile() {
@@ -155,7 +178,9 @@ class base_plugin_mobile_misc extends base_plugin_mobile {
 			}
 			define('MOBILE_API_OUTPUT', 1);
 			$_G['disabledwidthauto'] = 1;
-			include template('mobile:mobile');exit;
+			define('TPL_DEFAULT', true);
+			include template('mobile:mobile');
+			exit;
 		}
 	}
 
@@ -167,11 +192,11 @@ class plugin_mobile_misc extends base_plugin_mobile_misc {}
 class mobileplugin_mobile extends base_plugin_mobile {
 	function global_header_mobile() {
 		$useragent = strtolower($_SERVER['HTTP_USER_AGENT']);
-		if(strpos($useragent, 'iphone') !== -1 || strpos($useragent, 'ios') !== -1) {
+		if(strpos($useragent, 'iphone') !== false || strpos($useragent, 'ios') !== false) {
 			return lang('plugin/mobile', 'mobile_tip_ios');
-		} elseif(strpos($useragent, 'android') !== -1) {
+		} elseif(strpos($useragent, 'android') !== false) {
 			return lang('plugin/mobile', 'mobile_tip_android');
-		} elseif(strpos($useragent, 'windows phone') !== -1) {
+		} elseif(strpos($useragent, 'windows phone') !== false) {
 			return lang('plugin/mobile', 'mobile_tip_wp7');
 		}
 	}
@@ -181,15 +206,14 @@ class mobileplugin_mobile_misc extends base_plugin_mobile_misc {}
 
 class plugin_mobile_connect extends plugin_mobile {
 
-	function login_mobile_output($param) {
-	}
-
 	function login_mobile_message($param) {
 		if(substr($_GET['referer'], 0, 7) == 'Mobile_') {
 			if($_GET['referer'] == 'Mobile_iOS' || $_GET['referer'] == 'Mobile_Android') {
 				$_GET['mobilemessage'] = 1;
 			}
-			mobile_core::result(mobile_core::variable());
+			global $_G;
+			$param = array('con_auth_hash' => $_G['cookie']['con_auth_hash']);
+			mobile_core::result(mobile_core::variable($param));
 		}
 	}
 

@@ -4,7 +4,7 @@
  *	  [Discuz! X] (C)2001-2099 Comsenz Inc.
  *	  This is NOT a freeware, use is subject to license terms
  *
- *	  $Id: qqshow.inc.php 26554 2011-12-15 03:48:22Z monkey $
+ *	  $Id: qqshow.inc.php 29265 2012-03-31 06:03:26Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -31,5 +31,3 @@ if($_G['member']['conisbind']) {
 } else {
 	$_G['connect']['loginbind_url'] = $_G['siteurl'].'connect.php?mod=login&op=init&type=loginbind&referer='.urlencode($_G['connect']['referer'] ? $_G['connect']['referer'] : 'index.php');
 }
-
-?>

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: space_notice.php 28297 2012-02-27 08:35:59Z monkey $
+ *      $Id: space_notice.php 30269 2012-05-18 01:58:22Z liulanbo $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -85,6 +85,9 @@ if($view == 'userapp') {
 	$newnotify = false;
 	$count = C::t('home_notification')->count_by_uid($_G['uid'], $new, $type);
 	if($count) {
+		if($new && $perpage == 30) {
+			$perpage = 200;
+		}
 		foreach(C::t('home_notification')->fetch_all_by_uid($_G['uid'], $new, $type, $start, $perpage) as $value) {
 			if($value['new']) {
 				$newnotify = true;
@@ -107,8 +110,8 @@ if($view == 'userapp') {
 	}
 
 	if($newnotify) {
-		C::t('home_notification')->ignore($_G['uid'], true, false);
-		if($_G['setting']['cloud_status'] &&  $_G['setting']['connect']['allow'] && $_G['member']['conisbind']) {
+		C::t('home_notification')->ignore($_G['uid'], true, true);
+		if($_G['setting']['cloud_status']) {
 			$noticeService = Cloud::loadClass('Service_Client_Notification');
 			$noticeService->setNoticeFlag($_G['uid'], TIMESTAMP);
 		}

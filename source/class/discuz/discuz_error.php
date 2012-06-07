@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: discuz_error.php 23610 2011-07-27 09:22:25Z cnteacher $
+ *      $Id: discuz_error.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -93,7 +93,7 @@ class discuz_error
 		$db = &DB::object();
 		$dberrno = $db->errno();
 		$dberror = str_replace($db->tablepre,  '', $db->error());
-		$sql = htmlspecialchars(str_replace($db->tablepre,  '', $sql));
+		$sql = dhtmlspecialchars(str_replace($db->tablepre,  '', $sql));
 
 		$msg = '<li>[Type] '.$title.'</li>';
 		$msg .= $dberrno ? '<li>['.$dberrno.'] '.$dberror.'</li>' : '';
@@ -160,7 +160,7 @@ class discuz_error
 						} elseif(is_float($arg)) {
 							$fun .= (defined('DISCUZ_DEBUG') && DISCUZ_DEBUG) ? $arg : '%f';
 						} else {
-							$fun .= (defined('DISCUZ_DEBUG') && DISCUZ_DEBUG) ? '\''.htmlspecialchars(substr(self::clear($arg), 0, 10)).(strlen($arg) > 10 ? ' ...' : '').'\'' : '%s';
+							$fun .= (defined('DISCUZ_DEBUG') && DISCUZ_DEBUG) ? '\''.dhtmlspecialchars(substr(self::clear($arg), 0, 10)).(strlen($arg) > 10 ? ' ...' : '').'\'' : '%s';
 						}
 						$mark = ', ';
 					}
@@ -362,7 +362,7 @@ EOT;
 	public static function sql_clear($message) {
 		$message = self::clear($message);
 		$message = str_replace(DB::object()->tablepre, '', $message);
-		$message = htmlspecialchars($message);
+		$message = dhtmlspecialchars($message);
 		return $message;
 	}
 
@@ -377,7 +377,7 @@ EOT;
 		$ip = getglobal('clientip');
 
 		$user = '<b>User:</b> uid='.intval($uid).'; IP='.$ip.'; RIP:'.$_SERVER['REMOTE_ADDR'];
-		$uri = 'Request: '.htmlspecialchars(discuz_error::clear($_SERVER['REQUEST_URI']));
+		$uri = 'Request: '.dhtmlspecialchars(discuz_error::clear($_SERVER['REQUEST_URI']));
 		$message = "<?PHP exit;?>\t{$time}\t$message\t$hash\t$user $uri\n";
 		if($fp = @fopen($file, 'rb')) {
 			$lastlen = 10000;

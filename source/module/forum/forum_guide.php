@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: forum_guide.php 28388 2012-02-28 10:23:30Z zhengqingpeng $
+ *      $Id: forum_guide.php 29108 2012-03-27 02:46:40Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -78,7 +78,7 @@ if($view != 'index') {
 			showmessage('to_login', '', array(), array('login' => 1));
 		}
 		$lang = lang('forum/template');
-		$filter_array = array( 'common' => $lang['have_posted'], 'save' => $lang['guide_draft'], 'close' => $lang['close'], 'aduit' => $lang['pending'], 'ignored' => $lang['ignored'], 'recyclebin' => $lang['forum_recyclebin']);
+		$filter_array = array( 'common' => $lang['have_posted'], 'save' => $lang['guide_draft'], 'close' => $lang['close'], 'aduit' => $lang['pending'], 'ignored' => $lang['have_ignored'], 'recyclebin' => $lang['forum_recyclebin']);
 		$viewtype = in_array($_GET['type'], array('reply', 'thread', 'postcomment')) ? $_GET['type'] : 'thread';
 		if($searchkey = stripsearchkey($_GET['searchkey'])) {
 			$searchkey = dhtmlspecialchars($searchkey);
@@ -214,6 +214,8 @@ function get_my_threads($viewtype, $fid = 0, $filter = '', $searchkey = '', $sta
 	$dglue = '=';
 	if($viewtype == 'thread') {
 		$authorid = $_G['uid'];
+		$displayorder = -1;
+		$dglue = '!=';
 		if($filter == 'recyclebin') {
 			$displayorder = -1;
 		} elseif($filter == 'aduit') {

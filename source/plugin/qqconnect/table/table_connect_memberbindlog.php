@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_connect_memberbindlog.php 26430 2011-12-13 04:37:14Z zhouxiaobo $
+ *      $Id: table_connect_memberbindlog.php 29265 2012-03-31 06:03:26Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -41,4 +41,3 @@ class table_connect_memberbindlog extends discuz_table {
 		return $result;
 	}
 }
-?>

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: Security.php 26819 2011-12-23 09:17:49Z songlixin $
+ *      $Id: Security.php 29263 2012-03-31 05:45:08Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -63,7 +63,7 @@ class Cloud_Service_Client_Security extends Cloud_Service_Client_Restful {
 					  'sSiteUid' => $this->siteUid,
 					  'operateType' => $operateType,
 					  'operateTime' => $operateTime,
-                      'results' => $results,
+					  'results' => $results,
 					  'extra' => $extra
 				  );
 		return $this->_callMethod('security.sitemaster.handleOperation', $data);

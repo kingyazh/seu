@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_article.php 26205 2011-12-05 10:09:32Z zhangguosheng $
+ *      $Id: admincp_article.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_DISCUZ')) {
@@ -210,7 +210,7 @@ if($operation == 'tag') {
 		$likekeys = array('title', 'username');
 		$results = getwheres($intkeys, $strkeys, $randkeys, $likekeys);
 		foreach($likekeys as $k) {
-			$_GET[$k] = htmlspecialchars($_GET[$k]);
+			$_GET[$k] = dhtmlspecialchars($_GET[$k]);
 		}
 		$wherearr = $results['wherearr'];
 		$mpurl .= '&'.implode('&', $results['urls']);
@@ -369,7 +369,7 @@ function showcategoryrow($key, $type = '', $last = '') {
 			$boardattr .= '</div>';
 		}
 
-		$return .= '<input type="text" class="txt" name="name['.$forum['fid'].']" value="'.htmlspecialchars($forum['name']).'" class="txt" />'.
+		$return .= '<input type="text" class="txt" name="name['.$forum['fid'].']" value="'.dhtmlspecialchars($forum['name']).'" class="txt" />'.
 			($type == '' ? '<a href="###" onclick="addrowdirect = 1;addrow(this, 2, '.$forum['fid'].')" class="addchildboard">'.$lang['forums_admin_add_sub'].'</a>' : '').
 			'</div>'.$boardattr.
 			'</td><td>'.showforum_moderators($forum).'</td>

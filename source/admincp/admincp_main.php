@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_main.php 27605 2012-02-07 05:24:04Z chenmengshu $
+ *      $Id: admincp_main.php 29260 2012-03-31 04:22:59Z svn_project_zhangjie $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -46,12 +46,16 @@ if($_G['uid'] && $_G['member']['allowadmincp'] == 1 && ($_G['setting']['showpatc
 		$discuz_patch->check_patch();
 	}
 }
-if(!$shownotice && $_G['setting']['upgrade']) {
+if($_G['uid'] && $_G['member']['allowadmincp'] == 1 && !$shownotice && $_G['setting']['upgrade']) {
 	$shownotice = '<div class="notice"><a href="'.$basescript.'?action=upgrade" id="notice">'.$lang['upgrade_right_now'].'</a></div>';
 }
-if(!isset($_G['cookie']['checkupgrade'])) {
+if($_G['uid'] && $_G['member']['allowadmincp'] == 1 && !isset($_G['cookie']['checkupgrade'])) {
 	$discuz_upgrade = new discuz_upgrade();
-	$discuz_upgrade->check_upgrade();
+	if($discuz_upgrade->check_upgrade()) {
+		if(empty($shownotice)) {
+			$shownotice = '<div class="notice"><a href="'.$basescript.'?action=upgrade" id="notice">'.$lang['upgrade_right_now'].'</a></div>';
+		}
+	}
 	dsetcookie('checkupgrade', 1, 7200);
 }
 
@@ -71,7 +75,7 @@ $shownotice
 <tr>
 <td colspan="2" height="90">
 <div class="mainhd">
-<a href="admin.php?frames=yes&action=index" class="logo">Discuz! Administrator's Control Panel</a>
+<a href="$basescript?frames=yes&action=index" class="logo">Discuz! Administrator's Control Panel</a>
 <div class="uinfo" id="frameuinfo">
 <p>$header_welcome, $cpadmingroup <em>{$_G['member']['username']}</em> [<a href="$basescript?action=logout" target="_top">$header_logout</a>]</p>
 <p class="btnlink"><a href="index.php" target="_blank">$header_bbs</a></p>
@@ -125,6 +129,8 @@ foreach ($menu as $k => $v) {
 	showmenu($k, $v);
 }
 unset($menu);
+
+$plugindefaultkey = $isfounder ? 1 : 0;
 
 echo <<<EOT
 
@@ -191,7 +197,7 @@ echo <<<EOT
 			parent.main.location = admincpfilename + '?action=' + url;
 			var hrefs = $('menu_' + key).getElementsByTagName('a');
 			for(var j = 0; j < hrefs.length; j++) {
-				hrefs[j].className = j == 0 ? 'tabon' : '';
+				hrefs[j].className = j == (key == 'plugin' ? $plugindefaultkey : 0) ? 'tabon' : '';
 			}
 		}
 		if(key == 'uc') {

@@ -35,7 +35,7 @@
 		<ul>
 			<!--{if $space[spacenote]}--><li><em class="xg1">{lang spacenote}&nbsp;&nbsp;</em>$space[spacenote]</li><!--{/if}-->
 			<!--{if $space[customstatus]}--><li class="xg1"><em>{lang permission_basic_status}&nbsp;&nbsp;</em>$space[customstatus]</li><!--{/if}-->
-			<!--{if $space[sightml]}--><li><em class="xg1">{lang personal_signature}&nbsp;&nbsp;</em><table><tr><td>$space[sightml]</td></tr></table></li><!--{/if}-->
+			<!--{if $space[group][maxsigsize] && $space[sightml]}--><li><em class="xg1">{lang personal_signature}&nbsp;&nbsp;</em><table><tr><td>$space[sightml]</td></tr></table></li><!--{/if}-->
 		</ul>
 		<ul class="cl bbda pbm mbm">
 			<li>
@@ -144,7 +144,7 @@
 	<ul>
 		<!--{if $space[adminid]}--><li><em class="xg1">{lang management_team}&nbsp;&nbsp;</em><span style="color:{$space[admingroup][color]}"><a href="home.php?mod=spacecp&ac=usergroup&gid=$space[adminid]" target="_blank">{$space[admingroup][grouptitle]}</a></span> {$space[admingroup][icon]}</li><!--{/if}-->
 		<li><em class="xg1">{lang usergroup}&nbsp;&nbsp;</em><span style="color:{$space[group][color]}"{if $upgradecredit !== false} class="xi2" onmouseover="showTip(this)" tip="{lang credits} $space[credits], {lang thread_groupupgrade} $upgradecredit {lang credits}"{/if}><a href="home.php?mod=spacecp&ac=usergroup&gid=$space[groupid]" target="_blank">{$space[group][grouptitle]}</a></span> {$space[group][icon]} <!--{if !empty($space['groupexpiry'])}-->&nbsp;{lang group_useful_life}&nbsp;<!--{date($space[groupexpiry], 'Y-m-d H:i')}--><!--{/if}--></li>
-		<!--{if $space[extgroupids]}--><li><em>{lang group_expiry_type_ext}</em>$space[extgroupids]</li><!--{/if}-->
+		<!--{if $space[extgroupids]}--><li><em class="xg1">{lang group_expiry_type_ext}&nbsp;&nbsp;</em>$space[extgroupids]</li><!--{/if}-->
 	</ul>
 	<ul id="pbbs" class="pf_l">
 		<!--{if $space[oltime]}--><li><em>{lang online_time}</em>$space[oltime] {lang hours}</li><!--{/if}-->

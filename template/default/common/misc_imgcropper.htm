@@ -33,7 +33,7 @@
 		</style>
 	</head>
 	<body>
-		<div id="bgDiv">
+		<div id="bgDiv" style="width:{$cbgboxwidth}px; height:{$cbgboxheight}px;">
 			<div id="dragDiv" style="top:{$dragpt}px; left:{$dragpl}px;">
 			</div>
 			<div id="rightDown"></div>
@@ -74,7 +74,7 @@
 			<!--{/if}-->
 			<input type="hidden" name="ictype" value="$_GET[ictype]" />
 			<div class="c">
-				<iframe src="misc.php?mod=imgcropper&op=loadcropper&img={$_G['setting']['attachurl']}/{$_GET['img']}&width=$_GET['width']&height=$_GET['height']" id="cropperiframe" frameborder="0" scrolling="no" marginwidth="0" onload="setWinHeight(this)"></iframe>
+				<iframe src="misc.php?mod=imgcropper&op=loadcropper&img={$prefix}/{$_GET['img']}&width=$_GET['width']&height=$_GET['height']" id="cropperiframe" frameborder="0" scrolling="no" marginwidth="0" onload="setWinHeight(this)"></iframe>
 			</div>
 			<p class="o pns">
 				<button type="submit" name="groupnamesubmit_btn" value="true" class="pn pnc"><strong>{lang imgcropper_crop}</strong></button>
@@ -97,8 +97,8 @@
 			}
 			function resetHeight(divObj, ipos, imgObj) {
 				var iframeObject = $('cropperiframe');
-				iframeObject.height =  parseInt(divObj.style.height)+'px';
-				iframeObject.width =  parseInt(divObj.style.width)+'px';
+				iframeObject.height =  divObj.style.height;
+				iframeObject.width =  divObj.style.width;
 				$('cutleft').value = ipos.Left;
 				$('cuttop').value = ipos.Top;
 				$('cutwidth').value = ipos.Width-2;

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_admincp.php 27617 2012-02-07 08:24:14Z monkey $
+ *      $Id: function_admincp.php 29992 2012-05-07 03:01:52Z liulanbo $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -127,6 +127,33 @@ function siteinformation() {
 	}
 
 	return 'os=dx&update='.rawurlencode(base64_encode($data)).'&md5hash='.substr(md5($_SERVER['HTTP_USER_AGENT'].implode('', $update).TIMESTAMP), 8, 8).'&timestamp='.TIMESTAMP;
+}
+
+function upgradeinformation($status = 0) {
+	global $_G, $upgrade_step;
+
+	if(empty($upgrade_step)) {
+		return '';
+	}
+
+	$update = array();
+	$siteuniqueid = C::t('common_setting')->fetch('siteuniqueid');
+
+	$update['uniqueid'] = $siteuniqueid;
+	$update['curversion'] = $upgrade_step['curversion'];
+	$update['currelease'] = $upgrade_step['currelease'];
+	$update['upgradeversion'] = $upgrade_step['version'];
+	$update['upgraderelease'] = $upgrade_step['release'];
+	$update['step'] = $upgrade_step['step'] == 'dbupdate' ? 4 : $upgrade_step['step'];
+	$update['status'] = $status;
+
+	$data = '';
+	foreach($update as $key => $value) {
+		$data .= $key.'='.rawurlencode($value).'&';
+	}
+
+	$upgradeurl =  'ht'.'tp:/'.'/cus'.'tome'.'r.disc'.'uz.n'.'et/upg'.'rade'.'.p'.'hp?'.'os=dx&update='.rawurlencode(base64_encode($data)).'&timestamp='.TIMESTAMP;
+	return '<img src="'.$upgradeurl.'" />';
 }
 
 function isfounder($user = '') {
@@ -366,7 +393,7 @@ var admincpfilename = '$basescript', IMGDIR = '$IMGDIR', STYLEID = '$STYLEID', V
 <script src="{$_G[setting][jspath]}admincp.js?{$_G[style][verhash]}" type="text/javascript"></script>
 <script type="text/javascript">
 if(ISFRAME && !parent.document.getElementById('leftmenu') && !parent.parent.document.getElementById('leftmenu')) {
-	redirect(admincpfilename + '?frames=yes&' + document.URL.substr(document.URL.indexOf(admincpfilename) + 10));
+	redirect(admincpfilename + '?frames=yes&' + document.URL.substr(document.URL.indexOf(admincpfilename) + admincpfilename.length + 1));
 }
 </script>
 <div id="append_parent"></div><div id="ajaxwaitid"></div>
@@ -480,7 +507,7 @@ function showtips($tips, $id = 'tips', $display = TRUE, $title = '') {
 
 function showformheader($action, $extra = '', $name = 'cpform', $method = 'post') {
 	global $_G;
-	$anchor = isset($_GET['anchor']) ? htmlspecialchars($_GET['anchor']) : '';
+	$anchor = isset($_GET['anchor']) ? dhtmlspecialchars($_GET['anchor']) : '';
 	echo '<form name="'.$name.'" method="'.$method.'" autocomplete="off" action="'.ADMINSCRIPT.'?action='.$action.'" id="'.$name.'"'.($extra == 'enctype' ? ' enctype="multipart/form-data"' : " $extra").'>'.
 		'<input type="hidden" name="formhash" value="'.FORMHASH.'" />'.
 		'<input type="hidden" id="formscrolltop" name="scrolltop" value="" />'.
@@ -490,7 +517,7 @@ function showformheader($action, $extra = '', $name = 'cpform', $method = 'post'
 function showhiddenfields($hiddenfields = array()) {
 	if(is_array($hiddenfields)) {
 		foreach($hiddenfields as $key => $val) {
-			$val = is_string($val) ? htmlspecialchars($val) : $val;
+			$val = is_string($val) ? dhtmlspecialchars($val) : $val;
 			echo "\n<input type=\"hidden\" name=\"$key\" value=\"$val\">";
 		}
 	}
@@ -537,7 +564,7 @@ function showtagheader($tagname, $id, $display = FALSE, $classname = '') {
 	if(!empty($_G['showsetting_multi'])) {
 		return;
 	}
-	echo '<'.$tagname.($classname ? " class=\"$classname\"" : '').' id="'.$id.'"'.($display ? '' : ' style="display: none"').'>';
+	echo '<'.$tagname.(!isset($_G['showsetting_multi']) && $classname ? " class=\"$classname\"" : '').' id="'.$id.'"'.($display ? '' : ' style="display: none"').'>';
 }
 
 function showtitle($title, $extra = '', $multi = 1) {
@@ -596,7 +623,7 @@ function showsetting($setname, $varname, $value, $type = 'radio', $disabled = ''
 	global $_G;
 	$s = "\n";
 	$check = array();
-	$check['disabled'] = $disabled ? ($disabled == 'readonly' ? ' readonly disabled' : ' disabled') : '';
+	$check['disabled'] = $disabled ? ($disabled == 'readonly' ? ' readonly' : ' disabled') : '';
 	$check['disabledaltstyle'] = $disabled ? ', 1' : '';
 
 	$nocomment = false;
@@ -700,7 +727,9 @@ function showsetting($setname, $varname, $value, $type = 'radio', $disabled = ''
 		$value = sprintf('%0'.$checkboxs.'b', $value);$i = 1;
 		$s .= '<ul class="nofloat" onmouseover="altStyle(this'.$check['disabledaltstyle'].');">';
 		foreach($varname[1] as $key => $var) {
-			$s .= '<li'.($value{$checkboxs - $i} ? ' class="checked"' : '').'><input class="checkbox" type="checkbox"'.($varnameid ? ' id="_v'.md5($i).'_'.$varnameid.'"' : '').' name="'.$varname[0].'['.$i.']" value="1"'.($value{$checkboxs - $i} ? ' checked' : '').' '.(!empty($varname[2][$key]) ? $varname[2][$key] : '').'>&nbsp;'.$var.'</li>';
+			if($var !== false) {
+				$s .= '<li'.($value{$checkboxs - $i} ? ' class="checked"' : '').'><input class="checkbox" type="checkbox"'.($varnameid ? ' id="_v'.md5($i).'_'.$varnameid.'"' : '').' name="'.$varname[0].'['.$i.']" value="1"'.($value{$checkboxs - $i} ? ' checked' : '').' '.(!empty($varname[2][$key]) ? $varname[2][$key] : '').'>&nbsp;'.$var.'</li>';
+			}
 			$i++;
 		}
 		$s .= '</ul>';
@@ -921,7 +950,7 @@ function cpfooter() {
 		$kws = explode(' ', $_GET['highlight']);
 		echo '<script type="text/JavaScript">';
 		foreach($kws as $kw) {
-			echo 'parsetag(\''.htmlspecialchars($kw).'\');';
+			echo 'parsetag(\''.dhtmlspecialchars($kw).'\');';
 		}
 		echo '</script>';
 	}
@@ -1294,7 +1323,7 @@ function rewritedata($alldata = 1) {
 	$data = array();
 	if(!$alldata) {
 		if(in_array('portal_topic', $_G['setting']['rewritestatus'])) {
-			$data['search']['portal_topic'] = "/".$_G['domain']['pregxprw']['portal']."\?mod\=topic&(amp;)?topic\=(.+?)?\"([^\>]*)\>/e";
+			$data['search']['portal_topic'] = "/".$_G['domain']['pregxprw']['portal']."\?mod\=topic&(amp;)?topicid\=(.+?)?\"([^\>]*)\>/e";
 			$data['replace']['portal_topic'] = "rewriteoutput('portal_topic', 0, '\\1', '\\3', '\\4')";
 		}
 
@@ -1339,7 +1368,7 @@ function rewritedata($alldata = 1) {
 		}
 	} else {
 		$data['rulesearch']['portal_topic'] = 'topic-{name}.html';
-		$data['rulereplace']['portal_topic'] = 'portal.php?mod=topic&topic={name}';
+		$data['rulereplace']['portal_topic'] = 'portal.php?mod=topic&topicid={name}';
 		$data['rulevars']['portal_topic']['{name}'] = '(.+)';
 
 		$data['rulesearch']['portal_article'] = 'article-{id}-{page}.html';

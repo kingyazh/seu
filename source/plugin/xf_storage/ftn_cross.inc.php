@@ -3,7 +3,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: ftn_cross.inc.php 27316 2012-01-16 03:08:11Z songlixin $
+ *      $Id: ftn_cross.inc.php 29265 2012-03-31 06:03:26Z yexinhao $
  */
 if(!defined('IN_DISCUZ')) {
 	exit('Access Denied');
@@ -12,16 +12,16 @@ if(!defined('IN_DISCUZ')) {
 $storageService = Cloud::loadClass('Service_Storage');
 
 if(empty($_GET['ftn_formhash']) || empty($_G['uid']) || empty($_GET['filesize']) || empty($_GET['sha1']) || empty($_GET['filename'])){
-    if(empty($_GET['allcount']) && empty($_GET['uploadedcount']) && empty($_GET['errorcount'])){
-        exit;
-    } else {
-        if($_GET['allcount'] == ($_GET['uploadedcount']+$_GET['errorcount'])){
-            $allowUpdate = 1;
-        } else {
-            $allowUpdate = 0;
-        }
-        include template('xf_storage:cross');
-    }
+	if(empty($_GET['allcount']) && empty($_GET['uploadedcount']) && empty($_GET['errorcount'])){
+		exit;
+	} else {
+		if($_GET['allcount'] == ($_GET['uploadedcount']+$_GET['errorcount'])){
+			$allowUpdate = 1;
+		} else {
+			$allowUpdate = 0;
+		}
+		include template('xf_storage:cross');
+	}
 } elseif($_GET['ftn_formhash'] != $storageService->ftnFormhash()){
 	exit;//showmessage('操作超时或者数据来源错误','','error');
 }
@@ -55,19 +55,14 @@ if($_GET['ftn_submit']) {
 		'thumb' => 0,
 	);
 	C::t('forum_attachment_unused')->insert($data);
-    if(empty($_GET['allcount']) && empty($_GET['uploadedcount']) && empty($_GET['errorcount'])){
-        exit;
-    } else {
-        if($_GET['allcount'] == ($_GET['uploadedcount'] + $_GET['errorcount'])){
-            $allowUpdate = 1;
-        } else {
-            $allowUpdate = 0;
-        }
-        include template('xf_storage:cross');
-    }
+	if(empty($_GET['allcount']) && empty($_GET['uploadedcount']) && empty($_GET['errorcount'])){
+		exit;
+	} else {
+		if($_GET['allcount'] == ($_GET['uploadedcount'] + $_GET['errorcount'])){
+			$allowUpdate = 1;
+		} else {
+			$allowUpdate = 0;
+		}
+		include template('xf_storage:cross');
+	}
 }
-
-
-
-
-?>

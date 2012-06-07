@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: magic_bump.php 26749 2011-12-22 07:38:37Z chenmengshu $
+ *      $Id: magic_bump.php 29373 2012-04-09 07:55:30Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -70,7 +70,7 @@ class magic_bump {
 
 	function show() {
 		global $_G;
-		$tid = !empty($_GET['id']) ? htmlspecialchars($_GET['id']) : '';
+		$tid = !empty($_GET['id']) ? dhtmlspecialchars($_GET['id']) : '';
 		if($tid) {
 			$thread = getpostinfo($_GET['id'], 'tid', array('fid'));
 			$this->_check($thread['fid']);

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: helper_pm.php 28251 2012-02-27 01:40:15Z zhengqingpeng $
+ *      $Id: helper_pm.php 29691 2012-04-25 06:53:43Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -39,7 +39,7 @@ class helper_pm {
 		loaducenter();
 		$return = uc_pm_send($fromid, $toid, addslashes($subject), addslashes($message), 1, $replypmid, $isusername, $type);
 		if($return > 0 && $fromid) {
-			if($_G['setting']['cloud_status'] &&  $_G['setting']['connect']['allow']) {
+			if($_G['setting']['cloud_status']) {
 				$msgService = Cloud::loadClass('Cloud_Service_Client_Message');
 				if(is_numeric($toid)) {
 					$tospace = getuserbyuid($toid);
@@ -54,7 +54,7 @@ class helper_pm {
 						}
 					}
 					if($senduids) {
-						$msgService->add($toid, $fromid, $author, $_G['timestamp']);
+						$msgService->add($senduids, $fromid, $author, $_G['timestamp']);
 					}
 				}
 

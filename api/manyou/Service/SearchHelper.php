@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: SearchHelper.php 28286 2012-02-27 06:43:22Z yexinhao $
+ *      $Id: SearchHelper.php 29915 2012-05-03 01:22:40Z zhouxiaobo $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -82,6 +82,8 @@ class Cloud_Service_SearchHelper {
 				$result['isGroup'] = $isGroup;
 			}
 		}
+		$formula = dunserialize($row['formulaperm']);
+		$result['isFormula'] = $formula[1] ? TRUE : FALSE;
 		$result['sign'] = md5(serialize($result));
 		return $result;
 	}
@@ -89,9 +91,9 @@ class Cloud_Service_SearchHelper {
 	public function getForums($fIds = array()) {
 
 		if($fIds) {
-			$forums = C::t('forum_forum')->fetch_all_by_fid($fIds);
+			$forums = C::t('forum_forum')->fetch_all_info_by_fids($fIds);
 		} else {
-			$forums = C::t('forum_forum')->range(0, 0, 'ASC');
+			$forums = C::t('forum_forum')->fetch_all_info_by_fids(0, 0, 0, 0, 0, 0, 1);
 		}
 
 		$result = array();
@@ -108,6 +110,22 @@ class Cloud_Service_SearchHelper {
 	}
 
 	public function getUserGroupPermissions($userGroupIds) {
+
+		global $_G;
+		$userGroups = array();
+		if ($_G['setting']['verify']['enabled']) {
+			foreach ($userGroupIds as $groupId) {
+				if (dintval($groupId) > 65500) {
+					$vGid = $groupId - 65500;
+					if ($_G['setting']['verify'][$vGid]['available']) {
+						$key = array_search($groupId, $userGroupIds);
+						unset($userGroupIds[$key]);
+						$userGroups['v' . $vGid] = array();
+					}
+				}
+			}
+		}
+
 		$fields = array(
 						'groupid' => 'userGroupId',
 						'grouptitle' => 'userGroupName',
@@ -115,7 +133,6 @@ class Cloud_Service_SearchHelper {
 						'allowvisit'	=> 'allowVisit',
 						'allowsearch'	=> 'searchLevel',
 						);
-		$userGroups = array();
 		$userGroup= C::t('common_usergroup')->fetch_all((array)$userGroupIds);
 		$userGroupField = C::t('common_usergroup_field')->fetch_all_fields((array)$userGroupIds, array('readaccess', 'allowsearch'));
 		foreach(array_merge($userGroup, $userGroupField) as $row) {
@@ -179,6 +196,15 @@ class Cloud_Service_SearchHelper {
 					$userGroups[$gid]['allowForumIds'][] = $fId;
 					$userGroups[$gid]['specifyAllowForumIds'][] = $fId;
 				}
+			}
+		}
+
+		foreach ($userGroups as $groupId => $v) {
+			if (substr($groupId, 0, 1) == 'v') {
+				$verifyKey = 65500 + dintval(substr($groupId, 1));
+				$v['userGroupId'] = $verifyKey;
+				$userGroups[$verifyKey] = $v;
+				unset($userGroups[$groupId]);
 			}
 		}
 
@@ -442,6 +468,43 @@ class Cloud_Service_SearchHelper {
 		if ($row['status'] & 2) {
 			$result['isWarned'] = true;
 		}
+		$attachInfo = array();
+		if ($result['isAttached']) {
+			$attachIndex = C::t('forum_attachment')->fetch_all_by_id('pid', $row['pid']);
+			$attachment = C::t('forum_attachment_n')->fetch_all_by_id('pid:'.$row['pid'], 'pid', $row['pid'], 'aid');
+			$attachMap = array(
+				'aid' => 'aId',
+				'tid' => 'tId',
+				'pid' => 'pId',
+				'uid' => 'uId',
+				'dateline' => 'uploadedTime',
+				'filename' => 'fileName',
+				'filesize' => 'fileSize',
+				'attachment' => 'filePath',
+				'remote' => 'isRemote',
+				'description' => 'description',
+				'readperm' => 'readPerm',
+				'price' => 'price',
+				'isimage' => 'isImage',
+				'width' => 'width',
+				'thumb' => 'isThumb',
+				'picid' => 'picId',
+			);
+			foreach ($attachment as $k => $v) {
+				$attachTemp = array();
+				foreach ($v as $key => $val) {
+					if ($key == 'dateline') {
+						$attachTemp[$attachMap[$key]] = dgmdate($val, 'Y-m-d H:i:s', 8);
+						continue;
+					}
+					$attachTemp[$attachMap[$key]] = $val;
+				}
+				$attachInfo[$k] = $attachTemp;
+				$attachInfo[$k]['downloadTimes'] = $attachIndex[$k]['downloads'];
+			}
+		}
+
+		$result['attachInfo'] = $attachInfo;
 		return $result;
 	}
 
@@ -466,7 +529,7 @@ class Cloud_Service_SearchHelper {
 		foreach($row as $k => $v) {
 			if (array_key_exists($k, $map)) {
 				if (in_array($k, array('available'))) {
-					$v = $v ? true : false;
+					$v = $v > 0 ? true : false;
 				}
 				if ($k == 'subtype') {
 					if ($v == 1) {
@@ -560,25 +623,25 @@ class Cloud_Service_SearchHelper {
 		updatecache('usergroups');
 	}
 
-    public function myThreadLog($opt, $data) {
-    	global $_G;
+	public function myThreadLog($opt, $data) {
+		global $_G;
 
-    	$cloudAppService = Cloud::loadClass('Service_App');
-    	if(!$cloudAppService->getCloudAppStatus('search')) return;
-    	$data['action'] = $opt;
-    	$data['dateline'] = time();
-    	C::t('forum_threadlog')->insert($data, false, true);
-    }
+		$cloudAppService = Cloud::loadClass('Service_App');
+		if(!$cloudAppService->getCloudAppStatus('search')) return;
+		$data['action'] = $opt;
+		$data['dateline'] = time();
+		C::t('forum_threadlog')->insert($data, false, true);
+	}
 
-    public function myPostLog($opt, $data) {
-    	global $_G;
+	public function myPostLog($opt, $data) {
+		global $_G;
 
-    	$cloudAppService = Cloud::loadClass('Service_App');
-    	if(!$cloudAppService->getCloudAppStatus('search')) return;
-    	$data['action'] = $opt;
-    	$data['dateline'] = time();
-    	C::t('forum_postlog')->insert($data, false, true);
-    }
+		$cloudAppService = Cloud::loadClass('Service_App');
+		if(!$cloudAppService->getCloudAppStatus('search')) return;
+		$data['action'] = $opt;
+		$data['dateline'] = time();
+		C::t('forum_postlog')->insert($data, false, true);
+	}
 
 	public function getRelatedThreadsTao($keyword, $page, $tpp, $excludeForumIds = '', $cache = false) {
 		global $_G;
@@ -660,31 +723,31 @@ class Cloud_Service_SearchHelper {
 	}
 
 
-	public function getRecWords($needNum = 14, $format = 'num') {
+	public function getRecWords($needNum = 14, $format = 'num', $fid = 0) {
 		global $_G;
 
 		$sId = $_G['setting']['my_siteid'];
 		$data = array();
 
 		if($sId) {
-		    $fid = $_G['fid'] ? $_G['fid'] : 0;
+			$fid = $fid ? $fid : 0;
 			$kname = 'search_recommend_words_' . $fid;
 			loadcache($kname);
 
 			$cacheLife = isset($_G['setting']['my_search_data']['recwords_lifetime']) ? intval($_G['setting']['my_search_data']['recwords_lifetime']) : 21600;
-            $cloudSettingTime = isset($_G['setting']['my_search_data']['set_forbidden_recwords_time']) ? intval($_G['setting']['my_search_data']['set_forbidden_recwords_time']) : 0;
-            $cacheSettingTime = isset($_G['cache'][$kname]['setting_ts']) ? intval($_G['cache'][$kname]['setting_ts']) : 0;
+			$cloudSettingTime = isset($_G['setting']['my_search_data']['set_forbidden_recwords_time']) ? intval($_G['setting']['my_search_data']['set_forbidden_recwords_time']) : 0;
+			$cacheSettingTime = isset($_G['cache'][$kname]['setting_ts']) ? intval($_G['cache'][$kname]['setting_ts']) : 0;
 
-            if((!$cloudSettingTime || $cloudSettingTime == $cacheSettingTime) && isset($_G['cache'][$kname]['ts']) && (TIMESTAMP - $_G['cache'][$kname]['ts'] <= $cacheLife)) {
+			if((!$cloudSettingTime || $cloudSettingTime == $cacheSettingTime) && isset($_G['cache'][$kname]['ts']) && (TIMESTAMP - $_G['cache'][$kname]['ts'] <= $cacheLife)) {
 				$data = $_G['cache'][$kname]['result'];
 			} else {
 				$apiUrl = 'http://api.discuz.qq.com/search/recwords/get';
 				$params = array(
 					's_id' => $sId,
-				    'f_id' => $fid,
+					'f_id' => $fid,
 					'need_random' => false,
 					'need_num' => $needNum,
-				    'version' => $format == 'num' ? 1 : 2, // 1：返回数字下标的结果集、2：返回关联数组形式的结果集
+					'version' => $format == 'num' ? 1 : 2, // 1：返回数字下标的结果集、2：返回关联数组形式的结果集
 				);
 
 				$utilService = Cloud::loadClass('Service_Util');
@@ -694,12 +757,10 @@ class Cloud_Service_SearchHelper {
 				if(isset($result['status']) && $result['status'] === 0) {
 					$data = $result['result'];
 
-					if($data) {
-					    if($cloudSettingTime) {
-						    save_syscache($kname, array('ts' => TIMESTAMP, 'setting_ts' => $cloudSettingTime, 'result' => $data));
-					    } else {
-					        save_syscache($kname, array('ts' => TIMESTAMP, 'result' => $data));
-					    }
+					if($cloudSettingTime) {
+						save_syscache($kname, array('ts' => TIMESTAMP, 'setting_ts' => $cloudSettingTime, 'result' => $data));
+					} else {
+						save_syscache($kname, array('ts' => TIMESTAMP, 'result' => $data));
 					}
 				}
 			}
@@ -755,13 +816,35 @@ class Cloud_Service_SearchHelper {
 				$params[$key] = '';
 			}
 
+			$extraParams = array();
+			if (isset($_G['setting']['verify']['enabled']) && $_G['setting']['verify']['enabled']) {
+				$verifyGroups = C::t('common_member_verify')->fetch($_G['uid']);
+				$extraParams['ext_vgIds'] = 0;
+				foreach ($verifyGroups as $k => $v) {
+					if ($k != 'uid') {
+						$position = dintval(substr($k, strlen('verify')));
+						$extraParams['ext_vgIds'] = setstatus($position, dintval($v), $extraParams['ext_vgIds']);
+					}
+				}
+			}
+
+			if ($_G['cookie']['ffids' . $_G['uid']]) {
+				$ext_ffids = str_replace('D', ',', authcode($_G['cookie']['ffids' . $_G['uid']], 'DECODE'));
+				$extraParams['ext_ffids'] = $ext_ffids;
+			}
+
+			if (!empty($extraParams)) {
+				ksort($extraParams);
+				$params = array_merge($params, $extraParams);
+			}
+
 			$params['sign'] = md5(implode('|', $params) . '|' . $mySiteKey);
 
-		    if ($cloudAppService->getCloudAppStatus('connect') && !$_G['member']['conopenid']) {
-                $connectService = Cloud::loadClass('Service_Connect');
-                $connectService->connectMergeMember();
-                $params['openid'] = $_G['member']['conopenid'];
-            }
+			if ($cloudAppService->getCloudAppStatus('connect') && $_G['member']['conopenid']) {
+				$connectService = Cloud::loadClass('Service_Connect');
+				$connectService->connectMergeMember();
+				$params['openid'] = $_G['member']['conopenid'];
+			}
 
 			$params['charset'] = $_G['charset'];
 			if($mySearchData['domain']) {

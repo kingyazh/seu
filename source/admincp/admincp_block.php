@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_block.php 27338 2012-01-17 01:53:47Z svn_project_zhangjie $
+ *      $Id: admincp_block.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -174,7 +174,7 @@ if($operation=='perm') {
 		$likekeys = array('name');
 		$results = getwheres($intkeys, $strkeys, $randkeys, $likekeys);
 		foreach($likekeys as $k) {
-			$_GET[$k] = htmlspecialchars($_GET[$k]);
+			$_GET[$k] = dhtmlspecialchars($_GET[$k]);
 		}
 		$wherearr = $results['wherearr'];
 		$mpurl .= '&'.implode('&', $results['urls']);

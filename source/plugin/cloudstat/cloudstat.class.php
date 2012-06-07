@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: cloudstat.class.php 27852 2012-02-15 10:00:31Z songlixin $
+ *      $Id: cloudstat.class.php 29952 2012-05-03 10:53:30Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -15,12 +15,12 @@ class plugin_cloudstat {
 	var $discuzParams = array();
 	var $extraParams = array();
 
-	function global_footerlink() {
+	function common() {
 		global $_G;
 		if($_G['inajax']) {
-			return '';
+			return;
 		}
-		return $this->_makejs();
+		$_G['setting']['statcode'] = $this->_makejs() . $_G['setting']['statcode'];
 	}
 
 	function global_cpnav_extra1() {
@@ -74,8 +74,9 @@ class plugin_cloudstat {
 		dsetcookie('stats_qc_reg');
 		$qq .= $_G['uid']?'1':'0';
 
-		if($_G['uid'] && $_G['member']['conisbind']) {
-			$qq .= ($qclogin = intval(getcookie('stats_qc_login')))?$qclogin:1;
+		$qclogin = intval(getcookie('stats_qc_login'));
+		if(($_G['uid'] && $_G['member']['conisbind']) || $qclogin == 4) {
+			$qq .= $qclogin?$qclogin:1;
 			dsetcookie('stats_qc_login');
 		} else {
 			$qq .= '0';
@@ -311,5 +312,3 @@ class mobileplugin_cloudstat extends plugin_cloudstat {
 		return '<img src="' . $pingd . '" height="1" width="1" style="float:right" />';
 	}
 }
-
-?>

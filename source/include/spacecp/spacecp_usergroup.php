@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: spacecp_usergroup.php 28431 2012-02-29 09:51:23Z monkey $
+ *      $Id: spacecp_usergroup.php 28970 2012-03-21 04:11:39Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -194,11 +194,71 @@ if(in_array($do, array('buy', 'exit'))) {
 		}
 	}
 
-} elseif($do == 'expiry') {
+} elseif($do == 'list') {
 
 	$memberfieldforum = C::t('common_member_field_forum')->fetch($_G['uid']);
 	$groupterms = dunserialize($memberfieldforum['groupterms']);
 	unset($memberfieldforum);
+	$expgrouparray = $expirylist = $termsarray = array();
+
+	if(!empty($groupterms['ext']) && is_array($groupterms['ext'])) {
+		$termsarray = $groupterms['ext'];
+	}
+	if(!empty($groupterms['main']['time']) && (empty($termsarray[$_G['groupid']]) || $termsarray[$_G['groupid']] > $groupterm['main']['time'])) {
+		$termsarray[$_G['groupid']] = $groupterms['main']['time'];
+	}
+
+	foreach($termsarray as $expgroupid => $expiry) {
+		if($expiry <= TIMESTAMP) {
+			$expgrouparray[] = $expgroupid;
+		}
+	}
+
+	if(!empty($groupterms['ext'])) {
+		foreach($groupterms['ext'] as $extgroupid => $time) {
+			$expirylist[$extgroupid] = array('time' => dgmdate($time, 'd'), 'type' => 'ext', 'noswitch' => $time < TIMESTAMP);
+		}
+	}
+
+	if(!empty($groupterms['main'])) {
+		$expirylist[$_G['groupid']] = array('time' => dgmdate($groupterms['main']['time'], 'd'), 'type' => 'main');
+	}
+
+	$groupids = array();
+	foreach($_G['cache']['usergroups'] as $groupid => $usergroup) {
+		if(!empty($usergroup['pubtype'])) {
+			$groupids[] = $groupid;
+		}
+	}
+	$expiryids = array_keys($expirylist);
+	if(!$expiryids && $_G['member']['groupexpiry']) {
+		C::t('common_member')->update($_G['uid'], array('groupexpiry' => 0));
+	}
+	$groupids = array_merge($extgroupids, $expiryids, $groupids);
+	$usermoney = $space['extcredits'.$_G['setting']['creditstrans']];
+	if($groupids) {
+		foreach(C::t('common_usergroup')->fetch_all($groupids) as $group) {
+			$isexp = in_array($group['groupid'], $expgrouparray);
+			if($_G['cache']['usergroups'][$group['groupid']]['pubtype'] == 'buy') {
+				list($dailyprice) = explode("\t", $group['system']);
+				$expirylist[$group['groupid']]['dailyprice'] = $dailyprice;
+				$expirylist[$group['groupid']]['usermaxdays'] = $dailyprice > 0 ? round($usermoney / $dailyprice) : 0;
+			} else {
+				$expirylist[$group['groupid']]['usermaxdays'] = 0;
+			}
+			$expirylist[$group['groupid']]['maingroup'] = $group['type'] != 'special' || $group['system'] == 'private' || $group['radminid'] > 0;
+			$expirylist[$group['groupid']]['grouptitle'] = $isexp ? '<s>'.$group['grouptitle'].'</s>' : $group['grouptitle'];
+		}
+	}
+
+} elseif($do == 'expiry') {
+
+	if(!$_G['member']['groupexpiry']) {
+		dheader('home.php?mod=spacecp&ac=usergroup');
+	}
+
+	$groupterms = unserialize(DB::result_first("SELECT groupterms FROM ".DB::table('common_member_field_forum')." WHERE uid='$_G[uid]'"));
+
 	$expgrouparray = $expirylist = $termsarray = array();
 
 	if(!empty($groupterms['ext']) && is_array($groupterms['ext'])) {
@@ -224,30 +284,55 @@ if(in_array($do, array('buy', 'exit'))) {
 		$expirylist[$_G['groupid']] = array('time' => dgmdate($groupterms['main']['time'], 'd'), 'type' => 'main');
 	}
 
-	$groupids = array();
-	foreach($_G['cache']['usergroups'] as $groupid => $usergroup) {
-		if(!empty($usergroup['pubtype'])) {
-			$groupids[] = $groupid;
-		}
-	}
-	$expiryids = array_keys($expirylist);
-	if(!$expiryids && $_G['member']['groupexpiry']) {
-		C::t('common_member')->update($_G['uid'], array('groupexpiry' => 0));
-	}
-	$groupids = array_merge($extgroupids, $expiryids, $groupids);
-	$usermoney = $space['extcredits'.$_G['setting']['creditstrans']];
-	if($groupids) {
-		foreach(C::t('common_usergroup')->fetch_all($groupids) as $group) {
-			if($_G['cache']['usergroups'][$group['groupid']]['pubtype'] == 'buy') {
-				list($dailyprice) = explode("\t", $group['system']);
-				$expirylist[$group['groupid']]['dailyprice'] = $dailyprice;
-				$expirylist[$group['groupid']]['usermaxdays'] = $dailyprice > 0 ? round($usermoney / $dailyprice) : 0;
-			} else {
-				$expirylist[$group['groupid']]['usermaxdays'] = 0;
-			}
-			$expirylist[$group['groupid']]['maingroup'] = $group['type'] != 'special' || $group['system'] == 'private' || $group['radminid'] > 0;
+	if($expirylist) {
+		$query = DB::query("SELECT groupid, grouptitle FROM ".DB::table('common_usergroup')." WHERE groupid IN (".dimplode(array_keys($expirylist)).")");
+		while($group = DB::fetch($query)) {
 			$expirylist[$group['groupid']]['grouptitle'] = in_array($group['groupid'], $expgrouparray) ? '<s>'.$group['grouptitle'].'</s>' : $group['grouptitle'];
 		}
+	} else {
+		DB::query("UPDATE ".DB::table('common_member')." SET groupexpiry='0' WHERE uid='$_G[uid]'");
+	}
+
+	if($expgrouparray) {
+
+		$extgroupidarray = array();
+		foreach(explode("\t", $_G['forum_extgroupids']) as $extgroupid) {
+			if(($extgroupid = intval($extgroupid)) && !in_array($extgroupid, $expgrouparray)) {
+				$extgroupidarray[] = $extgroupid;
+			}
+		}
+
+		$groupidnew = $_G['groupid'];
+		$adminidnew = $_G['adminid'];
+		foreach($expgrouparray as $expgroupid) {
+			if($expgroupid == $_G['groupid']) {
+				if(!empty($groupterms['main']['groupid'])) {
+					$groupidnew = $groupterms['main']['groupid'];
+					$adminidnew = $groupterms['main']['adminid'];
+				} else {
+					$groupidnew = DB::result_first("SELECT groupid FROM ".DB::table('common_usergroup')." WHERE type='member' AND '".$_G['member']['credits']."'>=creditshigher AND '$credits'<creditslower LIMIT 1");
+					if(in_array($_G['adminid'], array(1, 2, 3))) {
+						$query = DB::query("SELECT groupid FROM ".DB::table('common_usergroup')." WHERE groupid IN (".dimplode($extgroupidarray).") AND radminid='$_G[adminid]' LIMIT 1");
+						$adminidnew = (DB::num_rows($query)) ? $_G['adminid'] : 0;
+					} else {
+						$adminidnew = 0;
+					}
+				}
+				unset($groupterms['main']);
+			}
+			unset($groupterms['ext'][$expgroupid]);
+		}
+
+		require_once libfile('function/forum');
+		$groupexpirynew = groupexpiry($groupterms);
+		$extgroupidsnew = implode("\t", $extgroupidarray);
+		$grouptermsnew = addslashes(serialize($groupterms));
+
+		DB::query("UPDATE ".DB::table('common_member')." SET adminid='$adminidnew', groupid='$groupidnew', extgroupids='$extgroupidsnew', groupexpiry='$groupexpirynew' WHERE uid='$_G[uid]'");
+		DB::query("UPDATE ".DB::table('common_member_field_forum')." SET groupterms='$grouptermsnew' WHERE uid='$_G[uid]'");
+
+		dheader('location: home.php?mod=spacecp&ac=usergroup');
+
 	}
 
 } else {

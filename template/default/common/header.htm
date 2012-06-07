@@ -48,7 +48,7 @@
 		$diynav
 	<!--{/if}-->
 	<!--{if empty($topic) || $topic['useheader']}-->
-		<!--{if $_G['setting']['mobile']['allowmobile'] && (!$_G['setting']['cachethreadon'] || $_G['uid']) && ($_GET['diy'] != 'yes' || !$_GET['inajax']) && ($_G['mobile'] != '' && $_G['cookie']['mobile'] == '' && $_GET['mobile'] != 'no')}-->
+		<!--{if $_G['setting']['mobile']['allowmobile'] && (!$_G['setting']['cacheindexlife'] && !$_G['setting']['cachethreadon'] || $_G['uid']) && ($_GET['diy'] != 'yes' || !$_GET['inajax']) && ($_G['mobile'] != '' && $_G['cookie']['mobile'] == '' && $_GET['mobile'] != 'no')}-->
 			<div class="xi1 bm bm_c">
 			    {lang your_mobile_browser}<a href="{$_G['siteurl']}forum.php?mobile=yes">{lang go_to_mobile}</a> <span class="xg1">|</span> <a href="$_G['setting']['mobile']['nomobileurl']">{lang to_be_continue}</a>
 			</div>
@@ -98,6 +98,10 @@
 							<!--{/if}-->
 						<!--{/loop}-->
 					</ul>
+					<!--{elseif $_G[connectguest]}-->
+						<div class="ptm pbw hm">
+							{lang connect_fill_profile_to_visit}
+						</div>
 					<!--{else}-->
 						<div class="ptm pbw hm">
 							{lang my_nav_login}
@@ -152,7 +156,7 @@
 					</div>
 					<!--{elseif !empty($_G['cookie']['loginuser'])}-->
 					<p>
-						<strong><a id="loginuser" class="noborder"><!--{echo htmlspecialchars($_G['cookie']['loginuser'])}--></a></strong>
+						<strong><a id="loginuser" class="noborder"><!--{echo dhtmlspecialchars($_G['cookie']['loginuser'])}--></a></strong>
 						<span class="pipe">|</span><a href="member.php?mod=logging&action=login" onclick="showWindow('login', this.href)">{lang activation}</a>
 						<span class="pipe">|</span><a href="member.php?mod=logging&action=logout&formhash={FORMHASH}">{lang logout}</a>
 					</p>
@@ -168,7 +172,7 @@
 						</p>
 						<p>
 							<a href="home.php?mod=spacecp&ac=credit&showcredit=1">{lang credits}: 0</a>
-							<span class="pipe">|</span>{lang usergroup}: {lang header_qq_login_user}
+							<span class="pipe">|</span>{lang usergroup}: $_G[group][grouptitle]
 						</p>
 					</div>
 					<!--{/if}-->

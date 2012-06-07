@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: install_function.php 28275 2012-02-27 04:14:58Z monkey $
+ *      $Id: install_function.php 29252 2012-03-31 02:03:00Z chenmengshu $
  */
 
 if(!defined('IN_COMSENZ')) {
@@ -1038,7 +1038,7 @@ function show_setting($setname, $varname = '', $value = '', $type = 'text|passwo
 
 	echo "\n".'<tr><th class="tbopt'.($error ? ' red' : '').'" align="left">&nbsp;'.(empty($setname) ? '' : lang($setname).':')."</th>\n<td>";
 	if($type == 'text' || $type == 'password') {
-		$value = htmlspecialchars($value);
+		$value = dhtmlspecialchars($value);
 		echo "<input type=\"$type\" name=\"$varname\" value=\"$value\" size=\"35\" class=\"txt\">";
 	} elseif(strpos($type, 'submit') !== FALSE) {
 		if(strpos($type, 'oldbtn') !== FALSE) {
@@ -1242,7 +1242,7 @@ function install_uc_server() {
 	$pathinfo['dirname'] = substr($pathinfo['dirname'], 0, -8);
 	$appurl = 'http://'.preg_replace("/\:\d+/", '', $_SERVER['HTTP_HOST']).($_SERVER['SERVER_PORT'] && $_SERVER['SERVER_PORT'] != 80 ? ':'.$_SERVER['SERVER_PORT'] : '').$pathinfo['dirname'];
 	$ucapi = $appurl.'/uc_server';
-	$ucip = '127.0.0.1';
+	$ucip = '';
 	$app_tagtemplates = 'apptagtemplates[template]='.urlencode('<a href="{url}" target="_blank">{subject}</a>').'&'.
 		'apptagtemplates[fields][subject]='.urlencode($lang['tagtemplates_subject']).'&'.
 		'apptagtemplates[fields][uid]='.urlencode($lang['tagtemplates_uid']).'&'.
@@ -1693,7 +1693,19 @@ function dmkdir($dir, $mode = 0777){
 	}
 	return true;
 }
-
+function dhtmlspecialchars($string) {
+	if(is_array($string)) {
+		foreach($string as $key => $val) {
+			$string[$key] = dhtmlspecialchars($val);
+		}
+	} else {
+		$string = str_replace(array('&', '"', '<', '>'), array('&amp;', '&quot;', '&lt;', '&gt;'), $string);
+		if(strpos($string, '&amp;#') !== false) {
+			$string = preg_replace('/&amp;((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $string);
+		}
+	}
+	return $string;
+}
 function install_extra_setting() {
 	global $db, $tablepre, $lang;
 	include ROOT_PATH.'./install/include/install_extvar.php';

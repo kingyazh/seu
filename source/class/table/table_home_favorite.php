@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_home_favorite.php 28511 2012-03-02 01:47:11Z liulanbo $
+ *      $Id: table_home_favorite.php 29149 2012-03-27 09:52:07Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -65,6 +65,10 @@ class table_home_favorite extends discuz_table
 
 	public function count_by_id_idtype($id, $idtype) {
 		return DB::result_first("SELECT COUNT(*) FROM %t WHERE id=%d AND idtype=%s", array($this->_table, $id, $idtype));
+	}
+
+	public function delete_by_id_idtype($id, $idtype) {
+		return DB::delete($this->_table, DB::field('id', $id) .' AND '.DB::field('idtype', $idtype));
 	}
 
 	public function delete($val, $unbuffered = false, $uid = 0) {

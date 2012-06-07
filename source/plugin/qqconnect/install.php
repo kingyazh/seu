@@ -4,12 +4,14 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: install.php 26543 2011-12-15 02:17:57Z monkey $
+ *      $Id: install.php 29521 2012-04-17 09:24:42Z songlixin $
  */
 
 if(!defined('IN_DISCUZ')) {
 	exit('Access Denied');
 }
+
+$connect = C::t('common_setting')->fetch('connect', true);
 
 $sql = <<<EOF
 
@@ -53,18 +55,6 @@ CREATE TABLE IF NOT EXISTS pre_connect_memberbindlog (
   KEY dateline (dateline)
 ) ENGINE=MyISAM;
 
-CREATE TABLE IF NOT EXISTS pre_connect_tlog (
-  tlid mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
-  tid mediumint(8) unsigned NOT NULL DEFAULT '0',
-  uid mediumint(8) unsigned NOT NULL DEFAULT '0',
-  publishtimes mediumint(8) unsigned NOT NULL DEFAULT '0',
-  lastpublished int(10) unsigned NOT NULL DEFAULT '0',
-  dateline int(10) unsigned NOT NULL DEFAULT '0',
-  `status` tinyint(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (tlid),
-  UNIQUE KEY tid (tid)
-) ENGINE=MyISAM;
-
 CREATE TABLE IF NOT EXISTS pre_connect_tthreadlog (
   twid char(16) NOT NULL,
   tid mediumint(8) unsigned NOT NULL DEFAULT '0',
@@ -87,13 +77,102 @@ CREATE TABLE IF NOT EXISTS pre_common_uin_black (
   UNIQUE KEY uid (uid)
 ) ENGINE=MyISAM;
 
+CREATE TABLE IF NOT EXISTS pre_common_connect_guest (
+  `conopenid` char(32) NOT NULL default '',
+  `conuin` char(40) NOT NULL default '',
+  `conuinsecret` char(16) NOT NULL default '',
+  `conqqnick` char(100) NOT NULL default '',
+  PRIMARY KEY (conopenid)
+) TYPE=MyISAM;
+
+CREATE TABLE IF NOT EXISTS `pre_connect_disktask` (
+  `taskid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '任务ID',
+  `aid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '附件ID',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `openid` char(32) NOT NULL DEFAULT '' COMMENT 'openId',
+  `filename` varchar(255) NOT NULL DEFAULT '' COMMENT '附件名称',
+  `verifycode` char(32) NOT NULL DEFAULT '' COMMENT '下载验证码',
+  `status` smallint(6) unsigned NOT NULL DEFAULT '0' COMMENT '下载状态',
+  `dateline` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '添加任务的时间',
+  `downloadtime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '下载完成时间',
+  `extra` text COMMENT '保留字段',
+  PRIMARY KEY (`taskid`),
+  KEY `openid` (`openid`),
+  KEY `status` (`status`)
+) TYPE=MyISAM COMMENT='网盘下载任务表';
+
+
 REPLACE INTO pre_common_setting VALUES ('regconnect', '1');
-REPLACE INTO pre_common_setting VALUES ('connect', 'a:19:{s:5:"allow";s:1:"1";s:4:"feed";a:2:{s:5:"allow";s:1:"1";s:5:"group";s:1:"0";}s:1:"t";a:4:{s:5:"allow";s:1:"1";s:5:"group";s:1:"0";s:5:"reply";i:1;s:16:"reply_showauthor";i:1;}s:10:"like_allow";s:1:"1";s:7:"like_qq";s:0:"";s:10:"turl_allow";s:1:"1";s:7:"turl_qq";s:0:"";s:8:"like_url";s:0:"";s:17:"register_birthday";s:1:"0";s:15:"register_gender";s:1:"0";s:17:"register_uinlimit";s:0:"";s:21:"register_rewardcredit";s:1:"1";s:18:"register_addcredit";s:0:"";s:16:"register_groupid";s:1:"0";s:18:"register_regverify";s:1:"1";s:15:"register_invite";s:1:"1";s:10:"newbiespan";s:0:"";s:9:"turl_code";s:0:"";s:13:"mblog_app_key";s:3:"abc";}');
 
 EOF;
 
 runquery($sql);
 
-$finish = true;
+$needCreateGroup = true;
+if ($connect['feed']) {
+	$group = C::t('common_usergroup')->fetch($connect['guest_groupid']);
+	if ($group) {
+		$needCreateGroup = false;
+	}
+} else {
+	$connect = array (
+		'allow' => '1',
+		'feed' =>
+		array (
+			'allow' => '1',
+			'group' => '0',
+		),
+		't' =>
+		array (
+			'allow' => '1',
+			'group' => '0',
+			'reply' => 1,
+			'reply_showauthor' => 1,
+		),
+		'like_allow' => '1',
+		'like_qq' => '',
+		'turl_allow' => '1',
+		'turl_qq' => '',
+		'like_url' => '',
+		'register_birthday' => '0',
+		'register_gender' => '0',
+		'register_uinlimit' => '',
+		'register_rewardcredit' => '1',
+		'register_addcredit' => '',
+		'register_groupid' => '0',
+		'register_regverify' => '1',
+		'register_invite' => '1',
+		'newbiespan' => '',
+		'turl_code' => '',
+		'mblog_app_key' => 'abc',
+	);
+}
 
-?>
+if ($needCreateGroup) {
+	include DISCUZ_ROOT . 'source/language/lang_admincp_cloud.php';
+	$name = $extend_lang['connect_guest_group_name'];
+	$userGroupData = array(
+		'type' => 'special',
+		'grouptitle' => $name,
+		'allowvisit' => 1,
+		'color' => '',
+		'stars' => '',
+	);
+	$newGroupId = C::t('common_usergroup')->insert($userGroupData, true);
+
+	$dataField = array(
+		'groupid' => $newGroupId,
+		'allowsearch' => 2,
+		'readaccess' => 1,
+		'allowgetattach' => 1,
+		'allowgetimage' => 1,
+	);
+	C::t('common_usergroup_field')->insert($dataField);
+
+	$connect['guest_groupid'] = $newGroupId;
+	updatecache('usergroups');
+}
+
+C::t('common_setting')->update('connect', serialize($connect));
+updatecache('setting');
+$finish = true;

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: forum_upload.php 28404 2012-02-29 03:42:14Z zhengqingpeng $
+ *      $Id: forum_upload.php 29250 2012-03-31 01:54:28Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -122,7 +122,7 @@ class forum_upload {
 		$insert = array(
 			'aid' => $aid,
 			'dateline' => $_G['timestamp'],
-			'filename' => $upload->attach['name'],
+			'filename' => censor($upload->attach['name']),
 			'filesize' => $upload->attach['size'],
 			'attachment' => $upload->attach['attachment'],
 			'isimage' => $upload->attach['isimage'],

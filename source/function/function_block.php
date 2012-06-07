@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_block.php 27332 2012-01-16 09:24:24Z zhangguosheng $
+ *      $Id: function_block.php 30287 2012-05-18 07:18:10Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -33,18 +33,13 @@ function block_script($blockclass, $script) {
 
 function block_get_batch($parameter) {
 	global $_G;
-	static $allowmem = null, $cachettl = null;
-	if($allowmem === null) {
-		$allowmem = ($cachettl = getglobal('setting/memory/diyblock')) !== null && memory('check');
-	}
-
 	$bids = $parameter && is_array($parameter) ? $parameter : ($parameter ? explode(',', $parameter) : array());
 	$bids = array_map('intval', $bids);
 	$bids = array_unique($bids);
 	$styleids = array();
 
 	if($bids) {
-		if($allowmem) {
+		if(C::t('common_block')->allowmem) {
 			if(($cachedata = memory('get', $bids, 'blockcache_')) !== false) {
 				foreach ($cachedata as $bid => $block) {
 					$_G['block'][$bid] = $block;
@@ -110,8 +105,8 @@ function block_get_batch($parameter) {
 			$block['param'] = $block['param'] ? dunserialize($block['param']) : array();
 			$_G['block'][$bid] = $block;
 
-			if($allowmem) {
-				memory('set', 'blockcache_'.$bid, $_G['block'][$bid], $cachettl);
+			if(C::t('common_block')->allowmem) {
+				memory('set', 'blockcache_'.$bid, $_G['block'][$bid], C::t('common_block')->cache_ttl);
 			}
 
 		}
@@ -165,7 +160,8 @@ function block_fetch_content($bid, $isjscall=false, $forceupdate=false) {
 
 	$hidediv = $isjscall || $block['blocktype'];
 
-	if($allowmem && empty($block['hidedisplay']) && empty($block['nocache']) && ($str = memory('get', 'blockcache_'.$bid.'_'.($isjscall ? 'js' : 'htm'))) !== false) {
+	$_cache_key = 'blockcache_'.($isjscall ? 'js' : 'htm').'_'.$bid;
+	if($allowmem && empty($block['hidedisplay']) && empty($block['nocache']) && ($str = memory('get', $_cache_key)) !== false) {
 
 	} else {
 
@@ -183,7 +179,7 @@ function block_fetch_content($bid, $isjscall=false, $forceupdate=false) {
 		}
 
 		if($allowmem && empty($block['hidedisplay']) && empty($block['nocache'])) {
-			memory('set', 'blockcache_'.$bid.'_'.($isjscall ? 'js' : 'htm'), $str, $cachettl);
+			memory('set', $_cache_key, $str, C::t('common_block')->cache_ttl);
 		}
 	}
 
@@ -199,20 +195,12 @@ function block_fetch_content($bid, $isjscall=false, $forceupdate=false) {
 	return !empty($block['hidedisplay']) ? '' : $str;
 }
 
-function block_memory_clear($bid) {
-	if(memory('check')) {
-		memory('rm', 'blockcache_'.$bid.'');
-		memory('rm', 'blockcache_'.$bid.'_htm');
-		memory('rm', 'blockcache_'.$bid.'_js');
-	}
-}
-
 function block_updatecache($bid, $forceupdate=false) {
 	global $_G;
 	if((isset($_G['block'][$bid]['cachetime']) && $_G['block'][$bid]['cachetime'] < 0) || !$forceupdate && discuz_process::islocked('block_update_cache', 5)) {
 		return false;
 	}
-	block_memory_clear($bid);
+	C::t('common_block')->clear_cache($bid);
 	$block = empty($_G['block'][$bid])?array():$_G['block'][$bid];
 	if(!$block) {
 		return false;
@@ -242,8 +230,10 @@ function block_updatecache($bid, $forceupdate=false) {
 			}
 			$leftnum = $block['shownum'] - count($datalist);
 			if($leftnum > 0 && empty($block['isblank'])) {
-				$block['param']['items'] = $leftnum;
-				$block['param']['bannedids'] = implode(',',$bannedids);
+				if($leftnum != $block['param']['items']) {
+					$block['param']['items'] = $leftnum;
+					$block['param']['bannedids'] = implode(',',$bannedids);
+				}
 				$return = $obj->getdata($thestyle, $block['param']);
 				$return['data'] = array_merge($datalist, (array)$return['data']);
 			} else {
@@ -263,11 +253,11 @@ function block_updatecache($bid, $forceupdate=false) {
 		C::t('common_block')->update($bid, array('dateline'=>TIMESTAMP+999999, 'cachetime'=>0));
 		$_G['block'][$bid]['dateline'] = TIMESTAMP+999999;
 	}
-	if(($cachettl = getglobal('setting/memory/diyblock')) !== null && memory('check')) {
-		memory('set', 'blockcache_'.$bid, $_G['block'][$bid], $cachettl);
+	if(C::t('common_block')->allowmem) {
+		memory('set', 'blockcache_'.$bid, $_G['block'][$bid], C::t('common_block')->cache_ttl);
 		$styleid = $_G['block'][$bid]['styleid'];
 		if($styleid && $_G['blockstyle_'.$styleid]) {
-			memory('set', 'blockstylecache_'.$styleid, $_G['blockstyle_'.$styleid], $cachettl);
+			memory('set', 'blockstylecache_'.$styleid, $_G['blockstyle_'.$styleid], C::t('common_block')->cache_ttl);
 		}
 	}
 	discuz_process::unlock('block_update_cache');
@@ -380,9 +370,9 @@ function block_template($bid) {
 					$replacevalue = dgmdate($replacevalue, $block['dateuformat'] ? 'u' : $block['dateformat'], '9999', $block['dateuformat'] ? $block['dateformat'] : '');
 				} elseif($field['datatype'] == 'title') {//title
 					$searcharr[] = '{title-title}';
-					$replacearr[] = !empty($blockitem['fields']['fulltitle']) ? $blockitem['fields']['fulltitle'] : htmlspecialchars($replacevalue);
+					$replacearr[] = !empty($blockitem['fields']['fulltitle']) ? $blockitem['fields']['fulltitle'] : dhtmlspecialchars($replacevalue);
 					$searcharr[] = '{alt-title}';
-					$replacearr[] = !empty($blockitem['fields']['fulltitle']) ? $blockitem['fields']['fulltitle'] : htmlspecialchars($replacevalue);
+					$replacearr[] = !empty($blockitem['fields']['fulltitle']) ? $blockitem['fields']['fulltitle'] : dhtmlspecialchars($replacevalue);
 					if($blockitem['showstyle'] && ($style = block_showstyle($blockitem['showstyle'], 'title'))) {
 						$replacevalue = '<font style="'.$style.'">'.$replacevalue.'</font>';
 					}
@@ -449,8 +439,8 @@ function block_template($bid) {
 			$template = preg_replace($value[0], $value[1], $template);
 		}
 	}
-	$template = preg_replace('/\s*\[(order\d{0,1})=\w+\](.*?)\[\/\\1\]\s*/is', '', $template);
-	$template = preg_replace('/\s*\[(index\d{0,1})=\w+\](.*?)\[\/\\1\]\s*/is', '', $template);
+	$template = preg_replace('/\s*\[(order\d*)=\w+\](.*?)\[\/\\1\]\s*/is', '', $template);
+	$template = preg_replace('/\s*\[(index\d*)=\w+\](.*?)\[\/\\1\]\s*/is', '', $template);
 	$template = preg_replace('/\s*\[(loop\d{0,1})\](.*?)\[\/\\1\]\s*/is', '', $template);
 
 	return $template;
@@ -862,6 +852,7 @@ function blockclass_cache() {
 			$dirs[$filename] = $dir.$filename.'/';
 		}
 	}
+	ksort($dirs);
 	foreach($dirs as $name=>$dir) {
 		$blockclass = $blockconvert = array();
 		if(file_exists($dir.'blockclass.php')) {
@@ -870,7 +861,7 @@ function blockclass_cache() {
 		if(empty($blockclass['name'])) {
 			$blockclass['name'] = $name;
 		} else {
-			$blockclass['name'] = htmlspecialchars($blockclass['name']);
+			$blockclass['name'] = dhtmlspecialchars($blockclass['name']);
 		}
 		$blockclass['subs'] = array();
 
@@ -888,14 +879,14 @@ function blockclass_cache() {
 							&& method_exists($obj, 'getsetting') && method_exists($obj, 'getdata')) {
 						if($scriptclass == 'block_xml') {
 							foreach($obj->blockdata as $one) {
-								$oneinfo['name'] = htmlspecialchars($one['data']['name']);
+								$oneinfo['name'] = dhtmlspecialchars($one['data']['name']);
 								$oneinfo['blockclass'] = array($one['id'], $oneinfo['name']);
 								$oneinfo['fields'] = dhtmlspecialchars($one['data']['fields']);
 
 								foreach($one['data']['style'] as $value) {
 									$arr = array(
 										'blockclass'=>'xml_'.$one['id'],
-										'name' => htmlspecialchars($value['name']),
+										'name' => dhtmlspecialchars($value['name']),
 									);
 									block_parse_template($value['template'], $arr);
 									$styles[$arr['hash']] = $arr;
@@ -1005,7 +996,7 @@ function block_parse_template($str_template, &$arr) {
 		}
 	}
 	$match = array();
-	if(preg_match_all('/\[(order\d)=(\d+|odd|even)\](.*?)\[\/\\1]/is', $str_template, $match)) {
+	if(preg_match_all('/\[(order\d+)=(\d+|odd|even)\](.*?)\[\/\\1]/is', $str_template, $match)) {
 		foreach($match[1] as $key=>$value) {
 			$content = trim($match[3][$key]);
 			$order = $match[2][$key];
@@ -1014,13 +1005,13 @@ function block_parse_template($str_template, &$arr) {
 		}
 	}
 	$match = array();
-	if(preg_match_all('/\[index=(\d)\](.*?)\[\/index]/is', $str_template, $match)) {
+	if(preg_match_all('/\[index=(\d+)\](.*?)\[\/index]/is', $str_template, $match)) {
 		foreach($match[1] as $key=>$order) {
 			$template['index'][$order] = trim($match[2][$key]);
 		}
 	}
 	$match = array();
-	if(preg_match_all('/\[(index\d)=(\d)\](.*?)\[\/\\1]/is', $str_template, $match)) {
+	if(preg_match_all('/\[(index\d+)=(\d+)\](.*?)\[\/\\1]/is', $str_template, $match)) {
 		foreach($match[1] as $key=>$value) {
 			$content = trim($match[3][$key]);
 			$order = intval($match[2][$key]);
@@ -1096,6 +1087,9 @@ function update_template_block($targettplname, $tpldirectory, $blocks) {
 			$oldbids = array_keys(C::t('common_template_block')->fetch_all_by_targettplname($targettplname, $tpldirectory));
 			$newaddbids = array_diff($blocks, $oldbids);
 			C::t('common_template_block')->delete_by_targettplname($targettplname, $tpldirectory);
+			if($tpldirectory === './template/default') {
+				C::t('common_template_block')->delete_by_targettplname($targettplname, '');
+			}
 			$blocks = array_unique($blocks);
 			C::t('common_template_block')->insert_batch($targettplname, $tpldirectory, $blocks);
 			if(!empty($newaddbids)) {

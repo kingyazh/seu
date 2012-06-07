@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_common_invite.php 27912 2012-02-16 08:57:43Z zhengqingpeng $
+ *      $Id: table_common_invite.php 29213 2012-03-29 06:46:36Z liulanbo $
  */
 
 if(!defined('IN_DISCUZ')) {

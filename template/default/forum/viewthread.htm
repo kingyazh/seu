@@ -238,6 +238,14 @@
 					<strong>{lang rushreply}</strong>
 				</td>
 				<td class="plc ptm pbm xi1">
+					<!--{if $rushresult[rewardfloor]}-->
+						<span class="y">
+						<!--{if $_G['uid'] == $_G['thread']['authorid'] || $_G['forum']['ismoderator']}--><a href="javascript:;" onclick="showWindow('membernum', 'forum.php?mod=ajax&action=get_rushreply_membernum&tid=$_G[tid]')" class="y pn xi2"><span>{lang thread_rushreply_statnum}</span></a><!--{/if}-->
+						<!--{if !$_GET['checkrush']}-->
+								<a href="forum.php?mod=viewthread&tid=$post[tid]&checkrush=1" rel="nofollow" class="y pn xi2"><span>{lang rushreply_view}</span></a>
+						<!--{/if}-->
+						</span>
+					<!--{/if}-->
 					<!--{if $rushresult[creditlimit] == ''}-->
 						{lang thread_rushreply}&nbsp;
 					<!--{else}-->
@@ -254,13 +262,12 @@
 					<!--{/if}-->
 					<!--{if $rushresult[rewardfloor]}-->
 						{lang thread_rushreply_floor}: $rushresult[rewardfloor]&nbsp;
-						<!--{if $_G['uid'] == $_G['thread']['authorid'] || $_G['forum']['ismoderator']}--><a href="javascript:;" onclick="showWindow('membernum', 'forum.php?mod=ajax&action=get_rushreply_membernum&tid=$_G[tid]')" >{lang thread_rushreply_statnum}</a>&nbsp;&nbsp;<!--{/if}-->
-						<!--{if $_GET['checkrush']}-->
-							<!--{if $countrushpost}-->[<b>$countrushpost</b>]{lang thread_rushreply_rewardnum}&nbsp;&nbsp;<!--{/if}-->
-							<a href="forum.php?mod=viewthread&tid=$_G[tid]">{lang thread_rushreply_check_back}</a>
-						<!--{else}-->
-								<a href="forum.php?mod=viewthread&tid=$post[tid]&checkrush=1" rel="nofollow">{lang rushreply_view}</a>
-						<!--{/if}-->
+					<!--{/if}-->
+					<!--{if $rushresult[rewardfloor] && $_GET['checkrush']}-->
+						<p class="ptn">
+							<!--{if $countrushpost}-->[<strong>$countrushpost</strong>]{lang thread_rushreply_rewardnum}&nbsp;&nbsp;<!--{/if}-->
+							<a href="forum.php?mod=viewthread&tid=$_G[tid]" class="xi2">{lang thread_rushreply_check_back}</a>
+						</p>
 					<!--{/if}-->
 				</td>
 			</tr>
@@ -310,7 +317,7 @@ $_G['forum_tagscript']
 	$multipage
 	<span class="pgb y"{if $_G['setting']['visitedforums']} id="visitedforumstmp" onmouseover="$('visitedforums').id = 'visitedforumstmp';this.id = 'visitedforums';showMenu({'ctrlid':this.id,'pos':'21'})"{/if}><a href="$upnavlink">{lang return_forumdisplay}</a></span>
 	<!--{if !$_G['forum_thread']['is_archived']}-->
-		<a id="newspecialtmp" onmouseover="$('newspecial').id = 'newspecialtmp';this.id = 'newspecial';showMenu({'ctrlid':this.id})"{if !$_G['forum']['allowspecialonly']} onclick="showWindow('newthread', 'forum.php?mod=post&action=newthread&fid=$_G[fid]')"{else} onclick="location.href='forum.php?mod=post&action=newthread&fid=$_G[fid]';return false;"{/if} href="javascript:;" title ="{lang send_posts}"><img src="{IMGDIR}/pn_post.png" alt="{lang send_posts}" /></a>
+		<a id="newspecialtmp" onmouseover="$('newspecial').id = 'newspecialtmp';this.id = 'newspecial';showMenu({'ctrlid':this.id})"{if !$_G['forum']['allowspecialonly'] && empty($_G['forum']['picstyle']) && !$_G['forum']['threadsorts']['required']} onclick="showWindow('newthread', 'forum.php?mod=post&action=newthread&fid=$_G[fid]')"{else} onclick="location.href='forum.php?mod=post&action=newthread&fid=$_G[fid]';return false;"{/if} href="javascript:;" title="{lang send_posts}"><img src="{IMGDIR}/pn_post.png" alt="{lang send_posts}" /></a>
 	<!--{/if}-->
 	<!--{if $allowpostreply && !$_G['forum_thread']['archiveid']}-->
 		<a id="post_replytmp" onclick="showWindow('reply', 'forum.php?mod=post&action=reply&fid=$_G[fid]&tid=$_G[tid]')" href="javascript:;" title="{lang reply}"><img src="{IMGDIR}/pn_reply.png" alt="{lang reply}" /></a>
@@ -366,11 +373,16 @@ $_G['forum_tagscript']
 	<!--[diy=diy3]--><div id="diy3" class="area"></div><!--[/diy]-->
 </div>
 
-<!--{if $_G['relatedlinks']}-->
+<!--{if $_G['relatedlinks'] || $_GET['highlight']}-->
 	<script type="text/javascript">
 		var relatedlink = [];
 		<!--{loop $_G['relatedlinks'] $key $link}-->
 		relatedlink[$key] = {'sname':'$link[name]', 'surl':'$link[url]'};
+		<!--{/loop}-->
+		{eval $highlights = explode(' ', str_replace('\'', '&#039;', $_GET['highlight']));}
+		<!--{loop $highlights $word}-->
+		{eval $key++;}
+		relatedlink[$key] = {'sname':'$word', 'surl':''};
 		<!--{/loop}-->
 		relatedlinks('postmessage_$_G[forum_firstpid]');
 	</script>

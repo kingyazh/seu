@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_threadsplit.php 26205 2011-12-05 10:09:32Z zhangguosheng $
+ *      $Id: admincp_threadsplit.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -299,7 +299,7 @@ EOT;
 						$tablename = "forum_thread_$tableid";
 						$tablestatus = C::t('forum_thread')->gettablestatus($tableid);
 
-						showtablerow('', array(), array("<input class=\"radio\" ".($_GET['sourcetableid'] == $tableid ? 'disabled="disabled"' : '')." type=\"radio\" name=\"tableid\" value=\"$tableid\" />", $tablestatus['Name'].($threadtable_info[$tableid]['displayname'] ? " (".htmlspecialchars($threadtable_info[$tableid]['displayname']).")" : ''), $tablestatus['Rows'], $tablestatus['Data_length'], $tablestatus['Index_length'], $tablestatus['Create_time'], $threadtable_info[$tableid]['memo']));
+						showtablerow('', array(), array("<input class=\"radio\" ".($_GET['sourcetableid'] == $tableid ? 'disabled="disabled"' : '')." type=\"radio\" name=\"tableid\" value=\"$tableid\" />", $tablestatus['Name'].($threadtable_info[$tableid]['displayname'] ? " (".dhtmlspecialchars($threadtable_info[$tableid]['displayname']).")" : ''), $tablestatus['Rows'], $tablestatus['Data_length'], $tablestatus['Index_length'], $tablestatus['Create_time'], $threadtable_info[$tableid]['memo']));
 					}
 				}
 
@@ -361,7 +361,7 @@ EOT;
 			$completed = intval($_GET['completed']) + count($tidsarray);
 
 			$nextstep = $step + 1;
-			cpmsg('threadsplit_moving', "action=threadsplit&operation=move&{$_GET['urladd']}&tableid={$_GET['tableid']}&completed=$completed&sourcetableid={$_GET['sourcetableid']}&threadtomove={$_GET['threadtomove']}&step=$nextstep&moving=1", 'loadingform', array('count' => $completed, 'total' => intval($_GET['threadtomove']), 'threads_per_time' => $_GET['threads_per_time'], 'conditions' => htmlspecialchars($_GET['conditions'])));
+			cpmsg('threadsplit_moving', "action=threadsplit&operation=move&{$_GET['urladd']}&tableid={$_GET['tableid']}&completed=$completed&sourcetableid={$_GET['sourcetableid']}&threadtomove={$_GET['threadtomove']}&step=$nextstep&moving=1", 'loadingform', array('count' => $completed, 'total' => intval($_GET['threadtomove']), 'threads_per_time' => $_GET['threads_per_time'], 'conditions' => dhtmlspecialchars($_GET['conditions'])));
 		}
 
 		cpmsg('threadsplit_move_succeed', "action=threadsplit&operation=forumarchive", 'succeed');
@@ -384,9 +384,7 @@ EOT;
 				'posts' => $row['posts'],
 			), false, true);
 			if($row['threads'] > 0) {
-				DB::update('forum_forum', array(
-					'archive' => '1',
-				), "fid='{$row['fid']}'");
+				C::t('forum_forum')->update($row['fid'], array('archive' => '1'));
 			}
 		}
 		$nextstep = $step + 1;

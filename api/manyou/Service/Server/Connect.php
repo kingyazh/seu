@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: Connect.php 26480 2011-12-13 12:07:38Z zhouxiaobo $
+ *      $Id: Connect.php 28957 2012-03-20 12:32:24Z houdelei $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -32,7 +32,9 @@ class Cloud_Service_Server_Connect extends Cloud_Service_Server_Restful {
 			return false;
 		}
 
-		$connectData = $_G['setting']['connect'];
+		$setting = C::t('common_setting')->fetch_all(array('connect'));
+		$connectData = (array)dunserialize($setting['connect']);
+
 		if (!is_array($connectData)) {
 			$connectData = array();
 		}

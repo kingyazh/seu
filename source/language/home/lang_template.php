@@ -4,25 +4,16 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: lang_template.php 28515 2012-03-02 02:57:41Z svn_project_zhangjie $
+ *      $Id: lang_template.php 29462 2012-04-13 02:21:59Z zhengqingpeng $
  *
  *      This file is automatically generate
  */
 
 $lang = array (
-  'aim_album' => '上传到:',
   'cancel' => '取消',
   'close' => '关闭',
   'create' => '创建',
-  'create_new_album' => '创建新相册',
-  'default_album' => '默认相册',
-  'file_size' => '文件大小',
-  'filename' => '文件名',
-  'input_album_name' => '请输入相册名称',
-  'select_album' => '选择相册',
   'submit' => '提交',
-  'upload_attach' => '上传附件',
-  'upload_pic' => '上传图片',
   'accessory' => '附件',
   'activity' => '活动',
   'comefrom' => '来自',
@@ -508,6 +499,7 @@ $lang = array (
   'new_join_members' => '新加入会员',
   'newest_feed' => '最新动态',
   'no_feed' => '还没有相关动态',
+  'no_app_feed' => '还没有相关应用动态，<a href="home.php?mod=space&do=friend">添加好友能为您的在玩游戏时带来更多的互动</a>',
   'open' => '展开',
   'own' => '我在玩的',
   'profile_completed' => '您的资料已完成',
@@ -1543,8 +1535,7 @@ $lang = array (
   'video_cer_audit_manage' => '视频认证审核管理',
   'video_cer_audit_message' => '您可以进入视频认证平台，自行进行设置认证审核管理',
   'video_certification_audit' => '视频认证审核',
-  'click_pic_to_editor' => '点击图片添加到编辑器内容中',
-  'click_filename_to_article' => '点击文件名将附件添加到文章中',
+  'connect_fill_profile_to_view' => '<a href="member.php?mod=connect" target="_blank">完善帐号信息</a> <a href="member.php?mod=connect&ac=bind" target="_blank">绑定已有帐号</a>',
+  'connect_fill_profile_to_comment' => '您需要<a href="member.php?mod=connect" class="xi2">完善帐号信息</a> 或 <a href="member.php?mod=connect&ac=bind" class="xi2">绑定已有帐号</a> 后才可以留言',
 );
-
 ?>

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: post_editpost.php 28080 2012-02-22 06:44:16Z zhengqingpeng $
+ *      $Id: post_editpost.php 30010 2012-05-07 07:29:48Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -29,7 +29,7 @@ if($_G['setting']['magicstatus']) {
 
 $isfirstpost = $orig['first'] ? 1 : 0;
 $isorigauthor = $_G['uid'] && $_G['uid'] == $orig['authorid'];
-$isanonymous = $_G['group']['allowanonymous'] && getgpc('isanonymous') ? 1 : 0;
+$isanonymous = ($_G['group']['allowanonymous'] || $orig['anonymous']) && getgpc('isanonymous') ? 1 : 0;
 $audit = $orig['invisible'] == -2 || $thread['displayorder'] == -2 ? $_GET['audit'] : 0;
 
 if(empty($orig)) {
@@ -538,7 +538,7 @@ if(!submitcheck('editsubmit')) {
 					if($_G['forum_optionlist'][$optionid]['type'] == 'image') {
 						$identifier = $_G['forum_optionlist'][$optionid]['identifier'];
 						$newsortaid = intval($_GET['typeoption'][$identifier]['aid']);
-						if($newsortaid && $newsortaid != $_GET['oldsortaid'][$identifier]) {
+						if($newsortaid && $_GET['oldsortaid'][$identifier] && $newsortaid != $_GET['oldsortaid'][$identifier]) {
 							$attach = C::t('forum_attachment_n')->fetch('tid:'.$_G['tid'], $_GET['oldsortaid'][$identifier]);
 							C::t('forum_attachment')->delete($_GET['oldsortaid'][$identifier]);
 							C::t('forum_attachment_n')->delete('tid:'.$_G['tid'], $_GET['oldsortaid'][$identifier]);
@@ -794,7 +794,7 @@ if(!submitcheck('editsubmit')) {
 					showmessage('tread_please_number');
 				}
 
-				if($trade['aid'] != $_GET['tradeaid']) {
+				if($trade['aid'] && $_GET['tradeaid'] && $trade['aid'] != $_GET['tradeaid']) {
 					$attach = C::t('forum_attachment_n')->fetch('tid:'.$_G['tid'], $trade['aid']);
 					C::t('forum_attachment')->delete($trade['aid']);
 					C::t('forum_attachment_n')->delete('tid:'.$_G['tid'], $trade['aid']);
@@ -832,11 +832,13 @@ if(!submitcheck('editsubmit')) {
 		if($special == 4 && $isfirstpost && $_G['group']['allowpostactivity']) {
 			$activity = C::t('forum_activity')->fetch($_G['tid']);
 			$activityaid = $activity['aid'];
-			if($activityaid != $_GET['activityaid']) {
+			if($activityaid && $activityaid != $_GET['activityaid']) {
 				$attach = C::t('forum_attachment_n')->fetch('tid:'.$_G['tid'], $activityaid);
 				C::t('forum_attachment')->delete($activityaid);
 				C::t('forum_attachment_n')->delete('tid:'.$_G['tid'], $activityaid);
 				dunlink($attach);
+			}
+			if($_GET['activityaid']) {
 				$threadimageaid = $_GET['activityaid'];
 				convertunusedattach($_GET['activityaid'], $_G['tid'], $pid);
 				C::t('forum_activity')->update($_G['tid'], array('aid' => $_GET['activityaid']));
@@ -916,7 +918,7 @@ if(!submitcheck('editsubmit')) {
 		C::t('forum_post')->update('tid:'.$_G['tid'], $pid, $setarr);
 		if($_G['group']['allowat'] && $atlist) {
 			foreach($atlist as $atuid => $atusername) {
-				notification_add($atuid, 'at', 'at_message', array('from_id' => $_G['tid'], 'from_idtype' => 'thread', 'buyerid' => $_G['uid'], 'buyer' => $_G['username'], 'tid' => $_G['tid'], 'subject' => $thread['subject'], 'pid' => $pid, 'message' => messagecutstr($message, 150)));
+				notification_add($atuid, 'at', 'at_message', array('from_id' => $_G['tid'], 'from_idtype' => 'at', 'buyerid' => $_G['uid'], 'buyer' => $_G['username'], 'tid' => $_G['tid'], 'subject' => $thread['subject'], 'pid' => $pid, 'message' => messagecutstr($message, 150)));
 			}
 			set_atlist_cookie(array_keys($atlist));
 		}
@@ -1034,7 +1036,8 @@ if(!submitcheck('editsubmit')) {
 			foreach ($tablearray as $table) {
 				DB::query("DELETE FROM ".DB::table($table)." WHERE tid='$_G[tid]'", 'UNBUFFERED');
 			}
-			C::t('forum_thread')->delete($_G['tid']);
+			C::t('forum_thread')->delete_by_tid($_G['tid']);
+			C::t('common_moderate')->delete($_G['tid'], 'tid');
 			C::t('forum_threadmod')->delete_by_tid($_G['tid']);
 			C::t('forum_typeoptionvar')->delete_by_tid($_G['tid']);
 			if($_G['setting']['globalstick'] && in_array($thread['displayorder'], array(2, 3))) {
@@ -1096,9 +1099,11 @@ if(!submitcheck('editsubmit')) {
 			showmessage('post_edit_delete_succeed', "forum.php?mod=viewthread&tid=$_G[tid]&page=$_GET[page]&extra=$extra".($vid && $isfirstpost ? "&vid=$vid" : ''), $param);
 		} else {
 			if($isfirstpost && $modnewthreads) {
+				C::t('forum_post')->update($thread['posttableid'], $pid, array('status' => 4), false, false, null, -2, null, 0);
 				updatemoderate('tid', $_G['tid']);
 				showmessage('edit_newthread_mod_succeed', $redirecturl, $param);
 			} elseif(!$isfirstpost && $modnewreplies) {
+				C::t('forum_post')->update($thread['posttableid'], $pid, array('status' => 4), false, false, null, -2, null, 0);
 				updatemoderate('pid', $pid);
 				showmessage('edit_reply_mod_succeed', "forum.php?mod=forumdisplay&fid=$_G[fid]", $param);
 			} else {

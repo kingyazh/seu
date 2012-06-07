@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: Search.php 28302 2012-02-27 09:08:49Z yangli $
+ *      $Id: Search.php 29325 2012-04-01 09:17:16Z zhouxiaobo $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -207,9 +207,11 @@ class Cloud_Service_Server_Search extends Cloud_Service_Server_Restful {
 	protected function _getNewPosts($tableid, $num, $fromPostId = 0) {
 
 		$result = array();
-		foreach(C::t('forum_post')->fetch_all_new_post_by_pid($fromPostId, '', $num, $tableid) as $post) {
-			$result['maxPid'] = $post['pid'];
-			$result['data'][$post['pid']] = Cloud_Service_SearchHelper::convertPost($post);
+		if (dintval($num)) {
+			foreach(C::t('forum_post')->fetch_all_new_post_by_pid($fromPostId, '', $num, $tableid) as $post) {
+				$result['maxPid'] = $post['pid'];
+				$result['data'][$post['pid']] = Cloud_Service_SearchHelper::convertPost($post);
+			}
 		}
 
 		return $result;
@@ -459,20 +461,23 @@ class Cloud_Service_Server_Search extends Cloud_Service_Server_Restful {
 	}
 
 	protected function _getAllPosts($tableid, $num, $pId = 0, $orderType = 'ASC') {
-		if (strtoupper($orderType) == 'DESC') {
-			$glue = '<';
-			$key = 'minPid';
-		} else {
-			$orderType = 'ASC';
-			$glue = '>';
-			$key = 'maxPid';
-		}
 		$result = array();
-		$tIds = $authors = array();
-		foreach(C::t('forum_post')->fetch_all_new_post_by_pid($pId, 0, $num, $tableid, $glue, $orderType) as $post) {
-			$result[$key] = $post['pid'];
-			$result['data'][$post['pid']] = Cloud_Service_SearchHelper::convertPost($post);
+		if (dintval($num)) {
+			if (strtoupper($orderType) == 'DESC') {
+				$glue = '<';
+				$key = 'minPid';
+			} else {
+				$orderType = 'ASC';
+				$glue = '>';
+				$key = 'maxPid';
+			}
+			$tIds = $authors = array();
+			foreach(C::t('forum_post')->fetch_all_new_post_by_pid($pId, 0, $num, $tableid, $glue, $orderType) as $post) {
+				$result[$key] = $post['pid'];
+				$result['data'][$post['pid']] = Cloud_Service_SearchHelper::convertPost($post);
+			}
 		}
+
 		return $result;
 	}
 
@@ -555,8 +560,8 @@ class Cloud_Service_Server_Search extends Cloud_Service_Server_Restful {
 				$ids['thread'][] = $thread['tid'];
 				$deleteThreads[$thread['tid']] = array('tId' => $thread['tid'],
 													   'action' => $thread['action'],
-										 			   'updated' => dgmdate($thread['dateline'], 'Y-m-d H:i:s', 8),
-										              );
+													   'updated' => dgmdate($thread['dateline'], 'Y-m-d H:i:s', 8),
+													  );
 			} elseif (in_array($thread['action'], array('banuser', 'unbanuser', 'deluser'))) {
 				$ids['user'][] = $thread['uid'];
 				$expiry = 0;
@@ -955,6 +960,11 @@ class Cloud_Service_Server_Search extends Cloud_Service_Server_Restful {
 		}
 
 		foreach($data as $k => $v) {
+			if (substr($k, 0, strlen('hotWordChangedFId_')) == 'hotWordChangedFId_') {
+				$hotWordChangedFId = dintval(substr($k, strlen('hotWordChangedFId_')));
+				C::t('common_syscache')->delete('search_recommend_words_' . $hotWordChangedFId);
+				continue;
+			}
 			$searchData[$k] = $v;
 		}
 
@@ -969,10 +979,51 @@ class Cloud_Service_Server_Search extends Cloud_Service_Server_Restful {
 		global $_G;
 		$maps = array(
 					'hotWords' => 'srchhotkeywords',
+					'maxThreadPostId' => 'NON-SETTING',
+					'rewrite' => 'rewrite',
+					'domain' => 'domain',
+					'mySearchData' => 'my_search_data',
 					);
 		$confs = array();
 		foreach($keys as $key) {
 			if ($fieldName = $maps[$key]) {
+				if ($key == 'maxThreadPostId') {
+					$confs[$key] = $this->_getMaxDataItem();
+					continue;
+				}
+
+				if ($key == 'domain') {
+					$conf = array();
+					if ($_G['setting']['domain']) {
+						if ($_G['setting']['domain']['list']) {
+							foreach($_G['setting']['domain']['list'] as $k => $v) {
+								$conf['subDomain'][$k]['id'] = $v['id'];
+								$conf['subDomain'][$k]['type'] = $v['idtype'];
+							}
+						}
+						$conf['moduleDomain'] = $_G['setting']['domain']['app'];
+					}
+					$confs[$key] = $conf;
+					continue;
+				}
+
+				if ($key == 'rewrite') {
+					$conf = array();
+					if ($_G['setting']['rewritestatus'] && $_G['setting']['rewriterule']) {
+						$conf['compatible'] = $_G['setting']['rewritecompatible'] ? true : false;
+						foreach($_G['setting']['rewriterule'] as $mod => $rule) {
+							$conf['modules'][$mod]['rule'] = $rule;
+							if (in_array($mod, $_G['setting']['rewritestatus'])) {
+								$conf['modules'][$mod]['status'] = true;
+							} else {
+								$conf['modules'][$mod]['status'] = false;
+							}
+						}
+					}
+					$confs[$key] = $conf;
+					continue;
+				}
+
 				$confs[$key] = $_G['setting'][$fieldName];
 			}
 		}
@@ -1016,4 +1067,14 @@ class Cloud_Service_Server_Search extends Cloud_Service_Server_Restful {
 		return true;
 	}
 
+	public function _getMaxDataItem() {
+
+		$threadTableInfo = C::t('forum_thread')->gettablestatus();
+		$maxTId = $threadTableInfo['Auto_increment'] - 1;
+
+		$maxPId = C::t('forum_post_tableid')->fetch_max_id();
+		$maxPId = intval($maxPId);
+
+		return array('maxThreadId' => $maxTId, 'maxPostId' => $maxPId);
+	}
 }

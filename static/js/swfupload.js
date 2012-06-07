@@ -2,7 +2,7 @@
 	[Discuz!] (C)2001-2099 Comsenz Inc.
 	This is NOT a freeware, use is subject to license terms
 
-	$Id: swfupload.js 25940 2011-11-25 09:54:54Z monkey $
+	$Id: swfupload.js 28981 2012-03-21 06:43:44Z zhengqingpeng $
 */
 
 var SWFUpload;
@@ -143,8 +143,8 @@ SWFUpload.prototype.initSettings = function (userSettings) {
 	this.ensureDefault("file_upload_limit", 0);
 	this.ensureDefault("file_queue_limit", 0);
 
-	this.ensureDefault("flash_url", "swfupload.swf");
-	this.ensureDefault("flash9_url", "swfupload_fp9.swf");
+	this.ensureDefault("flash_url", IMGDIR+"/swfupload.swf");
+	this.ensureDefault("flash9_url", IMGDIR+"/swfupload.swf");
 	this.ensureDefault("prevent_swf_caching", true);
 
 	this.ensureDefault("button_image_url", "");
@@ -206,7 +206,7 @@ SWFUpload.prototype.initSettings = function (userSettings) {
 SWFUpload.prototype.loadSupport = function () {
 	this.support = {
 		loading : swfobject.hasFlashPlayerVersion("9.0.28"),
-		imageResize : swfobject.hasFlashPlayerVersion("10.0.0")
+		imageResize : false
 	};
 
 };
@@ -264,13 +264,17 @@ SWFUpload.prototype.loadFlash = function () {
 };
 
 SWFUpload.prototype.getFlashHTML = function (flashVersion) {
-	return ['<object id="', this.movieName, '" type="application/x-shockwave-flash" data="', (this.support.imageResize ? this.settings.flash_url : this.settings.flash9_url), '" width="', this.settings.button_width, '" height="', this.settings.button_height, '" class="swfupload">',
-				'<param name="wmode" value="', this.settings.button_window_mode, '" />',
-				'<param name="movie" value="', (this.support.imageResize ? this.settings.flash_url : this.settings.flash9_url), '" />',
-				'<param name="quality" value="high" />',
-				'<param name="allowScriptAccess" value="always" />',
-				'<param name="flashvars" value="' + this.getFlashVars() + '" />',
-				'</object>'].join("");
+	if(BROWSER.ie && !BROWSER.opera) {
+		return AC_FL_RunContent('id', this.movieName, 'width', this.settings.button_width, 'height', this.settings.button_height, 'src', this.settings.flash_url, 'quality', 'high', 'wmode', this.settings.button_window_mode, 'flashvars', this.getFlashVars());
+	} else {
+		return ['<object id="', this.movieName, '" type="application/x-shockwave-flash" data="', (this.support.imageResize ? this.settings.flash_url : this.settings.flash9_url), '" width="', this.settings.button_width, '" height="', this.settings.button_height, '" class="swfupload">',
+					'<param name="wmode" value="', this.settings.button_window_mode, '" />',
+					'<param name="movie" value="', (this.support.imageResize ? this.settings.flash_url : this.settings.flash9_url), '" />',
+					'<param name="quality" value="high" />',
+					'<param name="allowScriptAccess" value="always" />',
+					'<param name="flashvars" value="' + this.getFlashVars() + '" />',
+					'</object>'].join("");
+	}
 };
 
 SWFUpload.prototype.getFlashVars = function () {

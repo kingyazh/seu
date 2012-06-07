@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: post_newthread.php 28273 2012-02-27 03:29:06Z zhengqingpeng $
+ *      $Id: post_newthread.php 30010 2012-05-07 07:29:48Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -124,7 +124,7 @@ if(!submitcheck('topicsubmit', 0, $seccodecheck, $secqaacheck)) {
 } else {
 
 	if(trim($subject) == '') {
-		$subject = cutstr($message, 75, '');
+		showmessage('post_sm_isnull');
 	}
 
 	if(!$sortid && !$special && trim($message) == '') {
@@ -421,7 +421,9 @@ if(!submitcheck('topicsubmit', 0, $seccodecheck, $secqaacheck)) {
 	}
 
 
-	C::t('common_member_field_home')->update($_G['uid'], array('recentnote'=>$subject));
+	if(!$isanonymous) {
+		C::t('common_member_field_home')->update($_G['uid'], array('recentnote'=>$subject));
+	}
 
 	if($special == 3 && $_G['group']['allowpostreward']) {
 		updatemembercount($_G['uid'], array($_G['setting']['creditstransextra'][2] => -$realprice), 1, 'RTC', $tid);
@@ -483,7 +485,7 @@ if(!submitcheck('topicsubmit', 0, $seccodecheck, $secqaacheck)) {
 		foreach($_G['forum_optiondata'] as $optionid => $value) {
 			if($value) {
 				$filedname .= $separator.$_G['forum_optionlist'][$optionid]['identifier'];
-				$valuelist .= $separator."'$value'";
+				$valuelist .= $separator."'".daddslashes($value)."'";
 				$separator = ' ,';
 			}
 
@@ -590,7 +592,7 @@ if(!submitcheck('topicsubmit', 0, $seccodecheck, $secqaacheck)) {
 	));
 	if($_G['group']['allowat'] && $atlist) {
 		foreach($atlist as $atuid => $atusername) {
-			notification_add($atuid, 'at', 'at_message', array('from_id' => $tid, 'from_idtype' => 'thread', 'buyerid' => $_G['uid'], 'buyer' => $_G['username'], 'tid' => $tid, 'subject' => $subject, 'pid' => $pid, 'message' => messagecutstr($message, 150)));
+			notification_add($atuid, 'at', 'at_message', array('from_id' => $tid, 'from_idtype' => 'at', 'buyerid' => $_G['uid'], 'buyer' => $_G['username'], 'tid' => $tid, 'subject' => $subject, 'pid' => $pid, 'message' => messagecutstr($message, 150)));
 		}
 		set_atlist_cookie(array_keys($atlist));
 	}
@@ -792,8 +794,7 @@ if(!submitcheck('topicsubmit', 0, $seccodecheck, $secqaacheck)) {
 		}
 
 		if($_G['forum']['status'] == 3) {
-			require_once libfile('function/group');
-			updateactivity($_G['fid'], 0);
+			C::t('forum_forumfield')->update($_G['fid'], array('lastupdate' => TIMESTAMP));
 			require_once libfile('function/grouplog');
 			updategroupcreditlog($_G['fid'], $_G['uid']);
 		}

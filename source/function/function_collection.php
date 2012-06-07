@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_collection.php 28314 2012-02-28 02:18:56Z chenmengshu $
+ *      $Id: function_collection.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -91,7 +91,7 @@ function collectionThread(&$threadlist, $foruminfo = false, $lastvisit = null, &
 		}
 		$curvalue['istoday'] = $curvalue['dateline'] > $todaytime ? 1 : 0;
 		$curvalue['dbdateline'] = $curvalue['dateline'];
-		$curvalue['htmlsubject'] = htmlspecialchars($curvalue['subject']);
+		$curvalue['htmlsubject'] = dhtmlspecialchars($curvalue['subject']);
 		$curvalue['cutsubject'] = $curvalue['subject'];
 		$curvalue['dateline'] = dgmdate($curvalue['dateline'], 'u', '9999', getglobal('setting/dateformat'));
 		$curvalue['dblastpost'] = $curvalue['lastpost'];

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_usergroups.php 28450 2012-03-01 04:28:10Z monkey $
+ *      $Id: admincp_usergroups.php 29284 2012-03-31 09:42:04Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -585,13 +585,15 @@ EOT;
 		)), $group['allowposturl'], 'mradio');
 		showsetting('usergroups_edit_basic_allow_statdata', 'allowstatdatanew', $group['allowstatdata'], 'radio');
 		showsetting('usergroups_edit_basic_search_post', 'allowfulltextnew', $group['allowsearch'] & 32, 'radio');
-		$group['allowsearch'] = $group['allowsearch'] > 32 ? $group['allowsearch'] - 32 : $group['allowsearch'];
+		$group['allowsearch'] = $group['allowsearch'] > 128 ? $group['allowsearch'] - 128 : $group['allowsearch'];
 		showsetting('usergroups_edit_basic_search', array('allowsearchnew', array(
 			cplang('setting_search_status_portal'),
 			cplang('setting_search_status_forum'),
 			cplang('setting_search_status_blog'),
 			cplang('setting_search_status_album'),
-			cplang('setting_search_status_group')
+			cplang('setting_search_status_group'),
+			false,
+			cplang('setting_search_status_collection')
 		)), $group['allowsearch'], 'binmcheckbox');
 		showsetting('usergroups_edit_basic_reasonpm', array('reasonpmnew', array(
 			array(0, $lang['usergroups_edit_basic_reasonpm_none']),
@@ -1041,7 +1043,7 @@ EOT;
 			'allowgetimage' => $_GET['allowgetimagenew'],
 			'allowpostattach' => $_GET['allowpostattachnew'],
 			'allowvote' => $_GET['allowvotenew'],
-			'allowsearch' => bindec(intval($_GET['allowfulltextnew']).intval($_GET['allowsearchnew'][5]).intval($_GET['allowsearchnew'][4]).intval($_GET['allowsearchnew'][3]).intval($_GET['allowsearchnew'][2]).intval($_GET['allowsearchnew'][1])),
+			'allowsearch' => bindec(intval($_GET['allowsearchnew'][7]).intval($_GET['allowfulltextnew']).intval($_GET['allowsearchnew'][5]).intval($_GET['allowsearchnew'][4]).intval($_GET['allowsearchnew'][3]).intval($_GET['allowsearchnew'][2]).intval($_GET['allowsearchnew'][1])),
 			'allowcstatus' => $_GET['allowcstatusnew'],
 			'allowinvisible' => $_GET['allowinvisiblenew'],
 			'allowtransfer' => $_GET['allowtransfernew'],
@@ -1207,12 +1209,13 @@ EOT;
 		$gids = $comma = '';
 		if(is_array($_GET['target']) && count($_GET['target'])) {
 			foreach($_GET['target'] as $key => $gid) {
-				if(!(($fid = intval($gid)) && $gid != $source )) {
+				$_GET['target'][$key] = intval($gid);
+				if(empty($_GET['target'][$key]) || $_GET['target'][$key] == $source) {
 					unset($_GET['target'][$key]);
 				}
 			}
 		}
-		if(empty($gids)) {
+		if(empty($_GET['target'])) {
 			cpmsg('usergroups_copy_target_invalid', '', 'error');
 		}
 

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: cloud_siteinfo.php 26116 2011-12-02 04:09:00Z yexinhao $
+ *      $Id: cloud_siteinfo.php 29273 2012-03-31 07:58:50Z yexinhao $
  */
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
 	exit('Access Denied');

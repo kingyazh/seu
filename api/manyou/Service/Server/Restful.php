@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: Restful.php 27794 2012-02-14 10:08:25Z wangjinghui $
+ *      $Id: Restful.php 29263 2012-03-31 05:45:08Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -389,7 +389,7 @@ abstract class Cloud_Service_Server_Restful {
 	}
 
 
-	function refreshApplication($appId, $appName, $version, $userPanelArea, $canvasTitle, $isFullscreen, $displayUserPanel, $displayMethod, $narrow, $flag, $displayOrder, $additionalStatus) {
+	public function refreshApplication($appId, $appName, $version, $userPanelArea, $canvasTitle, $isFullscreen, $displayUserPanel, $displayMethod, $narrow, $flag, $displayOrder, $additionalStatus) {
 		global $_G;
 
 		$fields = array();
@@ -453,7 +453,7 @@ abstract class Cloud_Service_Server_Restful {
 		return $result;
 	}
 
-	function getUsers($uIds, $spaces = array(), $isReturnSpaceField = true, $isExtra = true, $isReturnFriends = false, $friendNum = 500, $isOnlyReturnFriendId = false, $isFriendIdKey = false) {
+	public function getUsers($uIds, $spaces = array(), $isReturnSpaceField = true, $isExtra = true, $isReturnFriends = false, $friendNum = 500, $isOnlyReturnFriendId = false, $isFriendIdKey = false) {
 		if (!$uIds) {
 			return array();
 		}
@@ -526,7 +526,7 @@ abstract class Cloud_Service_Server_Restful {
 		return $users;
 	}
 
-	function getExtraByUsers($uIds) {
+	public function getExtraByUsers($uIds) {
 		if (!$uIds) {
 			return array();
 		}

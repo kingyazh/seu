@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: viewthread.php 28022 2012-02-21 03:27:54Z congyushuai $
+ *      $Id: viewthread.php 30144 2012-05-14 08:38:01Z monkey $
  */
 
 if(!defined('IN_MOBILE_API')) {
@@ -21,10 +21,18 @@ class mobile_api {
 
 	function output() {
 		global $_G;
+		if($GLOBALS['hiddenreplies']) {
+			foreach($GLOBALS['postlist'] as $k => $post) {
+				if(!$post['first'] && $_G['uid'] != $post['authorid'] && $_G['uid'] != $_G['forum_thread']['authorid'] && !$_G['forum']['ismoderator']) {
+					$GLOBALS['postlist'][$k]['message'] = '';
+					$GLOBALS['postlist'][$k]['attachments'] = array();
+				}
+			}
+		}
 		$variable = array(
 			'thread' => mobile_core::getvalues($_G['thread'], array('tid', 'author', 'authorid', 'subject', 'views', 'replies', 'attachment', 'price', 'freemessage')),
 			'fid' => $_G['fid'],
-			'postlist' => array_values(mobile_core::getvalues($GLOBALS['postlist'], array('/^\d+$/'), array('pid', 'tid', 'author', 'first', 'dbdateline', 'dateline', 'useip', 'username', 'adminid', 'email', 'memberstatus', 'authorid', 'username', 'groupid', 'memberstatus', 'status', 'message', 'number', 'memberstatus', 'groupid', 'attachment', 'attachments', 'attachlist', 'imagelist'))),
+			'postlist' => array_values(mobile_core::getvalues($GLOBALS['postlist'], array('/^\d+$/'), array('pid', 'tid', 'author', 'first', 'dbdateline', 'dateline', 'useip', 'username', 'adminid', 'email', 'memberstatus', 'authorid', 'username', 'groupid', 'memberstatus', 'status', 'message', 'number', 'memberstatus', 'groupid', 'attachment', 'attachments', 'attachlist', 'imagelist', 'anonymous'))),
 			'ppp' => $_G['ppp'],
 			'setting_rewriterule' => $_G['setting']['rewriterule'],
 			'setting_rewritestatus' => $_G['setting']['rewritestatus'],
@@ -35,7 +43,7 @@ class mobile_api {
 			$variable['$postlist'][$k]['attachments'] = array_values(mobile_core::getvalues($v['attachments'], array('/^\d+$/'), array('aid', 'tid', 'uid', 'dbdateline', 'dateline', 'filename', 'filesize', 'url', 'attachment', 'remote', 'description', 'readperm', 'price', 'width', 'thumb', 'picid', 'ext', 'imgalt', 'attachsize', 'payed', 'downloads')));
 		}
 
-		$variable['forum']['password'] = $variable['forum']['password'] ? 1 : 0;
+		$variable['forum']['password'] = $variable['forum']['password'] ? '1' : '0';
 		mobile_core::result(mobile_core::variable($variable));
 	}
 

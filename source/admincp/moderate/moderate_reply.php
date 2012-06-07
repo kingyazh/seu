@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: moderate_reply.php 28113 2012-02-22 09:25:55Z svn_project_zhangjie $
+ *      $Id: moderate_reply.php 30465 2012-05-30 04:10:03Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -74,8 +74,7 @@ if(!submitcheck('modsubmit') && !$_GET['fast']) {
 		$sqlwhere .= " AND t.subject LIKE '%{$_GET['title']}%'";
 	}
 	if($modfid > 0) {
-		$fidadd['and'] = ' AND';
-		$fidadd['fids'] = " p.fid='$modfid'";
+		$fidadd['fids'] = $modfid;
 	}
 
 	$modcount = C::t('common_moderate')->count_by_search_for_post(getposttable($posttable), $moderatestatus, 0, ($modfid > 0 ? $modfid : 0), $_GET['username'], (($dateline &&  $dateline != 'all') ? (TIMESTAMP - $dateline) : null), $_GET['title'], ($modfid == -1 ? 1 : 0));
@@ -167,7 +166,7 @@ if(!submitcheck('modsubmit') && !$_GET['fast']) {
 			$invisible = '-2';
 		}
 		if($modfid > 0) {
-			$fid = $modfid;
+			$modfid = $modfid;
 		}
 		if(!empty($_GET['dateline']) && $_GET['dateline'] != 'all') {
 			$starttime = $_GET['dateline'];
@@ -179,7 +178,7 @@ if(!submitcheck('modsubmit') && !$_GET['fast']) {
 			$title = str_replace(array('_', '%'), array('\_', '\%'), $_GET['title']);
 			$keywords = $title;
 		}
-		foreach(C::t('forum_post')->fetch_all_by_search($posttable, null, $keywords, $invisible, $fid, null, $author, $starttime, null, null, $first) as $post) {
+		foreach(C::t('forum_post')->fetch_all_by_search($posttable, null, $keywords, $invisible, $modfid, null, $author, $starttime, null, null, $first) as $post) {
 			switch($apply_all_action) {
 				case 'validate':
 					$moderation['validate'][] = $post['pid'];
@@ -201,7 +200,7 @@ if(!submitcheck('modsubmit') && !$_GET['fast']) {
 	if($deletepids = dimplode($moderation['delete'])) {
 		$pids = $recyclebinpids = array();
 		foreach(C::t('forum_post')->fetch_all($posttable, $moderation['delete']) as $post) {
-			if($post['invisilbe'] != $displayorder || $post['first'] != 0 || ($fidadd['fids'] && $post['fid'] != $fidadd['fids'])) {
+			if($post['invisible'] != $displayorder || $post['first'] != 0 || ($fidadd['fids'] && $post['fid'] != $fidadd['fids'])) {
 				continue;
 			}
 			if($recyclebins[$post['fid']]) {
@@ -210,7 +209,7 @@ if(!submitcheck('modsubmit') && !$_GET['fast']) {
 				$pids[] = $post['pid'];
 			}
 			$pm = 'pm_'.$post['pid'];
-			if(isset($_GET[''.$pm]) && $_GET[''.$pm] <> '' && $post['authorid']) {
+			if($post['authorid'] && $post['authorid'] != $_G['uid']) {
 				$pmlist[] = array(
 					'action' => 'modreplies_delete',
 					'notevar' => array('pid' => $post['pid'], 'post' => dhtmlspecialchars(cutstr($post['message'], 30)), 'reason' => dhtmlspecialchars($_GET[''.$pm])),
@@ -218,13 +217,11 @@ if(!submitcheck('modsubmit') && !$_GET['fast']) {
 				);
 			}
 		}
-
+		require_once libfile('function/delete');
 		if($recyclebinpids) {
-			C::t('forum_post')->update($posttable, $recyclebinpids, array('invisible' => -5));
+			deletepost($recyclebinpids, 'pid', false, $posttable, true);
 		}
-
 		if($pids) {
-			require_once libfile('function/delete');
 			$deletes = deletepost($pids, 'pid', false, $posttable);
 		}
 		$deletes += count($recyclebinpids);
@@ -269,10 +266,10 @@ if(!submitcheck('modsubmit') && !$_GET['fast']) {
 			}
 
 			$pm = 'pm_'.$post['pid'];
-			if(isset($_GET[''.$pm]) && $_GET[''.$pm] <> '' && $post['authorid']) {
+			if($post['authorid'] && $post['authorid'] != $_G['uid']) {
 				$pmlist[] = array(
 					'action' => 'modreplies_validate',
-					'notevar' => array('pid' => $post['pid'], 'tid' => $post['tid'], 'post' => dhtmlspecialchars(cutstr($post['message'], 30)), 'reason' => dhtmlspecialchars($_GET[''.$pm])),
+					'notevar' => array('pid' => $post['pid'], 'tid' => $post['tid'], 'post' => dhtmlspecialchars(cutstr($post['message'], 30)), 'reason' => dhtmlspecialchars($_GET[''.$pm]), 'from_id' => 0, 'from_idtype' => 'modreplies'),
 					'authorid' => $post['authorid'],
 				);
 			}
@@ -288,9 +285,7 @@ if(!submitcheck('modsubmit') && !$_GET['fast']) {
 		}
 
 		if(!empty($pidarray)) {
-			$pidarray[] = 0;
 			C::t('forum_post')->update($posttable, $pidarray, array('status' => 4), false, false, null, -2, null, 0);
-			$pidarray[] = 0;
 			$validates = C::t('forum_post')->update($posttable, $pidarray, array('invisible' => 0));
 			updatemodworks('MOD', $validates);
 			updatemoderate('pid', $pidarray, 2);

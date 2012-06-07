@@ -3,7 +3,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: portalcp_portalblock.php 26675 2011-12-19 09:49:59Z zhangguosheng $
+ *      $Id: portalcp_portalblock.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -13,7 +13,7 @@ if(!defined('IN_DISCUZ')) {
 require_once libfile('function/block');
 $op = in_array($_GET['op'], array('recommend', 'getblocklist', 'verifydata', 'verifieddata')) ? $_GET['op'] : 'getblocklist';
 $initemdata = $op === 'verifydata' || $op === 'verifieddata' ? true : false;
-$_GET['idtype'] = htmlspecialchars($_GET['idtype']);
+$_GET['idtype'] = dhtmlspecialchars($_GET['idtype']);
 $_GET['id'] = intval($_GET['id']);
 
 $allowdiy = checkperm('allowdiy');

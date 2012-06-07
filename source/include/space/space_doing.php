@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: space_doing.php 25246 2011-11-02 03:34:53Z zhangguosheng $
+ *      $Id: space_doing.php 29155 2012-03-27 10:39:12Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -57,7 +57,7 @@ if($_GET['view'] == 'all') {
 
 	if($_GET['from'] == 'space') $diymode = 1;
 
-	$uids = array($space['uid']);
+	$uids = $_GET['highlight'] ? array() : array($space['uid']);
 }
 $actives = array($_GET['view'] =>' class="a"');
 

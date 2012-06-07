@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: Storage.php 27666 2012-02-09 05:33:43Z songlixin $
+ *      $Id: Storage.php 29263 2012-03-31 05:45:08Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -31,8 +31,8 @@ class Cloud_Service_Server_Storage extends Cloud_Service_Server_Restful {
 						'svalue' => $data['xf_storage_enc_key'],
 					);
 			C::t('common_setting')->insert($insert, 0, 1);
-	        return true;
-	    }
-	    return false;
+			return true;
+		}
+		return false;
 	}
 }

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: home_medal.php 28297 2012-02-27 08:35:59Z monkey $
+ *      $Id: home_medal.php 28887 2012-03-16 10:17:38Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -73,17 +73,13 @@ if(empty($_GET['action'])) {
 	}
 
 	$applysucceed = FALSE;
-	if(!$medal['price']) {
-		$medalpermission = $medal['permission'] ? dunserialize($medal['permission']) : '';
-		if($medalpermission[0] || $medalpermission['usergroupallow']) {
-			include libfile('function/forum');
-			medalformulaperm(serialize(array('medal' => $medalpermission)), 1);
+	$medalpermission = $medal['permission'] ? dunserialize($medal['permission']) : '';
+	if($medalpermission[0] || $medalpermission['usergroupallow']) {
+		include libfile('function/forum');
+		medalformulaperm(serialize(array('medal' => $medalpermission)), 1);
 
-			if($_G['forum_formulamessage']) {
-				showmessage('medal_permforum_nopermission', 'home.php?mod=medal', array('formulamessage' => $_G['forum_formulamessage'], 'usermsg' => $_G['forum_usermsg']));
-			} else {
-				$applysucceed = TRUE;
-			}
+		if($_G['forum_formulamessage']) {
+			showmessage('medal_permforum_nopermission', 'home.php?mod=medal', array('formulamessage' => $_G['forum_formulamessage'], 'usermsg' => $_G['forum_usermsg']));
 		} else {
 			$applysucceed = TRUE;
 		}

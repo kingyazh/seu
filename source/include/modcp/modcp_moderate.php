@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: modcp_moderate.php 27999 2012-02-20 09:39:40Z monkey $
+ *      $Id: modcp_moderate.php 30465 2012-05-30 04:10:03Z zhengqingpeng $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_MODCP')) {
@@ -41,18 +41,17 @@ if($op == 'members') {
 			include template('forum/modcp_moderate_float');
 			dexit();
 
-		} elseif ($uids = dimplode($list)) {
+		} elseif ($uids = $list) {
 
 			$members = $uidarray = array();
 
 
 			$member_validate = C::t('common_member_validate')->fetch_all($uids);
 			foreach(C::t('common_member')->fetch_all($uids, false, 0) as $uid => $member) {
-				if($member['groupid'] == 8 && $member['status'] == '$filter') {
+				if($member['groupid'] == 8 && $member['status'] == $filter) {
 					$members[$uid] = array_merge((array)$member_validate[$uid], $member);
 				}
 			}
-
 			if(($uids = array_keys($members))) {
 
 				$reason = dhtmlspecialchars(trim($_GET['reason']));
@@ -62,7 +61,6 @@ if($op == 'members') {
 				}
 
 				if($_GET['modact'] == 'validate') {
-
 					C::t('common_member')->update($uids, array('adminid' => '0', 'groupid' => $_G['setting']['newusergroupid']));
 					C::t('common_member_validate')->delete($uids);
 				}
@@ -238,7 +236,7 @@ if($op == 'replies') {
 				} else {
 					$pids[] = $post['pid'];
 				}
-				if($_GET['reason'] != '' && $post['authorid'] && $post['authorid'] != $_G['uid']) {
+				if($post['authorid'] && $post['authorid'] != $_G['uid']) {
 					$pmlist[] = array(
 						'act' => 'modreplies_delete',
 						'notevar' => array('reason' => dhtmlspecialchars($_GET['reason']), 'post' => messagecutstr($post['message'], 30)),
@@ -276,7 +274,11 @@ if($op == 'replies') {
 				$post['lastpost'] = $threadlist[$post['tid']]['lastpost'];
 				$repliesmod ++;
 				$pidarray[] = $post['pid'];
-				updatepostcredits('+', $post['authorid'], 'reply', $post['fid']);
+				if(getstatus($post['status'], 3) == 0) {
+					updatepostcredits('+', $post['authorid'], 'reply', $post['fid']);
+					$attachcount = C::t('forum_attachment_n')->count_by_id('tid:'.$post['tid'], 'pid', $post['pid']);
+					updatecreditbyaction('postattach', $post['authorid'], array(), '', $attachcount, 1, $post['fid']);
+				}
 
 				$threads[$post['tid']]['posts']++;
 
@@ -289,10 +291,10 @@ if($op == 'replies') {
 				}
 
 				$pm = 'pm_'.$post['pid'];
-				if($_GET['reason'] != '' && $post['authorid'] && $post['authorid'] != $_G['uid']) {
+				if($post['authorid'] && $post['authorid'] != $_G['uid']) {
 					$pmlist[] = array(
 						'act' => 'modreplies_validate',
-						'notevar' => array('reason' => dhtmlspecialchars($_GET['reason']), 'pid' => $post['pid'], 'tid' => $post['tid'], 'post' => messagecutstr($post['message'], 30)),
+						'notevar' => array('reason' => dhtmlspecialchars($_GET['reason']), 'pid' => $post['pid'], 'tid' => $post['tid'], 'post' => messagecutstr($post['message'], 30), 'from_id' => 0, 'from_idtype' => 'modreplies'),
 						'authorid' => $post['authorid'],
 					);
 				}
@@ -402,7 +404,7 @@ if($op == 'replies') {
 					$deletetids[] = $thread['tid'];
 				}
 
-				if($_GET['reason'] != '' && $thread['authorid'] && $thread['authorid'] != $_G['uid']) {
+				if($thread['authorid'] && $thread['authorid'] != $_G['uid']) {
 					$pmlist[] = array(
 						'act' => 'modthreads_delete',
 						'notevar' => array('reason' => dhtmlspecialchars($_GET['reason']), 'threadsubject' => $thread['subject']),
@@ -429,13 +431,19 @@ if($op == 'replies') {
 			$tids = $moderatedthread = array();
 			foreach(C::t('forum_thread')->fetch_all_by_tid_displayorder($moderation['validate'], $pstat, '=', ($modfids ? explode(',', $modfids) : null)) as $thread) {
 				$tids[] = $thread['tid'];
-				updatepostcredits('+', $thread['authorid'], 'post', $thread['fid']);
+				$poststatus = C::t('forum_post')->fetch_threadpost_by_tid_invisible($thread['tid']);
+				$poststatus = $poststatus['status'];
+				if(getstatus($poststatus, 3) == 0) {
+					updatepostcredits('+', $thread['authorid'], 'post', $thread['fid']);
+					$attachcount = C::t('forum_attachment_n')->count_by_id('tid:'.$thread['tid'], 'tid', $thread['tid']);
+					updatecreditbyaction('postattach', $thread['authorid'], array(), '', $attachcount, 1, $thread['fid']);
+				}
 				$validatedthreads[] = $thread;
 
-				if($_GET['reason'] != '' && $thread['authorid'] && $thread['authorid'] != $_G['uid']) {
+				if($thread['authorid'] && $thread['authorid'] != $_G['uid']) {
 					$pmlist[] = array(
 						'act' => 'modthreads_validate',
-						'notevar' => array('reason' => dhtmlspecialchars($_GET['reason']), 'tid' => $thread['tid'], 'threadsubject' => $thread['subject']),
+						'notevar' => array('reason' => dhtmlspecialchars($_GET['reason']), 'tid' => $thread['tid'], 'threadsubject' => $thread['subject'], 'from_id' => 0, 'from_idtype' => 'modthreads'),
 						'authorid' => $thread['authorid'],
 					);
 				}

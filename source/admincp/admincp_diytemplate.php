@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_diytemplate.php 27332 2012-01-16 09:24:24Z zhangguosheng $
+ *      $Id: admincp_diytemplate.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
@@ -31,7 +31,7 @@ if($operation == 'list') {
 	$likekeys = array('targettplname', 'primaltplname', 'username', 'name');
 	$results = getwheres($intkeys, $strkeys, $randkeys, $likekeys);
 	foreach($likekeys as $k) {
-		$_GET[$k] = htmlspecialchars($_GET[$k]);
+		$_GET[$k] = dhtmlspecialchars($_GET[$k]);
 	}
 	$wherearr = $results['wherearr'];
 	$mpurl = ADMINSCRIPT.'?action=diytemplate';

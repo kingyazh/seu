@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: notify_trade.php 25246 2011-11-02 03:34:53Z zhangguosheng $
+ *      $Id: notify_trade.php 29236 2012-03-30 05:34:47Z chenmengshu $
  */
 
 define('IN_API', true);
@@ -20,7 +20,7 @@ $apitype = empty($_GET['attach']) || !preg_match('/^[a-z0-9]+$/i', $_GET['attach
 require_once DISCUZ_ROOT.'./api/trade/api_' . $apitype . '.php';
 
 $PHP_SELF = $_SERVER['PHP_SELF'];
-$_G['siteurl'] = htmlspecialchars('http://'.$_SERVER['HTTP_HOST'].preg_replace("/\/+(api\/trade)?\/*$/i", '', substr($PHP_SELF, 0, strrpos($PHP_SELF, '/'))).'/');
+$_G['siteurl'] = dhtmlspecialchars('http://'.$_SERVER['HTTP_HOST'].preg_replace("/\/+(api\/trade)?\/*$/i", '', substr($PHP_SELF, 0, strrpos($PHP_SELF, '/'))).'/');
 
 $notifydata = trade_notifycheck('trade');
 

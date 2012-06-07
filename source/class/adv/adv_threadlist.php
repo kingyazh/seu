@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: adv_threadlist.php 25246 2011-11-02 03:34:53Z zhangguosheng $
+ *      $Id: adv_threadlist.php 29052 2012-03-23 09:07:40Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -94,7 +94,7 @@ class adv_threadlist {
 	function evalcode() {
 		return array(
 			'check' => '
-			if($GLOBALS[\'page\'] != 1 || !empty($_GET[\'filter\']) || !empty($_GET[\'orderby\'])
+			if($GLOBALS[\'page\'] != 1 || !empty($_GET[\'filter\'])
 			|| $_G[\'basescript\'] == \'forum\' && $parameter[\'fids\'] && !in_array($_G[\'fid\'], $parameter[\'fids\'])
 			|| $_G[\'basescript\'] == \'group\' && $parameter[\'groups\'] && !in_array($_G[\'grouptypeid\'], $parameter[\'groups\'])
 			) {

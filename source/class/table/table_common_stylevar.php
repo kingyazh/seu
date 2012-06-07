@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: table_common_stylevar.php 27737 2012-02-13 09:46:21Z monkey $
+ *      $Id: table_common_stylevar.php 28934 2012-03-20 04:00:22Z chenmengshu $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -34,7 +34,7 @@ class table_common_stylevar extends discuz_table
 	}
 
 	public function update_substitute_by_styleid($substitute, $id, $stylevarids = array()) {
-		if(!$substitute || !is_string($substitute) || !$id) {
+		if(!is_string($substitute) || !$id) {
 			return;
 		}
 		DB::update($this->_table, array('substitute' => $substitute), ($stylevarids ? DB::field('stylevarid', $stylevarids).' AND ' : '').DB::field('styleid', $id));

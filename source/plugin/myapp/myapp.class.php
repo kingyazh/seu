@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: myapp.class.php 26825 2011-12-23 10:23:54Z svn_project_zhangjie $
+ *      $Id: myapp.class.php 29265 2012-03-31 06:03:26Z yexinhao $
  */
 
 class plugin_myapp{
@@ -148,4 +148,3 @@ class plugin_myapp_userapp extends plugin_myapp {
 		}
 	}
 }
-?>

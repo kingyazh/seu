@@ -4,7 +4,7 @@
  *		[Discuz!] (C)2001-2099 Comsenz Inc.
  *		This is NOT a freeware, use is subject to license terms
  *
- *		$Id: Storage.php 28286 2012-02-27 06:43:22Z yexinhao $
+ *		$Id: Storage.php 29263 2012-03-31 05:45:08Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -55,7 +55,7 @@ class Cloud_Service_Storage {
 				);
 		ksort($signGetx);
 
-		return self::$_util->_hash_hmac('sha1', self::$_util->httpBuildQuery($signGetx, '', '&'), self::$_encKey);
+		return self::$_util->hashHmac('sha1', self::$_util->httpBuildQuery($signGetx, '', '&'), self::$_encKey);
 	}
 
 	public function makeIframeUrl($formhash) {
@@ -96,7 +96,7 @@ class Cloud_Service_Storage {
 		$filename = strtolower($filename[1]);
 		$post = 'http://dz.xf.qq.com/ftn.php?v=1&&';
 
-		$k = self::$_util->_hash_hmac('sha1', sprintf('%s|%s|%s', $sha1, $_G['timestamp'], self::$_siteId), self::$_encKey);
+		$k = self::$_util->hashHmac('sha1', sprintf('%s|%s|%s', $sha1, $_G['timestamp'], self::$_siteId), self::$_encKey);
 
 		$parm = array(
 			'site_id' => self::$_siteId,
@@ -169,4 +169,3 @@ class Cloud_Service_Storage {
 		return $attachment;
 	}
 }
-?>

@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: ConnectOAuth.php 27709 2012-02-13 03:13:04Z zhouxiaobo $
+ *      $Id: ConnectOAuth.php 29263 2012-03-31 05:45:08Z yexinhao $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -203,6 +203,27 @@ class Cloud_Service_Client_ConnectOAuth extends Cloud_Service_Client_OAuth {
 		}
 
 		$paramsName = array('title', 'url', 'comment', 'summary', 'images', 'source', 'type', 'playurl', 'nswb');
+
+		if($params['title']) {
+			$params['title'] = cutstr($params['title'], 72, '');
+		}
+
+		if($params['comment']) {
+			$params['comment'] = cutstr($params['comment'], 80, '');
+		}
+
+		if($params['summary']) {
+			$params['summary'] = cutstr($params['summary'], 160, '');
+		}
+
+		if($params['images']) {
+			$params['images'] = cutstr($params['images'], 255, '');
+		}
+
+		if($params['playurl']) {
+			$params['playurl'] = cutstr($params['playurl'], 256, '');
+		}
+
 		$extra = array(
 			'oauth_token' => $accessToken,
 			'openid' => $openId,
@@ -289,36 +310,6 @@ class Cloud_Service_Client_ConnectOAuth extends Cloud_Service_Client_OAuth {
 
 	}
 
-	public function connectAddWeiBo($openId, $accessToken, $accessTokenSecret, $params) {
-
-		if(!$params['content']) {
-			throw new Exception('Required Parameter Missing');
-		}
-
-		$paramsName = array('content', 'img');
-		$extra = array(
-			'oauth_token' => $accessToken,
-			'openid' => $openId,
-			'format' => 'xml',
-			'type' => '1',
-		);
-
-		foreach($paramsName as $name) {
-			if($params[$name]) {
-				$extra[$name] = $params[$name];
-			}
-		}
-		$this->setTokenSecret($accessTokenSecret);
-		$response = $this->_request($this->_addWeiBoURL, $extra, 'POST');
-
-		$data = $this->_xmlParse($response);
-		if(isset($data['ret']) && $data['ret'] == 0) {
-			return $data;
-		} else {
-			throw new Exception($data['msg'], $data['ret']);
-		}
-	}
-
 	public function connectGetRepostList($openId, $accessToken, $accessTokenSecret, $params) {
 		if(!isset($params['flag']) || !$params['rootid'] || !isset($params['pageflag']) || !isset($params['pagetime']) || !$params['reqnum'] || !isset($params['twitterid'])) {
 			throw new Exception('Required Parameter Missing');
@@ -347,5 +338,3 @@ class Cloud_Service_Client_ConnectOAuth extends Cloud_Service_Client_OAuth {
 	}
 
 }
-
-?>

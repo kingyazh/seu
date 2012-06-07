@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: lang_notification.php 27449 2012-02-01 05:32:35Z zhangguosheng $
+ *      $Id: lang_notification.php 28954 2012-03-20 09:23:02Z monkey $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -99,13 +99,13 @@ $lang = array
 
 	'reason_quickclear' => '您的{cleartype} 被 {actor} 清除 <div class="quote"><blockquote>{reason}</blockquote></div>',
 
-	'modthreads_delete' => '您发表的主题 {threadsubject} 未通过审核，现已被删除！<div class="quote"><blockquote>{reason}</blockquote></div>',
+	'modthreads_delete' => '您发表的主题 {threadsubject} 未通过审核，现已被删除！',
 
-	'modthreads_validate' => '您发表的主题 <a href="forum.php?mod=viewthread&tid={tid}" target="_blank">{threadsubject}</a> 已审核通过！ &nbsp; <a href="forum.php?mod=viewthread&tid={tid}" target="_blank" class="lit">查看 &rsaquo;</a> <div class="quote"><blockquote>{reason}</blockquote></div>',
+	'modthreads_validate' => '您发表的主题 <a href="forum.php?mod=viewthread&tid={tid}" target="_blank">{threadsubject}</a> 已审核通过！ &nbsp; <a href="forum.php?mod=viewthread&tid={tid}" target="_blank" class="lit">查看 &rsaquo;</a></div>',
 
-	'modreplies_delete' => '您发表回复未通过审核，现已被删除！ <p class="summary">回复内容：<span>{post}</span></p> <div class="quote"><blockquote>{reason}</blockquote></div>',
+	'modreplies_delete' => '您发表回复未通过审核，现已被删除！ <p class="summary">回复内容：<span>{post}</span></p>',
 
-	'modreplies_validate' => '您发表的回复已审核通过！ &nbsp; <a href="forum.php?mod=redirect&goto=findpost&pid={pid}&ptid={tid}" target="_blank" class="lit">查看 &rsaquo;</a> <p class="summary">回复内容：<span>{post}</span></p> <div class="quote"><blockquote>{reason}</blockquote></div>',
+	'modreplies_validate' => '您发表的回复已审核通过！ &nbsp; <a href="forum.php?mod=redirect&goto=findpost&pid={pid}&ptid={tid}" target="_blank" class="lit">查看 &rsaquo;</a> <p class="summary">回复内容：<span>{post}</span></p>',
 
 	'transfer' => '您收到一笔来自 {actor} 的积分转账 {credit} &nbsp; <a href="home.php?mod=spacecp&ac=credit&op=log&suboperation=creditslog" target="_blank" class="lit">查看 &rsaquo;</a>
 <p class="summary">{actor} 说：<span>{transfermessage}</span></p>',
@@ -220,6 +220,7 @@ $lang = array
 	'exit_collection' => '您已经退出维护淘专辑  <a href="forum.php?mod=collection&action=view&ctid={ctid}">{collectionname}</a>。',
 	'collection_becommented' => '您的淘专辑  <a href="forum.php?mod=collection&action=view&ctid={ctid}">{collectionname}</a> 收到了新评论。',
 	'collection_befollowed' => '您的淘专辑  <a href="forum.php?mod=collection&action=view&ctid={ctid}">{collectionname}</a> 有新用户订阅了！',
+	'collection_becollected' => '恭喜您的主题 <a href="forum.php?mod=viewthread&tid={tid}">{threadname}</a> 被淘专辑  <a href="forum.php?mod=collection&action=view&ctid={ctid}">{collectionname}</a> 收录了！',
 
 	'pmreportcontent' => '{pmreportcontent}',
 

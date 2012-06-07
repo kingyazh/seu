@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: discuz_upgrade.php 27678 2012-02-09 08:11:21Z svn_project_zhangjie $
+ *      $Id: discuz_upgrade.php 29551 2012-04-18 08:08:28Z svn_project_zhangjie $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -20,26 +20,34 @@ class discuz_upgrade {
 	public function fetch_updatefile_list($upgradeinfo) {
 
 		$file = DISCUZ_ROOT.'./data/update/Discuz! X'.$upgradeinfo['latestversion'].' Release['.$upgradeinfo['latestrelease'].']/updatelist.tmp';
+		$upgradedataflag = true;
 		$upgradedata = @file_get_contents($file);
 		if(!$upgradedata) {
-			$upgradedata = dfsockopen($this->upgradeurl.$upgradeinfo['upgradelist']);
+			$upgradedata = dfsockopen($this->upgradeurl.substr($upgradeinfo['upgradelist'], 0, -4).strtolower('_'.$this->locale.'_'.$this->charset).'.txt');
+			$upgradedataflag = false;
+		}
+
+		$return = array();
+		$upgradedataarr = explode("\r\n", $upgradedata);
+		foreach($upgradedataarr as $k => $v) {
+			if(!$v) {
+				continue;
+			}
+			$return['file'][$k] = trim(substr($v, 34));
+			$return['md5'][$k] = substr($v, 0, 32);
+			if(trim(substr($v, 32, 2)) != '*') {
+				@unlink($file);
+				return array();
+			}
+
+		}
+		if(!$upgradedataflag) {
 			$this->mkdirs(dirname($file));
 			$fp = fopen($file, 'w');
 			if(!$fp) {
 				return array();
 			}
 			fwrite($fp, $upgradedata);
-		}
-
-		$return = array();
-		$upgradedata = explode("\r\n", $upgradedata);
-		foreach($upgradedata as $k => $v) {
-			if(!$v) {
-				continue;
-			}
-			$return['file'][$k] = trim(substr($v, 34));
-			$return['md5'][$k] = substr($v, 0, 32);
-
 		}
 
 		return $return;
@@ -66,11 +74,7 @@ class discuz_upgrade {
 						$searchlist[] = "\r\n".$file;
 						continue;
 					}
-					if($this->compare_file_content(DISCUZ_ROOT.$file, $this->upgradeurl.$this->versionpath().'/'.DISCUZ_RELEASE.'/'.$this->locale.'_'.$this->charset.'/upload/'.$file.'sc')) {
-						$showlist[$file] = $file;
-					} else {
 						$modifylist[$file] = $file;
-					}
 				} else {
 					$showlist[$file] = $file;
 				}
@@ -94,7 +98,8 @@ class discuz_upgrade {
 			return false;
 		}
 		$content = preg_replace('/\s/', '', file_get_contents($file));
-		$remotecontent = preg_replace('/\s/', '', file_get_contents($remotefile));
+		$ctx = stream_context_create(array('http' => array('timeout' => 60)));
+		$remotecontent = preg_replace('/\s/', '', file_get_contents($remotefile, false, $ctx));
 		if(strcmp($content, $remotecontent)) {
 			return false;
 		} else {
@@ -107,15 +112,18 @@ class discuz_upgrade {
 		include_once libfile('class/xml');
 		include_once libfile('function/cache');
 
+		$return = false;
 		$upgradefile = $this->upgradeurl.$this->versionpath().'/'.DISCUZ_RELEASE.'/upgrade.xml';
 		$response = xml2array(dfsockopen($upgradefile));
 		if(isset($response['cross']) || isset($response['patch'])) {
 			C::t('common_setting')->update('upgrade', $response);
+			$return = true;
 		} else {
 			C::t('common_setting')->update('upgrade', '');
+			$return = false;
 		}
 		updatecache('setting');
-		return true;
+		return $return;
 	}
 
 	public function check_folder_perm($updatefilelist) {
@@ -173,9 +181,10 @@ class discuz_upgrade {
 			if(!self::mkdirs(dirname($dir))) {
 				return false;
 			}
-			if(!@mkdir($dir)) {
+			if(!@mkdir($dir, 0777)) {
 				return false;
 			}
+			@touch($dir.'/index.htm'); @chmod($dir.'/index.htm', 0777);
 		}
 		return true;
 	}
@@ -210,6 +219,38 @@ class discuz_upgrade {
 			break;
 		}
 		return $versionpath;
+	}
+
+	function copy_dir($srcdir, $destdir) {
+		$dir = @opendir($srcdir);
+		while($entry = @readdir($dir)) {
+			$file = $srcdir.$entry;
+			if($entry != '.' && $entry != '..') {
+				if(is_dir($file)) {
+					self::copy_dir($file.'/', $destdir.$entry.'/');
+				} else {
+					self::mkdirs(dirname($destdir.$entry));
+					copy($file, $destdir.$entry);
+				}
+			}
+		}
+		closedir($dir);
+	}
+
+	function rmdirs($srcdir) {
+		$dir = @opendir($srcdir);
+		while($entry = @readdir($dir)) {
+			$file = $srcdir.$entry;
+			if($entry != '.' && $entry != '..') {
+				if(is_dir($file)) {
+					self::rmdirs($file.'/');
+				} else {
+					@unlink($file);
+				}
+			}
+		}
+		closedir($dir);
+		rmdir($srcdir);
 	}
 }
 ?>

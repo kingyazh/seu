@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: function_delete.php 28448 2012-03-01 03:27:53Z chenmengshu $
+ *      $Id: function_delete.php 29479 2012-04-13 08:21:02Z zhangguosheng $
  */
 
 if(!defined('IN_DISCUZ')) {
@@ -30,9 +30,13 @@ function deletemember($uids, $delpost = true) {
 
 	$arruids = $uids;
 	$uids = dimplode($uids);
-	$numdeleted = count(C::t('common_member')->fetch_all($arruids));
-	foreach(array('common_member_field_forum', 'common_member_field_home', 'common_member_count', 'common_member_log', 'common_member_profile',
-		'common_member_verify', 'common_member_status', 'common_member_validate', 'common_member_magic') as $table) {
+	$numdeleted = count($arruids);
+	foreach(array('common_member_field_forum', 'common_member_field_home', 'common_member_count',
+		'common_member_profile', 'common_member_status',) as $table) {
+		C::t($table)->delete($arruids, true, 1);
+	}
+
+	foreach(array( 'common_member_log', 'common_member_verify', 'common_member_validate', 'common_member_magic') as $table) {
 		C::t($table)->delete($arruids, true);
 	}
 
@@ -87,7 +91,7 @@ function deletemember($uids, $delpost = true) {
 		'home_userapp', 'home_userappfield', 'home_show', 'forum_collectioncomment', 'forum_collectionfollow', 'forum_collectionteamworker') as $table) {
 		C::t($table)->delete_by_uid($arruids);
 	}
-	C::t('common_member')->delete($arruids);
+	C::t('common_member')->delete($arruids, 1, 1);
 
 	manyoulog('user', $uids, 'delete');
 	if($_G['setting']['plugins']['func'][HOOKTYPE]['deletemember']) {
@@ -695,7 +699,7 @@ function deletepics($picids) {
 	C::t('home_feed')->delete_by_id_idtype($newids, 'picid');
 	C::t('home_clickuser')->delete_by_id_idtype($newids, 'picid');
 	C::t('common_moderate')->delete($newids, 'picid');
-	C::t('common_moderate')->delete($newsids, 'picid_cid');
+	C::t('common_moderate')->delete($newids, 'picid_cid');
 
 	if($sizes) {
 		foreach ($sizes as $uid => $setarr) {
@@ -743,6 +747,7 @@ function deletealbums($albumids) {
 		}
 		$counts[$value['uid']]['albums'] -= 1;
 	}
+
 	if(empty($dels)) return array();
 
 	$pics = $picids = array();
@@ -753,7 +758,9 @@ function deletealbums($albumids) {
 		$sizes[$value['uid']] = $sizes[$value['uid']] + $value['size'];
 	}
 
-	C::t('home_pic')->delete_by_albumid($newids);
+	if($picids) {
+		deletepics($picids);
+	}
 	C::t('home_album')->delete($newids);
 	C::t('home_feed')->delete_by_id_idtype($newids, 'albumid');
 	if($picids) {
@@ -767,11 +774,6 @@ function deletealbums($albumids) {
 			updatemembercount($uid, array('albums' => $albumnum, 'attachsize' => -$attachsize), false);
 		}
 	}
-
-	if($pics) {
-		deletepicfiles($pics);
-	}
-
 	return $dels;
 }
 

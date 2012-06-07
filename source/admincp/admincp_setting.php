@@ -4,7 +4,7 @@
  *      [Discuz!] (C)2001-2099 Comsenz Inc.
  *      This is NOT a freeware, use is subject to license terms
  *
- *      $Id: admincp_setting.php 28503 2012-03-01 11:41:29Z zhangguosheng $
+ *      $Id: admincp_setting.php 30458 2012-05-30 01:50:37Z zhangguosheng $
  */
 if(!defined('IN_DISCUZ') || !defined('IN_ADMINCP')) {
 	exit('Access Denied');
@@ -54,8 +54,8 @@ if(!submitcheck('settingsubmit')) {
 		$memorydata = memory('check') ? array('setting_memorydata', 'setting&operation=memorydata', $current['memorydata']) : '';
 		showsubmenu('setting_optimize', array(
 			array('setting_cachethread', 'setting&operation=cachethread', $current['cachethread']),
-			array('setting_memory', 'setting&operation=memory', $current['memory']),
 			array('setting_serveropti', 'setting&operation=serveropti', $current['serveropti']),
+			array('setting_memory', 'setting&operation=memory', $current['memory']),
 			$memorydata
 		));
 	} elseif($operation == 'seo') {
@@ -711,7 +711,7 @@ if(!submitcheck('settingsubmit')) {
 				showtablerow('', array('class="td24"', 'class="td31"', 'class="longtxt"', 'class="td25"'), array(
 					cplang('setting_seo_rewritestatus_'.$k),
 					implode(', ', array_keys($rewritedata['rulevars'][$k])),
-					'<input onclick="doane(event)" name="settingnew[rewriterule]['.$k.']" class="txt" value="'.htmlspecialchars($v).'"/>',
+					'<input onclick="doane(event)" name="settingnew[rewriterule]['.$k.']" class="txt" value="'.dhtmlspecialchars($v).'"/>',
 					'<input type="checkbox" name="settingnew[rewritestatus][]" class="checkbox" value="'.$k.'" '.(in_array($k, $setting['rewritestatus']) ? 'checked="checked"' : '').'/>'
 				));
 			}
@@ -839,12 +839,13 @@ EOF;
 			foreach($portalcategory as $category) {
 				$category['id'] = $category['catid'];
 				$category['name'] = $category['catname'];
+				$category['keywords'] = $category['keyword'];
 				if($category['level'] == 0) {
-					$afirst[$category[catid]] = $category;
+					$afirst[$category['catid']] = $category;
 				} elseif($category['level'] == 1) {
-					$aseconds[$category[upid]][] = $category;
+					$aseconds[$category['upid']][] = $category;
 				} else {
-					$athirds[$category[upid]][] = $category;
+					$athirds[$category['upid']][] = $category;
 				}
 			}
 		}
@@ -856,17 +857,17 @@ EOF;
 				showtitle(cplang('setting_seo_'.$subtype).($subtype == 'threadlist' || $subtype == 'articlelist' ? ' &nbsp; <a href="javascript:;" class="act" onclick="if($(\''.$subtype.'_detail\').style.display){$(\''.$subtype.'_detail\').style.display=\'\';this.innerHTML=\''.cplang('setting_seo_closedetail').'\';}else{$(\''.$subtype.'_detail\').style.display=\'none\';this.innerHTML=\''.cplang('setting_seo_opendetail').'\';};return false;">'.cplang('setting_seo_opendetail').'</a>' : ''));
 				showtablerow('', array('width="12%"', ''), array(
 						cplang('setting_seo_seotitle'),
-						'<input type="text" id="t_'.$type.$subtype.'" onfocus="getcodetext(this, \''.$subtype.'\');" name="settingnew[seotitle]['.$subtype.']" value="'.htmlspecialchars($setting['seotitle'][$subtype]).'" class="txt" style="width:280px;" />',
+						'<input type="text" id="t_'.$type.$subtype.'" onfocus="getcodetext(this, \''.$subtype.'\');" name="settingnew[seotitle]['.$subtype.']" value="'.dhtmlspecialchars($setting['seotitle'][$subtype]).'" class="txt" style="width:280px;" />',
 					)
 				);
 				showtablerow('', array('width="12%"', ''), array(
 						cplang('setting_seo_seokeywords'),
-						'<input type="text" id="k_'.$type.$subtype.'" onfocus="getcodetext(this, \''.$subtype.'\');" name="settingnew[seokeywords]['.$subtype.']" value="'.htmlspecialchars($setting['seokeywords'][$subtype]).'" class="txt" style="width:280px;" />'
+						'<input type="text" id="k_'.$type.$subtype.'" onfocus="getcodetext(this, \''.$subtype.'\');" name="settingnew[seokeywords]['.$subtype.']" value="'.dhtmlspecialchars($setting['seokeywords'][$subtype]).'" class="txt" style="width:280px;" />'
 					)
 				);
 				showtablerow('', array('width="12%"', ''), array(
 						cplang('setting_seo_seodescription'),
-						'<input type="text" id="d_'.$type.$subtype.'" onfocus="getcodetext(this, \''.$subtype.'\');" name="settingnew[seodescription]['.$subtype.']" value="'.htmlspecialchars($setting['seodescription'][$subtype]).'" class="txt" style="width:280px;" />',
+						'<input type="text" id="d_'.$type.$subtype.'" onfocus="getcodetext(this, \''.$subtype.'\');" name="settingnew[seodescription]['.$subtype.']" value="'.dhtmlspecialchars($setting['seodescription'][$subtype]).'" class="txt" style="width:280px;" />',
 					)
 				);
 				if($subtype == 'threadlist') {
@@ -1000,6 +1001,7 @@ EOF;
 		showsetting('setting_functions_mod_warninglimit', 'settingnew[warninglimit]', $setting['warninglimit'], 'text');
 		showsetting('setting_functions_mod_warningexpiration', 'settingnew[warningexpiration]', $setting['warningexpiration'], 'text');
 		showsetting('setting_functions_mod_rewardexpiration', 'settingnew[rewardexpiration]', $setting['rewardexpiration'], 'text');
+		showsetting('setting_functions_mod_moddetail', 'settingnew[moddetail]', $setting['moddetail'], 'radio');
 		showtablefooter();
 
 		$setting['heatthread'] = dunserialize($setting['heatthread']);
@@ -1073,6 +1075,7 @@ EOF;
 		showsetting('setting_functions_other_at_anyone', 'settingnew[at_anyone]', $setting['at_anyone'], 'radio');
 		showsetting('setting_functions_other_chatpmrefreshtime', 'settingnew[chatpmrefreshtime]', $setting['chatpmrefreshtime'], 'text');
 		showsetting('setting_functions_other_collectionteamworkernum', 'settingnew[collectionteamworkernum]', $setting['collectionteamworkernum'], 'text');
+		showsetting('setting_functions_other_closeforumorderby', 'settingnew[closeforumorderby]', $setting['closeforumorderby'], 'radio');
 		showtablefooter();
 
 		$setting['guide'] = unserialize($setting['guide']);
@@ -1453,6 +1456,31 @@ EOF;
 			array(99, cplang('setting_sec_seccode_type_bitmap'), array('seccodeimageext' => 'none', 'seccodeimagewh' => 'none')),
 		);
 
+		$dir = DISCUZ_ROOT.'./source/class/seccode';
+		$codedir = dir($dir);
+		$seccodeext = $seccodesettings = array();
+		while($entry = $codedir->read()) {
+			if(!in_array($entry, array('.', '..')) && preg_match("/^seccode\_[\w\.]+$/", $entry) && substr($entry, -4) == '.php' && strlen($entry) < 30 && is_file($dir.'/'.$entry)) {
+				@include_once $dir.'/'.$entry;
+				$codeclass = substr($entry, 0, -4);
+				if(class_exists($codeclass)) {
+					$code = new $codeclass();
+					$script = substr($codeclass, 8);
+					if(!is_numeric($script)) {
+						$seccodesettings[$script]['name'] = lang('seccode/'.$script, $code->name);
+						$seccodesettings[$script]['copyright'] = lang('seccode/'.$script, $code->copyright);
+						if(method_exists($code, 'getsetting')) {
+							$seccodesettings[$script]['setting'] = $code->getsetting();
+						}
+						foreach($seccodetypearray as $k => $v) {
+							$seccodetypearray[$k][2]['seccodeextra_'.$script] = 'none';
+						}
+						$seccodetypearray[] = array($script, $seccodesettings[$script]['name'], array('seccodeimageext' => 'none', 'seccodeimagewh' => 'none', 'seccodeextra_'.$script => ''));
+					}
+				}
+			}
+		}
+
 		showtableheader('', '', 'id="base"'.($_GET['anchor'] != 'base' ? ' style="display: none"' : ''));
 		showsetting('setting_sec_floodctrl', 'settingnew[floodctrl]', $setting['floodctrl'], 'text');
 		showsetting('setting_sec_base_need_email', 'settingnew[need_email]', $setting['need_email'], 'radio');
@@ -1472,11 +1500,11 @@ EOF;
 		)), $setting['seccodestatus'], 'binmcheckbox');
 		showsetting('setting_sec_seccode_minposts', 'settingnew[seccodedata][minposts]', $setting['seccodedata']['minposts'], 'text');
 		showsetting('setting_sec_seccode_type', array('settingnew[seccodedata][type]', $seccodetypearray), $setting['seccodedata']['type'], 'mradio', '', 0, cplang('setting_sec_seccode_type_comment').$seccheckhtml);
-		showtagheader('tbody', 'seccodeimagewh', $setting['seccodedata']['type'] != 3 && $setting['seccodedata']['type'] != 99, 'sub');
+		showtagheader('tbody', 'seccodeimagewh', is_numeric($setting['seccodedata']['type']) && $setting['seccodedata']['type'] != 3 && $setting['seccodedata']['type'] != 99, 'sub');
 		showsetting('setting_sec_seccode_width', 'settingnew[seccodedata][width]', $setting['seccodedata']['width'], 'text');
 		showsetting('setting_sec_seccode_height', 'settingnew[seccodedata][height]', $setting['seccodedata']['height'], 'text');
 		showtagfooter('tbody');
-		showtagheader('tbody', 'seccodeimageext', $setting['seccodedata']['type'] != 2 && $setting['seccodedata']['type'] != 3 && $setting['seccodedata']['type'] != 99, 'sub');
+		showtagheader('tbody', 'seccodeimageext', is_numeric($setting['seccodedata']['type']) && $setting['seccodedata']['type'] != 2 && $setting['seccodedata']['type'] != 3 && $setting['seccodedata']['type'] != 99, 'sub');
 		showsetting('setting_sec_seccode_scatter', 'settingnew[seccodedata][scatter]', $setting['seccodedata']['scatter'], 'text');
 		showsetting('setting_sec_seccode_background', 'settingnew[seccodedata][background]', $setting['seccodedata']['background'], 'radio');
 		showsetting('setting_sec_seccode_adulterate', 'settingnew[seccodedata][adulterate]', $setting['seccodedata']['adulterate'], 'radio');
@@ -1488,6 +1516,30 @@ EOF;
 		showsetting('setting_sec_seccode_shadow', 'settingnew[seccodedata][shadow]', $setting['seccodedata']['shadow'], 'radio');
 		showsetting('setting_sec_seccode_animator', 'settingnew[seccodedata][animator]', $setting['seccodedata']['animator'], 'radio', !function_exists('imagegif'));
 		showtagfooter('tbody');
+
+		foreach($seccodesettings as $script => $seccodesetting) {
+			if(!$seccodesetting['setting']) {
+				continue;
+			}
+			showtagheader('tbody', 'seccodeextra_'.$script, $setting['seccodedata']['type'] == $script, 'sub');
+			showtitle(($seccodesetting['copyright'] ? '<span class="right">'.$seccodesetting['copyright'].'&nbsp;</span>' : '').$seccodesetting['name'], 'setting_datetime_format');
+			foreach($seccodesetting['setting'] as $settingvar => $set) {
+				if(!empty($set['value']) && is_array($set['value'])) {
+					foreach($set['value'] as $k => $v) {
+						$set['value'][$k][1] = lang('seccode/'.$type, $set['value'][$k][1]);
+					}
+				}
+				$varname = in_array($set['type'], array('mradio', 'mcheckbox', 'select', 'mselect')) ?
+					($set['type'] == 'mselect' ? array('settingnew[seccodedata][extra]['.$script.']['.$settingvar.'][]', $set['value']) : array('settingnew[seccodedata][extra]['.$script.']['.$settingvar.']', $set['value']))
+					: 'settingnew[seccodedata][extra]['.$script.']['.$settingvar.']';
+				$value = $setting['seccodedata']['extra'][$script][$settingvar] != '' ? $setting['seccodedata']['extra'][$script][$settingvar] : $set['default'];
+				$comment = lang('seccode/'.$type, $set['title'].'_comment');
+				$comment = $comment != $set['title'].'_comment' ? $comment : '';
+				showsetting(lang('seccode/'.$type, $set['title']).':', $varname, $value, $set['type'], '', 0, $comment);
+			}
+			showtagfooter('tbody');
+		}
+
 		showsubmit('settingsubmit');
 		showtablefooter();
 
@@ -1860,11 +1912,21 @@ EOT;
 				'<input type="text" class="txt" name="settingnew[search][group][maxsearchresults]" value="'.$setting['search']['group']['maxsearchresults'].'" />',
 			);
 		}
+		if(helper_access::check_module('collection')) {
+			$search_collection = array(
+				$setting['search']['collection']['status'] ? '<input type="checkbox" class="checkbox" name="settingnew[search][collection][status]" value="1" checked="checked" />' : '<input type="checkbox" class="checkbox" name="settingnew[search][collection][status]" value="1" />',
+				cplang('setting_search_status_collection'),
+				'<input type="text" class="txt" name="settingnew[search][collection][searchctrl]" value="'.$setting['search']['collection']['searchctrl'].'" />',
+				'<input type="text" class="txt" name="settingnew[search][collection][maxspm]" value="'.$setting['search']['collection']['maxspm'].'" />',
+				'<input type="text" class="txt" name="settingnew[search][collection][maxsearchresults]" value="'.$setting['search']['collection']['maxsearchresults'].'" />',
+			);
+		}
 		showtablerow('', array('width="100"', 'width="120"', 'width="120"', 'width="120"'), $search_portal);
 		showtablerow('', '', $search_forum);
 		showtablerow('', '', $search_blog);
 		showtablerow('', '', $search_album);
 		showtablerow('', '', $search_group);
+		showtablerow('', '', $search_collection);
 		showtablefooter();
 
 
@@ -1975,7 +2037,7 @@ EOT;
 		$ea = array('eAccelerator',
 			$cache_extension['eaccelerator'] ? cplang('setting_memory_php_enable') : cplang('setting_memory_php_disable'),
 			$cache_config['eaccelerator'] ? cplang('open') : cplang('closed'),
-			'--'
+			$cache_type == 'eaccelerator' ? $do_clear_link : '--'
 			);
 
 		showtablerow('', array('width="100"', 'width="120"', 'width="120"'), $redis);
@@ -2028,8 +2090,7 @@ EOT;
 					} elseif($k == 'forumindex') {
 						memory('rm', 'forum_index_page_'.$id);
 					} elseif($k == 'diyblock' || $k == 'diyblockoutput') {
-						require libfile('function/block');
-						block_memory_clear($id);
+						C::t('common_block')->clear_cache($id);
 					} else {
 						C::t($k)->clear_cache($id);
 					}
@@ -2578,6 +2639,8 @@ EOT;
 		$settingnew['bannedmessages'] = bindec(intval($settingnew['bannedmessages'][3]).intval($settingnew['bannedmessages'][2]).intval($settingnew['bannedmessages'][1]));
 		$settingnew['activityextnum'] = intval($settingnew['activityextnum']);
 		$settingnew['activitypp'] = intval($settingnew['activitypp']) == 0 ? 8 : intval($settingnew['activitypp']);
+		if(!$settingnew['allowpostcomment']) $settingnew['allowpostcomment'] = array();
+		if(!$settingnew['activityfield']) $settingnew['activityfield'] = array();
 	}
 	if($operation == 'permissions') {
 		$settingnew['alloweditpost'] = bindec(intval($settingnew['alloweditpost'][6]).intval($settingnew['alloweditpost'][5]).intval($settingnew['alloweditpost'][4]).intval($settingnew['alloweditpost'][3]).intval($settingnew['alloweditpost'][2]).intval($settingnew['alloweditpost'][1]));
@@ -2715,7 +2778,7 @@ EOT;
 		if(isset($settingnew['watermarktext']['album'])) {
 			watermarkinit('album');
 		}
-		foreach(array('protal', 'forum', 'album') as $imgwatertype) {
+		foreach(array('portal', 'forum', 'album') as $imgwatertype) {
 			if($settingnew['watermarkstatus'][$imgwatertype]) {
 				$settingnew['watermarktrans'][$imgwatertype] = intval($settingnew['watermarktrans'][$imgwatertype]);
 				$settingnew['watermarkquality'][$imgwatertype] = intval($settingnew['watermarkquality'][$imgwatertype]);
@@ -2891,7 +2954,7 @@ EOT;
 	}
 
 	if(isset($settingnew['blockmaxaggregationitem'])) {
-		$settingnew['blockmaxaggregationitem'] = min(intval($settingnew['blockmaxaggregationitem']), 65535);
+		$settingnew['blockmaxaggregationitem'] = intval($settingnew['blockmaxaggregationitem']);
 	}
 
 	if(isset($settingnew['blockcachetimerange'])) {
@@ -2995,7 +3058,7 @@ EOT;
 }
 
 function dateformat($string, $operation = 'formalise') {
-	$string = htmlspecialchars(trim($string));
+	$string = dhtmlspecialchars(trim($string));
 	$replace = $operation == 'formalise' ? array(array('n', 'j', 'y', 'Y'), array('mm', 'dd', 'yy', 'yyyy')) : array(array('mm', 'dd', 'yyyy', 'yy'), array('n', 'j', 'Y', 'y'));
 	return str_replace($replace[0], $replace[1], $string);
 }
@@ -3060,17 +3123,17 @@ function showdetial(&$forum, $varname, $type = '', $last = '', $toggle = false) 
 			echo '<tr class="header"><td colspan="2">'.$tab1.$forum['name'].'</td></tr>';
 			showtablerow('', array('width="12%"', ''), array(
 					$tab2.cplang('setting_seo_seotitle'),
-					'<input type="text" id="t_'.$forum['id'].'_'.$varname.'" onfocus="getcodetext(this, \''.$varname.'\');" name="seo'.$varname.'['.$forum[id].'][seotitle]" value="'.htmlspecialchars($forum['seotitle']).'" class="txt" style="width:280px;" />',
+					'<input type="text" id="t_'.$forum['id'].'_'.$varname.'" onfocus="getcodetext(this, \''.$varname.'\');" name="seo'.$varname.'['.$forum[id].'][seotitle]" value="'.dhtmlspecialchars($forum['seotitle']).'" class="txt" style="width:280px;" />',
 				)
 			);
 			showtablerow('', array('width="12%"', ''), array(
 					$tab2.cplang('setting_seo_seokeywords'),
-					'<input type="text" id="k_'.$forum['id'].'_'.$varname.'" onfocus="getcodetext(this, \''.$varname.'\');" name="seo'.$varname.'['.$forum[id].'][keywords]" value="'.htmlspecialchars($forum['keywords']).'" class="txt" style="width:280px;" />',
+					'<input type="text" id="k_'.$forum['id'].'_'.$varname.'" onfocus="getcodetext(this, \''.$varname.'\');" name="seo'.$varname.'['.$forum[id].'][keywords]" value="'.dhtmlspecialchars($forum['keywords']).'" class="txt" style="width:280px;" />',
 				)
 			);
 			showtablerow('', array('width="12%"', ''), array(
 					$tab2.cplang('setting_seo_seodescription'),
-					'<input type="text" id="d_'.$forum['id'].'_'.$varname.'" onfocus="getcodetext(this, \''.$varname.'\');" name="seo'.$varname.'['.$forum[id].'][description]" value="'.htmlspecialchars($forum['description']).'" class="txt" style="width:280px;" />',
+					'<input type="text" id="d_'.$forum['id'].'_'.$varname.'" onfocus="getcodetext(this, \''.$varname.'\');" name="seo'.$varname.'['.$forum[id].'][description]" value="'.dhtmlspecialchars($forum['description']).'" class="txt" style="width:280px;" />',
 				)
 			);
 	} else {
